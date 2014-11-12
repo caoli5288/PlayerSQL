@@ -1,0 +1,12 @@
+plugin:
+  database: jdbc:mysql://127.0.0.1:3306/database
+  username: username
+  password: password
+
+sync:
+  health: true
+  food: true
+  exp: true
+  inventory: true
+  chest: true
+  potion: true
