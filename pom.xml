@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.mengcraft</groupId>
 	<artifactId>playersql</artifactId>
-	<version>1.5.3</version>
+	<version>1.6.0-SNAPSHOT</version>
 	<repositories>
 		<repository>
 			<id>repo.comphenix.net </id>
@@ -20,15 +20,30 @@
 			<artifactId>ProtocolLib</artifactId>
 			<version>3.4.0</version>
 		</dependency>
-		<dependency>
-			<groupId>net.milkbowl.vault</groupId>
-			<artifactId>Vault</artifactId>
-			<version>1.2.27</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
 			<version>1.6.4-R2.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<name>PlayerSQL</name>
 </project>
