@@ -110,26 +110,26 @@ public class PlayerSQL extends JavaPlugin {
 			this.onlineMap = new ConcurrentHashMap<String, Integer>();
 		}
 
-		@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-		public void openInventory(InventoryOpenEvent event) {
-			event.setCancelled(!getOnlineMap().containsKey(event.getPlayer().getName()));
-		}
-
 		@EventHandler(priority = EventPriority.MONITOR)
 		public void onPlayerQuit(PlayerQuitEvent event) {
 			if (getOnlineMap().containsKey(event.getPlayer().getName())) {
-				new Thread(new SavePlayerTask(event.getPlayer(), true)).start();
 				getServer().getScheduler().cancelTask(getOnlineMap().remove(event.getPlayer().getName()));
+				new Thread(new SavePlayerTask(event.getPlayer(), true)).start();
 			}
 		}
 
 		@EventHandler(priority = EventPriority.LOWEST)
-		public void playerJoinEvent(PlayerJoinEvent event) {
+		public void onPlayerJoin(PlayerJoinEvent event) {
 			new Thread(new LoadPlayerTask(event.getPlayer())).start();
 		}
 
 		@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-		public void playerDropItemEvent(PlayerDropItemEvent event) {
+		public void onOpenInventory(InventoryOpenEvent event) {
+			event.setCancelled(!getOnlineMap().containsKey(event.getPlayer().getName()));
+		}
+
+		@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+		public void onDropItem(PlayerDropItemEvent event) {
 			event.setCancelled(!getOnlineMap().containsKey(event.getPlayer().getName()));
 		}
 
