@@ -27,6 +27,7 @@ import org.mcstats.Metrics;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * GPLv2 license.
@@ -103,47 +104,44 @@ public class PlayerSQL extends JavaPlugin {
 	}
 
 	private class Events implements Listener {
-		private final HashMap<String, Integer> onlineMap;
+		private final Map<String, Integer> onlineMap;
 
 		public Events() {
-			onlineMap = new HashMap<String, Integer>();
+			this.onlineMap = new ConcurrentHashMap<String, Integer>();
 		}
 
 		@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 		public void openInventory(InventoryOpenEvent event) {
-			event.setCancelled(PlayerSQLManager.getManager().isFrozen(event.getPlayer().getName()));
+			event.setCancelled(!getOnlineMap().containsKey(event.getPlayer().getName()));
 		}
 
 		@EventHandler(priority = EventPriority.MONITOR)
 		public void onPlayerQuit(PlayerQuitEvent event) {
-			if (PlayerSQLManager.getManager().isFrozen(event.getPlayer().getName())) {
-				PlayerSQLManager.getManager().setFrozen(event.getPlayer().getName(), false);
-			} else {
+			if (getOnlineMap().containsKey(event.getPlayer().getName())) {
 				new Thread(new SavePlayerTask(event.getPlayer(), true)).start();
+				getServer().getScheduler().cancelTask(getOnlineMap().remove(event.getPlayer().getName()));
 			}
-			getServer().getScheduler().cancelTask(onlineMap.remove(event.getPlayer().getName()));
 		}
 
 		@EventHandler(priority = EventPriority.LOWEST)
 		public void playerJoinEvent(PlayerJoinEvent event) {
-			PlayerSQLManager.getManager().setFrozen(event.getPlayer().getName(), true);
-			int tast = Bukkit.getScheduler().runTaskTimer(plugin, new SavePlayerTimer(event.getPlayer()), 6000, 6000).getTaskId();
-			onlineMap.put(event.getPlayer().getName(), tast);
 			new Thread(new LoadPlayerTask(event.getPlayer())).start();
 		}
 
 		@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 		public void playerDropItemEvent(PlayerDropItemEvent event) {
-			if (PlayerSQLManager.getManager().isFrozen(event.getPlayer().getName())) {
-				event.setCancelled(true);
-			}
+			event.setCancelled(!getOnlineMap().containsKey(event.getPlayer().getName()));
+		}
+
+		public Map<String, Integer> getOnlineMap() {
+			return onlineMap;
 		}
 
 		private class SavePlayerTimer implements Runnable {
 			private final String name;
 
-			public SavePlayerTimer(Player player) {
-				this.name = player.getName();
+			public SavePlayerTimer(String name) {
+				this.name = name;
 			}
 
 			@Override
@@ -173,7 +171,8 @@ public class PlayerSQL extends JavaPlugin {
 						if (result.getInt(4) < 1) {
 							loadPlayer(result.getString(3));
 							lockPlayer(result.getString(2));
-							PlayerSQLManager.getManager().setFrozen(this.name, false);
+							int tast = Bukkit.getScheduler().runTaskTimer(plugin, new SavePlayerTimer(this.name), 6000, 6000).getTaskId();
+							getOnlineMap().put(this.name, tast);
 						} else {
 							if (check < 10) {
 								check = check + 1;
@@ -181,13 +180,15 @@ public class PlayerSQL extends JavaPlugin {
 								run();
 							} else {
 								loadPlayer(result.getString(3));
-								PlayerSQLManager.getManager().setFrozen(this.name, false);
+								int tast = Bukkit.getScheduler().runTaskTimer(plugin, new SavePlayerTimer(this.name), 6000, 6000).getTaskId();
+								getOnlineMap().put(this.name, tast);
 								getLogger().warning("Player " + name + " 's lock status error!");
 							}
 						}
 					} else {
 						newPlayer(uuid ? this.uid : this.name);
-						PlayerSQLManager.getManager().setFrozen(this.name, false);
+						int tast = Bukkit.getScheduler().runTaskTimer(plugin, new SavePlayerTimer(this.name), 6000, 6000).getTaskId();
+						getOnlineMap().put(this.name, tast);
 					}
 					result.close();
 					select.close();
@@ -241,19 +242,13 @@ public class PlayerSQL extends JavaPlugin {
 				}
 			}
 
-			/**
-			 * Re-serialize PotionEffect from JsonArray.
-			 *
-			 * @param effectArray
-			 *            JsonArray.
-			 * @return Collection<PotionEffect>.
-			 */
 			private Collection<PotionEffect> arrayToEffects(JsonArray effectArray) {
 				List<PotionEffect> effectList = new ArrayList<PotionEffect>();
 				for (JsonElement element : effectArray) {
 					JsonArray array = element.getAsJsonArray();
-					effectList.add(new PotionEffect(PotionEffectType.getByName(array.get(0).getAsString()), array
-							.get(1).getAsInt(), array.get(2).getAsInt(), array.get(3).getAsBoolean()));
+					String i = array.get(0).getAsString();
+					int j = array.get(1).getAsInt();
+					effectList.add(new PotionEffect(PotionEffectType.getByName(i), j, array.get(2).getAsInt(), array.get(3).getAsBoolean()));
 				}
 				return effectList;
 			}
