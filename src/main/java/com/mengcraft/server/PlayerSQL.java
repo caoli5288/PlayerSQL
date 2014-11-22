@@ -234,6 +234,7 @@ public class PlayerSQL extends JavaPlugin {
 					if (getConfig().getBoolean("sync.inventory", true)) {
 						player.getInventory().setContents(arrayToStacks(array.get(3).getAsJsonArray()));
 						player.getInventory().setArmorContents(arrayToStacks(array.get(4).getAsJsonArray()));
+						player.setItemOnCursor(new ItemStack(Material.AIR));
 					}
 					if (getConfig().getBoolean("sync.chest", true)) {
 						player.getEnderChest().setContents(arrayToStacks(array.get(5).getAsJsonArray()));
