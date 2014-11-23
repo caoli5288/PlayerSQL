@@ -254,7 +254,7 @@ public class TaskManaget {
 
 		private void updateLock() {
 			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerSQL` SET `ONLINE` = 1 WHERE `NAME` = ?;");
-			act.setString(1, this.uid).executeUpdate().close();
+			act.setString(1, PlayerSQL.get().getConfig().getBoolean("plugin.useuuid", true) ? this.uid : this.name).executeUpdate().close();
 		}
 
 	}
