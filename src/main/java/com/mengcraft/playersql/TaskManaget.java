@@ -186,7 +186,7 @@ public class TaskManaget {
 
 		private void insertPlayer() {
 			PreparedAct act = DBManager.getManager().getPreparedAct("INSERT INTO `PlayerSQL`(`NAME`, `ONLINE`) VALUES(?, 1);");
-			act.setString(1, this.uid).executeUpdate().close();
+			act.setString(1, PlayerSQL.get().getConfig().getBoolean("plugin.useuuid", true) ? this.uid : this.name).executeUpdate().close();
 		}
 
 		private void load(String string) {
