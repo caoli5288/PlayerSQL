@@ -124,9 +124,27 @@ public class DBManager {
 			return this;
 		}
 
+		public PreparedAct setLong(int i, long j) {
+			try {
+				getAct().setLong(i, j);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return this;
+		}
+
 		public int getInt(int i) {
 			try {
 				return getResultSet().getInt(i);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return 0;
+		}
+
+		public long getLong(int i) {
+			try {
+				return getResultSet().getLong(i);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -153,6 +171,9 @@ public class DBManager {
 
 		public PreparedAct executeQuery() {
 			try {
+				if (this.resultSet != null) {
+					this.resultSet.close();
+				}
 				setResultSet(getAct().executeQuery());
 			} catch (SQLException e) {
 				e.printStackTrace();
