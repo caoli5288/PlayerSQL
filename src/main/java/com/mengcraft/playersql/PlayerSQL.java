@@ -30,16 +30,17 @@ public class PlayerSQL extends JavaPlugin {
 			String sql = "CREATE TABLE IF NOT EXISTS PlayerSQL(" + table + ");";
 			DBManager.getManager().executeUpdate(sql);
 			Bukkit.getPluginManager().registerEvents(new Events(), this);
+			try {
+				new Metrics(this).start();
+			} catch (IOException e) {
+				getLogger().warning("Can NOT link to mcstats.org!");
+			}
 		} else {
+			getLogger().warning("Can NOT link to your database!");
+			getLogger().warning("Plugin will disable!");
 			setEnabled(false);
 		}
 		getLogger().info("Author: min梦梦");
-		getLogger().info("插件作者: min梦梦");
-		try {
-			new Metrics(this).start();
-		} catch (IOException e) {
-			getLogger().warning("Can NOT link to mcstats.org!");
-		}
 	}
 
 	@Override
