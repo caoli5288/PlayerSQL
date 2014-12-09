@@ -60,13 +60,17 @@ public class TaskManaget {
 
 	private class SaveTimer implements Runnable {
 		private final String name;
-		
+
 		public SaveTimer(String name) {
 			this.name = name;
 		}
+
 		@Override
 		public void run() {
-			new Thread(new SaveTask(Bukkit.getPlayerExact(this.name), false)).start();
+			Player player = Bukkit.getPlayerExact(this.name);
+			if (player != null && player.isOnline()) {
+				new Thread(new SaveTask(player, false)).start();
+			}
 		}
 	}
 
@@ -75,14 +79,14 @@ public class TaskManaget {
 		private final String name;
 		private final String data;
 		private final boolean quit;
-	
+
 		public SaveTask(Player player, boolean quit) {
 			this.uid = player.getUniqueId().toString();
 			this.name = player.getName();
 			this.data = getPlayerData(player);
 			this.quit = quit;
 		}
-	
+
 		private String getPlayerData(Player player) {
 			JsonArray array = new JsonArray();
 			array.add(new JsonPrimitive(player.getHealth()));
@@ -94,7 +98,7 @@ public class TaskManaget {
 			array.add(effectsToArray(player.getActivePotionEffects()));
 			return array.toString();
 		}
-	
+
 		private JsonArray effectsToArray(Collection<PotionEffect> effects) {
 			JsonArray array = new JsonArray();
 			for (PotionEffect effect : effects) {
@@ -107,7 +111,7 @@ public class TaskManaget {
 			}
 			return array;
 		}
-	
+
 		private JsonArray stacksToArray(ItemStack[] contents) {
 			Gson json = new Gson();
 			JsonArray array = new JsonArray();
@@ -125,11 +129,12 @@ public class TaskManaget {
 			}
 			return array;
 		}
-	
+
 		@Override
 		public void run() {
 			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerSQL` SET `DATA` = ?, `ONLINE` = ? WHERE `NAME` = ?;");
-			act.setString(1, this.data).setInt(2, this.quit ? 0 : 1).setString(3, PlayerSQL.get().getConfig().getBoolean("plugin.useuuid", true) ? this.uid : this.name);
+			act.setString(1, this.data).setInt(2, this.quit ? 0 : 1)
+					.setString(3, PlayerSQL.get().getConfig().getBoolean("plugin.useuuid", true) ? this.uid : this.name);
 			act.executeUpdate().close();
 			Bukkit.getLogger().info("Save player " + this.name + " done!");
 		}
