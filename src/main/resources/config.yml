@@ -11,3 +11,5 @@ sync:
   inventory: true
   chest: true
   potion: true
+  
+version: 1.7.0

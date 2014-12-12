@@ -3,17 +3,18 @@ package com.mengcraft.playersql;
 import java.io.IOException;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
+
+import com.mengcraft.common.sql.DBManager;
 
 /**
  * @author mengcraft.com
  */
 
 public class PlayerSQL extends JavaPlugin {
-
+	private static boolean uuid;
 	private static Plugin plugin;
 
 	@Override
@@ -30,13 +31,15 @@ public class PlayerSQL extends JavaPlugin {
 			String sql = "CREATE TABLE IF NOT EXISTS PlayerSQL(" + table + ");";
 			DBManager.getManager().executeUpdate(sql);
 			Bukkit.getPluginManager().registerEvents(new Events(), this);
+			Bukkit.getScheduler().runTaskTimer(this, TaskManaget.getSaveTask(), 6000, 6000);
 			try {
 				new Metrics(this).start();
 			} catch (IOException e) {
-				getLogger().warning("Can NOT link to mcstats.org!");
+				getLogger().warning("Can not link to mcstats.org!");
 			}
+			setUuid(getConfig().getBoolean("plugin.useuuid", true));
 		} else {
-			getLogger().warning("Can NOT link to your database!");
+			getLogger().warning("Can not link to your database!");
 			getLogger().warning("Plugin will disable!");
 			setEnabled(false);
 		}
@@ -45,16 +48,22 @@ public class PlayerSQL extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		for (Player player : getServer().getOnlinePlayers()) {
-			TaskManaget.getManaget().saveTask(player, true);
-		}
+		TaskManaget.getManaget().saveAllTask(true);
 	}
 
-	public static Plugin get() {
+	public static Plugin getPlugin() {
 		return plugin;
+	}
+
+	public static boolean isUuid() {
+		return uuid;
 	}
 
 	private static void setPlugin(Plugin plugin) {
 		PlayerSQL.plugin = plugin;
+	}
+
+	private static void setUuid(boolean uuid) {
+		PlayerSQL.uuid = uuid;
 	}
 }

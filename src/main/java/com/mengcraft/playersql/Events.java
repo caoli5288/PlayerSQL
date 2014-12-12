@@ -14,12 +14,12 @@ public class Events implements Listener {
 
 	@EventHandler
 	public void onDropItem(PlayerDropItemEvent event) {
-		event.setCancelled(!TaskManaget.getManaget().isOnline(event.getPlayer()));
+		event.setCancelled(!TaskManaget.getManaget().isOnline(event.getPlayer().getName()));
 	}
 
 	@EventHandler
 	public void onOpenInventory(InventoryOpenEvent event) {
-		event.setCancelled(!TaskManaget.getManaget().isOnline(event.getPlayer()));
+		event.setCancelled(!TaskManaget.getManaget().isOnline(event.getPlayer().getName()));
 	}
 
 	@EventHandler
@@ -29,6 +29,7 @@ public class Events implements Listener {
 
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
+		// System.out.println("PlayerSQL.Events.OnPlayerQuit.Fire");
 		TaskManaget.getManaget().saveTask(event.getPlayer(), true);
 	}
 }
