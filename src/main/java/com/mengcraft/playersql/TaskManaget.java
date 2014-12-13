@@ -167,6 +167,9 @@ public class TaskManaget {
 			action(0);
 		}
 
+		/*
+		 * 2014/12/14 add act.close()
+		 */
 		private void action(int i) {
 			PreparedAct act = DBManager.getManager().getPreparedAct("SELECT * FROM `PlayerSQL` WHERE `NAME` = ? FOR UPDATE;");
 			act.setString(1, PlayerSQL.getPlugin().getConfig().getBoolean("plugin.useuuid", true) ? this.uid : this.name).executeQuery();
@@ -184,6 +187,7 @@ public class TaskManaget {
 			} else {
 				insertPlayer();
 			}
+			act.close();
 		}
 
 		private void retry(int i) {
