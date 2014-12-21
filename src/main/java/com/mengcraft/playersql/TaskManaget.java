@@ -171,17 +171,17 @@ public class TaskManaget {
 		 * 2014/12/14 add act.close()
 		 */
 		private void action(int i) {
-			PreparedAct act = DBManager.getManager().getPreparedAct("SELECT * FROM `PlayerSQL` WHERE `NAME` = ? FOR UPDATE;");
+			PreparedAct act = DBManager.getManager().getPreparedAct("SELECT `DATA`, `ONLINE` FROM `PlayerSQL` WHERE `NAME` = ? FOR UPDATE");
 			act.setString(1, PlayerSQL.getPlugin().getConfig().getBoolean("plugin.useuuid", true) ? this.uid : this.name).executeQuery();
 			if (act.next()) {
-				if (act.getInt(4) < 1) {
+				if (act.getInt(2) < 1) {
 					updateLock();
-					load(act.getString(3));
+					load(act.getString(1));
 				} else if (i < 10) {
 					retry(i);
 				} else {
 					updateLock();
-					load(act.getString(3));
+					load(act.getString(1));
 					Bukkit.getLogger().warning("Player " + this.name + "'s lock status ERROR");
 				}
 			} else {
@@ -200,14 +200,15 @@ public class TaskManaget {
 		}
 
 		private void insertPlayer() {
-			PreparedAct act = DBManager.getManager().getPreparedAct("INSERT INTO `PlayerSQL`(`NAME`, `ONLINE`) VALUES(?, 1);");
+			PreparedAct act = DBManager.getManager().getPreparedAct("INSERT INTO `PlayerSQL`(`NAME`, `ONLINE`) VALUES(?, 1)");
 			act.setString(1, PlayerSQL.isUuid() ? this.uid : this.name).executeUpdate().close();
+			getOnlineList().add(this.name);
 		}
 
 		private void load(String string) {
-			JsonArray array = new JsonParser().parse(string).getAsJsonArray();
+			JsonArray array = string != null ? new JsonParser().parse(string).getAsJsonArray() : null;
 			Player player = Bukkit.getPlayerExact(this.name);
-			if (player.isOnline()) {
+			if (player.isOnline() && array != null) {
 				if (PlayerSQL.getPlugin().getConfig().getBoolean("sync.exp", true)) {
 					SetExpFix.setTotalExperience(player, array.get(2).getAsInt());
 				}
