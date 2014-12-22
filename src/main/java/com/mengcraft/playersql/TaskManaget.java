@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -30,12 +32,9 @@ import com.mengcraft.common.sql.DBManager.PreparedAct;
  */
 public class TaskManaget {
 	private final static TaskManaget MANAGET = new TaskManaget();
-	private final static TimerTask SAVE_TASK = new TimerTask();
-	private final List<String> onlineList;
-
-	public TaskManaget() {
-		this.onlineList = Collections.synchronizedList(new ArrayList<String>());
-	}
+	private final TimerTask timerTask = new TimerTask();
+	private final ExecutorService pool = Executors.newCachedThreadPool();
+	private final List<String> onlineList = Collections.synchronizedList(new ArrayList<String>());
 
 	public static TaskManaget getManaget() {
 		return MANAGET;
@@ -46,21 +45,21 @@ public class TaskManaget {
 	}
 
 	public void loadTask(Player player) {
-		new Thread(new LoadTask(player)).start();
+		this.pool.execute(new LoadTask(player));
 	}
 
 	public void saveAllTask(boolean isQuit) {
 		if (Bukkit.getOnlinePlayers().length > 0) {
-			new Thread(new SaveTask(Bukkit.getOnlinePlayers(), isQuit)).start();
+			this.pool.execute(new SaveTask(Bukkit.getOnlinePlayers(), isQuit));
 		}
 	}
 
 	public void saveTask(Player player, boolean isQuit) {
 		if (isOnline(player.getName())) {
 			if (isQuit) {
-				this.getOnlineList().remove(player.getName());
+				getOnlineList().remove(player.getName());
 			}
-			new Thread(new SaveTask(player, isQuit)).start();
+			this.pool.execute(new SaveTask(player, isQuit));
 		}
 	}
 
@@ -68,8 +67,15 @@ public class TaskManaget {
 		return onlineList;
 	}
 
-	public static TimerTask getSaveTask() {
-		return SAVE_TASK;
+	public TimerTask getSaveTask() {
+		return timerTask;
+	}
+	
+	private class TimerTask implements Runnable {
+		@Override
+		public void run() {
+			TaskManaget.getManaget().saveAllTask(false);	
+		}
 	}
 
 	private class SaveTask implements Runnable {
@@ -255,18 +261,27 @@ public class TaskManaget {
 		private ItemStack[] arrayToStacks(JsonArray array) {
 			List<ItemStack> stackList = new ArrayList<ItemStack>();
 			StreamSerializer serializer = StreamSerializer.getDefault();
-			try {
-				for (JsonElement element : array) {
-					if (element.isJsonNull()) {
-						stackList.add(new ItemStack(Material.AIR));
-					} else {
-						stackList.add(serializer.deserializeItemStack(element.getAsString()));
-					}
+			for (JsonElement element : array) {
+				if (element.isJsonNull()) {
+					stackList.add(new ItemStack(Material.AIR));
+				} else {
+//					try {
+//						stackList.add(serializer.deserializeItemStack(element.getAsString()));
+//					} catch (IOException e) {
+//						stackList.add(new ItemStack(Material.AIR));
+//					}
+					stackList.add(stringToStack(serializer, element.getAsString()));
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 			return stackList.toArray(new ItemStack[array.size()]);
+		}
+
+		private ItemStack stringToStack(StreamSerializer serializer, String string) {
+			try {
+				return serializer.deserializeItemStack(string);
+			} catch (IOException e) {
+				return new ItemStack(Material.AIR);
+			}
 		}
 
 		private void updateLock() {

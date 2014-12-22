@@ -31,7 +31,7 @@ public class PlayerSQL extends JavaPlugin {
 			String sql = "CREATE TABLE IF NOT EXISTS PlayerSQL(" + table + ");";
 			DBManager.getManager().executeUpdate(sql);
 			Bukkit.getPluginManager().registerEvents(new Events(), this);
-			Bukkit.getScheduler().runTaskTimer(this, TaskManaget.getSaveTask(), 6000, 6000);
+			Bukkit.getScheduler().runTaskTimer(this, TaskManaget.getManaget().getSaveTask(), 6000, 6000);
 			try {
 				new Metrics(this).start();
 			} catch (IOException e) {
