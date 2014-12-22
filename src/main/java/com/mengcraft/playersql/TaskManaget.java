@@ -279,7 +279,7 @@ public class TaskManaget {
 		private ItemStack stringToStack(StreamSerializer serializer, String string) {
 			try {
 				return serializer.deserializeItemStack(string);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				return new ItemStack(Material.AIR);
 			}
 		}
