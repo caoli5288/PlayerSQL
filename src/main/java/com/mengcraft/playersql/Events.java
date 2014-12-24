@@ -32,4 +32,5 @@ public class Events implements Listener {
 		// System.out.println("PlayerSQL.Events.OnPlayerQuit.Fire");
 		TaskManaget.getManaget().saveTask(event.getPlayer(), true);
 	}
+
 }
