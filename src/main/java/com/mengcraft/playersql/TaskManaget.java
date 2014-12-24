@@ -1,6 +1,5 @@
 package com.mengcraft.playersql;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,7 +16,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.comphenix.protocol.utility.StreamSerializer;
 import com.earth2me.essentials.craftbukkit.SetExpFix;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -26,6 +24,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.mengcraft.common.sql.DBManager;
 import com.mengcraft.common.sql.DBManager.PreparedAct;
+import com.mengcraft.playersql.util.StackUtil;
 
 /**
  * @author mengcraft.com
@@ -70,11 +69,11 @@ public class TaskManaget {
 	public TimerTask getSaveTask() {
 		return timerTask;
 	}
-	
+
 	private class TimerTask implements Runnable {
 		@Override
 		public void run() {
-			TaskManaget.getManaget().saveAllTask(false);	
+			TaskManaget.getManaget().saveAllTask(false);
 		}
 	}
 
@@ -84,7 +83,7 @@ public class TaskManaget {
 
 		public SaveTask(Player player, boolean quit) {
 			String date = getPlayerData(player);
-			if (PlayerSQL.isUuid()) {
+			if (Configure.USE_UUID) {
 				this.PlayerMap.put(player.getUniqueId().toString(), date);
 			} else {
 				this.PlayerMap.put(player.getName(), date);
@@ -95,7 +94,7 @@ public class TaskManaget {
 		public SaveTask(Player[] players, boolean isQuit) {
 			for (Player player : players) {
 				String date = getPlayerData(player);
-				if (PlayerSQL.isUuid()) {
+				if (Configure.USE_UUID) {
 					this.PlayerMap.put(player.getUniqueId().toString(), date);
 				} else {
 					this.PlayerMap.put(player.getName(), date);
@@ -143,17 +142,13 @@ public class TaskManaget {
 		private JsonArray stacksToArray(ItemStack[] contents) {
 			Gson json = new Gson();
 			JsonArray array = new JsonArray();
-			StreamSerializer serializer = StreamSerializer.getDefault();
-			try {
-				for (ItemStack content : contents) {
-					if (content != null && content.getType() != Material.AIR) {
-						array.add(json.toJsonTree(serializer.serializeItemStack(content)));
-					} else {
-						array.add(json.toJsonTree(null));
-					}
+			StackUtil util = new StackUtil();
+			for (ItemStack content : contents) {
+				if (content != null && content.getType() != Material.AIR) {
+					array.add(json.toJsonTree(util.getString(content)));
+				} else {
+					array.add(json.toJsonTree(null));
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 			return array;
 		}
@@ -178,7 +173,7 @@ public class TaskManaget {
 		 */
 		private void action(int i) {
 			PreparedAct act = DBManager.getManager().getPreparedAct("SELECT `DATA`, `ONLINE` FROM `PlayerSQL` WHERE `NAME` = ? FOR UPDATE");
-			act.setString(1, PlayerSQL.getPlugin().getConfig().getBoolean("plugin.useuuid", true) ? this.uid : this.name).executeQuery();
+			act.setString(1, Configure.USE_UUID ? this.uid : this.name).executeQuery();
 			if (act.next()) {
 				if (act.getInt(2) < 1) {
 					updateLock();
@@ -207,7 +202,7 @@ public class TaskManaget {
 
 		private void insertPlayer() {
 			PreparedAct act = DBManager.getManager().getPreparedAct("INSERT INTO `PlayerSQL`(`NAME`, `ONLINE`) VALUES(?, 1)");
-			act.setString(1, PlayerSQL.isUuid() ? this.uid : this.name).executeUpdate().close();
+			act.setString(1, Configure.USE_UUID ? this.uid : this.name).executeUpdate().close();
 			getOnlineList().add(this.name);
 		}
 
@@ -215,31 +210,31 @@ public class TaskManaget {
 			JsonArray array = string != null ? new JsonParser().parse(string).getAsJsonArray() : null;
 			Player player = Bukkit.getPlayerExact(this.name);
 			if (player.isOnline() && array != null) {
-				if (PlayerSQL.getPlugin().getConfig().getBoolean("sync.exp", true)) {
+				if (Configure.SYNC_EXP) {
 					SetExpFix.setTotalExperience(player, array.get(2).getAsInt());
 				}
-				if (PlayerSQL.getPlugin().getConfig().getBoolean("sync.potion", true)) {
+				if (Configure.SYNC_POTION) {
 					for (PotionEffect effect : player.getActivePotionEffects()) {
 						player.removePotionEffect(effect.getType());
 					}
 					player.addPotionEffects(arrayToEffects(array.get(6).getAsJsonArray()));
 				}
-				if (PlayerSQL.getPlugin().getConfig().getBoolean("sync.health", true)) {
+				if (Configure.SYNC_HEALTH) {
 					try {
 						player.setHealth(array.get(0).getAsDouble());
 					} catch (IllegalArgumentException e) {
 						player.setHealth(20);
 					}
 				}
-				if (PlayerSQL.getPlugin().getConfig().getBoolean("sync.food", true)) {
+				if (Configure.SYNC_FOOD) {
 					player.setFoodLevel(array.get(1).getAsInt());
 				}
-				if (PlayerSQL.getPlugin().getConfig().getBoolean("sync.inventory", true)) {
+				if (Configure.SYNC_INVENTORY) {
 					player.getInventory().setContents(arrayToStacks(array.get(3).getAsJsonArray()));
 					player.getInventory().setArmorContents(arrayToStacks(array.get(4).getAsJsonArray()));
 					player.setItemOnCursor(new ItemStack(Material.AIR));
 				}
-				if (PlayerSQL.getPlugin().getConfig().getBoolean("sync.chest", true)) {
+				if (Configure.SYNC_CHEST) {
 					player.getEnderChest().setContents(arrayToStacks(array.get(5).getAsJsonArray()));
 				}
 				getOnlineList().add(this.name);
@@ -260,25 +255,20 @@ public class TaskManaget {
 
 		private ItemStack[] arrayToStacks(JsonArray array) {
 			List<ItemStack> stackList = new ArrayList<ItemStack>();
-			StreamSerializer serializer = StreamSerializer.getDefault();
+			StackUtil util = new StackUtil();
 			for (JsonElement element : array) {
 				if (element.isJsonNull()) {
 					stackList.add(new ItemStack(Material.AIR));
 				} else {
-//					try {
-//						stackList.add(serializer.deserializeItemStack(element.getAsString()));
-//					} catch (IOException e) {
-//						stackList.add(new ItemStack(Material.AIR));
-//					}
-					stackList.add(stringToStack(serializer, element.getAsString()));
+					stackList.add(stringToStack(util, element.getAsString()));
 				}
 			}
 			return stackList.toArray(new ItemStack[array.size()]);
 		}
 
-		private ItemStack stringToStack(StreamSerializer serializer, String string) {
+		private ItemStack stringToStack(StackUtil util, String string) {
 			try {
-				return serializer.deserializeItemStack(string);
+				return util.getItemStack(string);
 			} catch (Exception e) {
 				return new ItemStack(Material.AIR);
 			}
@@ -286,7 +276,7 @@ public class TaskManaget {
 
 		private void updateLock() {
 			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerSQL` SET `ONLINE` = 1 WHERE `NAME` = ?;");
-			act.setString(1, PlayerSQL.isUuid() ? this.uid : this.name).executeUpdate().close();
+			act.setString(1, Configure.USE_UUID ? this.uid : this.name).executeUpdate().close();
 		}
 
 	}

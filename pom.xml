@@ -19,11 +19,6 @@
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>com.comphenix.protocol</groupId>
-      <artifactId>ProtocolLib</artifactId>
-      <version>3.4.0</version>
-    </dependency>
-    <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
       <version>1.6.4-R2.1-SNAPSHOT</version>

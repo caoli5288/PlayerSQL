@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class MinecraftReflect {
 	private final static MinecraftReflect REFLECT = new MinecraftReflect();
+	private Object readLimiter;
 
 	private MinecraftReflect() {
 	}
@@ -79,15 +80,14 @@ public class MinecraftReflect {
 		Object object = null;
 		try {
 			object = c.newInstance();
-			if (MinecraftClass.get().getVersion().startsWith("v1_6")) {
-				method.invoke(object, new Object[] { input, 0 });
+			// Must be this.readLimiter not getNBTReadLimiter()
+			if (this.readLimiter != null) {
+				method.invoke(object, new Object[] { input, 0, this.readLimiter });
 			} else {
-				Class<? extends Object> j = MinecraftClass.get().getNBTReadLimiter();
-				Field field = MinecraftField.get().getNBTReadLimiterUnlimited();
-				method.invoke(object, new Object[] { input, 0, field.get(j) });
+				method.invoke(object, new Object[] { input, 0 });
 			}
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			magic(object, input);
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {
@@ -98,6 +98,35 @@ public class MinecraftReflect {
 			e.printStackTrace();
 		}
 		return object;
+	}
+
+	private void magic(Object object, DataInput input) {
+		Method method = MinecraftMethod.get().getNBTTagsLoad();
+		try {
+			method.invoke(object, new Object[] { input, 0, getNBTReadLimiter() });
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private Object getNBTReadLimiter() {
+		if (this.readLimiter != null) {
+			return this.readLimiter;
+		}
+		Class<? extends Object> j = MinecraftClass.get().getNBTReadLimiter();
+		Field field = MinecraftField.get().getNBTReadLimiterUnlimited();
+		try {
+			this.readLimiter = field.get(j);
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return getNBTReadLimiter();
 	}
 
 	/**

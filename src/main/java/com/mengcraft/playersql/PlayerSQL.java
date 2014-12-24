@@ -3,7 +3,6 @@ package com.mengcraft.playersql;
 import java.io.IOException;
 
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
@@ -14,13 +13,9 @@ import com.mengcraft.common.sql.DBManager;
  */
 
 public class PlayerSQL extends JavaPlugin {
-	private static boolean uuid;
-	private static Plugin plugin;
-
 	@Override
 	public void onLoad() {
 		saveDefaultConfig();
-		setPlugin(this);
 	}
 
 	@Override
@@ -37,7 +32,6 @@ public class PlayerSQL extends JavaPlugin {
 			} catch (IOException e) {
 				getLogger().warning("Can not link to mcstats.org!");
 			}
-			setUuid(getConfig().getBoolean("plugin.useuuid", true));
 		} else {
 			getLogger().warning("Can not link to your database!");
 			getLogger().warning("Plugin will disable!");
@@ -49,21 +43,5 @@ public class PlayerSQL extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		TaskManaget.getManaget().saveAllTask(true);
-	}
-
-	public static Plugin getPlugin() {
-		return plugin;
-	}
-
-	public static boolean isUuid() {
-		return uuid;
-	}
-
-	private static void setPlugin(Plugin plugin) {
-		PlayerSQL.plugin = plugin;
-	}
-
-	private static void setUuid(boolean uuid) {
-		PlayerSQL.uuid = uuid;
 	}
 }
