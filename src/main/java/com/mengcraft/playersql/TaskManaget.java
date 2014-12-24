@@ -105,11 +105,12 @@ public class TaskManaget {
 
 		@Override
 		public void run() {
-			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerSQL` SET `DATA` = ?, `ONLINE` = ? WHERE `NAME` = ?;");
+			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerDate` SET `Data` = ?, `Online` = ?, `Last` = ? WHERE `Player` = ?;");
 			for (String name : this.PlayerMap.keySet()) {
 				act.setString(1, this.PlayerMap.get(name));
 				act.setInt(2, this.quit ? 0 : 1);
-				act.setString(3, name).addBatch();
+				act.setLong(3, System.currentTimeMillis());
+				act.setString(4, name).addBatch();
 			}
 			act.excuteBatch().close();
 		}
@@ -172,7 +173,7 @@ public class TaskManaget {
 		 * 2014/12/14 add act.close()
 		 */
 		private void action(int i) {
-			PreparedAct act = DBManager.getManager().getPreparedAct("SELECT `DATA`, `ONLINE` FROM `PlayerSQL` WHERE `NAME` = ? FOR UPDATE");
+			PreparedAct act = DBManager.getManager().getPreparedAct("SELECT `Data`, `Online` FROM `PlayerData` WHERE `Player` = ? FOR UPDATE");
 			act.setString(1, Configure.USE_UUID ? this.uid : this.name).executeQuery();
 			if (act.next()) {
 				if (act.getInt(2) < 1) {
@@ -201,7 +202,7 @@ public class TaskManaget {
 		}
 
 		private void insertPlayer() {
-			PreparedAct act = DBManager.getManager().getPreparedAct("INSERT INTO `PlayerSQL`(`NAME`, `ONLINE`) VALUES(?, 1)");
+			PreparedAct act = DBManager.getManager().getPreparedAct("INSERT INTO `PlayerData`(`Player`, `Online`) VALUES(?, 1)");
 			act.setString(1, Configure.USE_UUID ? this.uid : this.name).executeUpdate().close();
 			getOnlineList().add(this.name);
 		}
@@ -275,9 +276,8 @@ public class TaskManaget {
 		}
 
 		private void updateLock() {
-			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerSQL` SET `ONLINE` = 1 WHERE `NAME` = ?;");
+			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerData` SET `Online` = 1 WHERE `Player` = ?;");
 			act.setString(1, Configure.USE_UUID ? this.uid : this.name).executeUpdate().close();
 		}
-
 	}
 }

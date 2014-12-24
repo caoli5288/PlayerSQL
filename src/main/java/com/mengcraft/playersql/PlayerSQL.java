@@ -22,8 +22,8 @@ public class PlayerSQL extends JavaPlugin {
 	public void onEnable() {
 		String[] strings = { getConfig().getString("plugin.database"), getConfig().getString("plugin.username"), getConfig().getString("plugin.password") };
 		if (DBManager.getManager().setConnection(strings)) {
-			String table = "`ID` int NOT NULL AUTO_INCREMENT, `NAME` text NOT NULL, `DATA` text NULL, `ONLINE` int NULL, PRIMARY KEY(`ID`)";
-			String sql = "CREATE TABLE IF NOT EXISTS PlayerSQL(" + table + ");";
+			String table = "`Id` int NOT NULL AUTO_INCREMENT, `Player` text NULL, `Data` text NULL, `Online` int NULL, `Last` int NULL, PRIMARY KEY(`Id`)";
+			String sql = "CREATE TABLE IF NOT EXISTS PlayerData(" + table + ");";
 			DBManager.getManager().executeUpdate(sql);
 			Bukkit.getPluginManager().registerEvents(new Events(), this);
 			Bukkit.getScheduler().runTaskTimer(this, TaskManaget.getManaget().getSaveTask(), 6000, 6000);
