@@ -22,9 +22,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.mengcraft.bukkit.reflect.util.StackUtil;
 import com.mengcraft.common.sql.DBManager;
 import com.mengcraft.common.sql.DBManager.PreparedAct;
-import com.mengcraft.playersql.util.StackUtil;
 
 /**
  * @author mengcraft.com
@@ -92,7 +92,13 @@ public class TaskManaget {
 		}
 
 		public SaveTask(Player[] players, boolean isQuit) {
+			List<Player> list = new ArrayList<>();
 			for (Player player : players) {
+				if (getOnlineList().contains(player.getName())) {
+					list.add(player);
+				}
+			}
+			for (Player player : list) {
 				String date = getPlayerData(player);
 				if (Configure.USE_UUID) {
 					this.PlayerMap.put(player.getUniqueId().toString(), date);
@@ -105,7 +111,7 @@ public class TaskManaget {
 
 		@Override
 		public void run() {
-			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerDate` SET `Data` = ?, `Online` = ?, `Last` = ? WHERE `Player` = ?;");
+			PreparedAct act = DBManager.getManager().getPreparedAct("UPDATE `PlayerData` SET `Data` = ?, `Online` = ?, `Last` = ? WHERE `Player` = ?;");
 			for (String name : this.PlayerMap.keySet()) {
 				act.setString(1, this.PlayerMap.get(name));
 				act.setInt(2, this.quit ? 0 : 1);
@@ -238,9 +244,9 @@ public class TaskManaget {
 				if (Configure.SYNC_CHEST) {
 					player.getEnderChest().setContents(arrayToStacks(array.get(5).getAsJsonArray()));
 				}
-				getOnlineList().add(this.name);
 				Bukkit.getLogger().info("Load player " + player.getName() + " done!");
 			}
+			getOnlineList().add(this.name);
 		}
 
 		private Collection<PotionEffect> arrayToEffects(JsonArray effectArray) {
