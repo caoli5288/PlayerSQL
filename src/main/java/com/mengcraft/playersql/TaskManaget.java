@@ -16,12 +16,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.earth2me.essentials.craftbukkit.SetExpFix;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.mengcraft.bukkit.reflect.util.PlayerUtil;
 import com.mengcraft.bukkit.reflect.util.StackUtil;
 import com.mengcraft.common.sql.DBManager;
 import com.mengcraft.common.sql.DBManager.PreparedAct;
@@ -125,7 +125,7 @@ public class TaskManaget {
 			JsonArray array = new JsonArray();
 			array.add(new JsonPrimitive(player.getHealth()));
 			array.add(new JsonPrimitive(player.getFoodLevel()));
-			array.add(new JsonPrimitive(SetExpFix.getTotalExperience(player)));
+			array.add(new JsonPrimitive(PlayerUtil.getUtil().getTotalExperience(player)));
 			array.add(stacksToArray(player.getInventory().getContents()));
 			array.add(stacksToArray(player.getInventory().getArmorContents()));
 			array.add(stacksToArray(player.getEnderChest().getContents()));
@@ -218,7 +218,7 @@ public class TaskManaget {
 			Player player = Bukkit.getPlayerExact(this.name);
 			if (player.isOnline() && array != null) {
 				if (Configure.SYNC_EXP) {
-					SetExpFix.setTotalExperience(player, array.get(2).getAsInt());
+					PlayerUtil.getUtil().setTotalExperience(player, array.get(2).getAsInt());
 				}
 				if (Configure.SYNC_POTION) {
 					for (PotionEffect effect : player.getActivePotionEffects()) {
