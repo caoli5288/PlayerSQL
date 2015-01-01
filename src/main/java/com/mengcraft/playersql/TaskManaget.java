@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,15 +17,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.comphenix.protocol.utility.StreamSerializer;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.mengcraft.bukkit.reflect.util.PlayerUtil;
-import com.mengcraft.bukkit.reflect.util.StackUtil;
 import com.mengcraft.common.sql.DBManager;
 import com.mengcraft.common.sql.DBManager.PreparedAct;
+import com.mengcraft.playersql.util.FixedPlayerExp;
 
 /**
  * @author mengcraft.com
@@ -125,10 +126,14 @@ public class TaskManaget {
 			JsonArray array = new JsonArray();
 			array.add(new JsonPrimitive(player.getHealth()));
 			array.add(new JsonPrimitive(player.getFoodLevel()));
-			array.add(new JsonPrimitive(PlayerUtil.getUtil().getTotalExperience(player)));
-			array.add(stacksToArray(player.getInventory().getContents()));
-			array.add(stacksToArray(player.getInventory().getArmorContents()));
-			array.add(stacksToArray(player.getEnderChest().getContents()));
+			array.add(new JsonPrimitive(FixedPlayerExp.getDefault().get(player)));
+			try {
+				array.add(stacksToArray(player.getInventory().getContents()));
+				array.add(stacksToArray(player.getInventory().getArmorContents()));
+				array.add(stacksToArray(player.getEnderChest().getContents()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			array.add(effectsToArray(player.getActivePotionEffects()));
 			return array.toString();
 		}
@@ -146,13 +151,13 @@ public class TaskManaget {
 			return array;
 		}
 
-		private JsonArray stacksToArray(ItemStack[] contents) {
+		private JsonArray stacksToArray(ItemStack[] contents) throws IOException {
 			Gson json = new Gson();
 			JsonArray array = new JsonArray();
-			StackUtil util = new StackUtil();
+			StreamSerializer serializer = StreamSerializer.getDefault();
 			for (ItemStack content : contents) {
 				if (content != null && content.getType() != Material.AIR) {
-					array.add(json.toJsonTree(util.getString(content)));
+					array.add(json.toJsonTree(serializer.serializeItemStack(content)));
 				} else {
 					array.add(json.toJsonTree(null));
 				}
@@ -218,7 +223,7 @@ public class TaskManaget {
 			Player player = Bukkit.getPlayerExact(this.name);
 			if (player.isOnline() && array != null) {
 				if (Configure.SYNC_EXP) {
-					PlayerUtil.getUtil().setTotalExperience(player, array.get(2).getAsInt());
+					FixedPlayerExp.getDefault().set(player, array.get(2).getAsInt());
 				}
 				if (Configure.SYNC_POTION) {
 					for (PotionEffect effect : player.getActivePotionEffects()) {
@@ -237,12 +242,24 @@ public class TaskManaget {
 					player.setFoodLevel(array.get(1).getAsInt());
 				}
 				if (Configure.SYNC_INVENTORY) {
-					player.getInventory().setContents(arrayToStacks(array.get(3).getAsJsonArray()));
-					player.getInventory().setArmorContents(arrayToStacks(array.get(4).getAsJsonArray()));
+					try {
+						player.getInventory().setContents(arrayToStacks(array.get(3).getAsJsonArray()));
+						player.getInventory().setArmorContents(arrayToStacks(array.get(4).getAsJsonArray()));
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 					player.setItemOnCursor(new ItemStack(Material.AIR));
 				}
 				if (Configure.SYNC_CHEST) {
-					player.getEnderChest().setContents(arrayToStacks(array.get(5).getAsJsonArray()));
+					try {
+						player.getEnderChest().setContents(arrayToStacks(array.get(5).getAsJsonArray()));
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 				Bukkit.getLogger().info("Load player " + player.getName() + " done!");
 			}
@@ -260,25 +277,17 @@ public class TaskManaget {
 			return effectList;
 		}
 
-		private ItemStack[] arrayToStacks(JsonArray array) {
+		private ItemStack[] arrayToStacks(JsonArray array) throws IOException {
 			List<ItemStack> stackList = new ArrayList<ItemStack>();
-			StackUtil util = new StackUtil();
+			StreamSerializer serializer = StreamSerializer.getDefault();
 			for (JsonElement element : array) {
 				if (element.isJsonNull()) {
 					stackList.add(new ItemStack(Material.AIR));
 				} else {
-					stackList.add(stringToStack(util, element.getAsString()));
+					stackList.add(serializer.deserializeItemStack(element.getAsString()));
 				}
 			}
 			return stackList.toArray(new ItemStack[array.size()]);
-		}
-
-		private ItemStack stringToStack(StackUtil util, String string) {
-			try {
-				return util.getItemStack(string);
-			} catch (Exception e) {
-				return new ItemStack(Material.AIR);
-			}
 		}
 
 		private void updateLock() {

@@ -9,8 +9,8 @@
   </properties>
   <repositories>
     <repository>
-      <id>repo.comphenix.net</id>
-      <url>http://repo.comphenix.net/content/groups/public</url>
+      <id>shadowvolt-repo</id>
+      <url>http://ci.shadowvolt.com/plugin/repository/everything</url>
     </repository>
     <repository>
       <id>repo.md-5.net</id>
@@ -24,6 +24,11 @@
       <version>1.6.4-R2.1-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>com.comphenix.protocol</groupId>
+      <artifactId>ProtocolLib</artifactId>
+      <version>3.6.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>com.mengcraft.common</groupId>
       <artifactId>dbmanager</artifactId>
       <version>0.1.0-SNAPSHOT</version>
@@ -33,14 +38,8 @@
       <artifactId>gson</artifactId>
       <version>2.3.1</version>
     </dependency>
-    <dependency>
-      <groupId>com.mengcraft.bukkit</groupId>
-      <artifactId>reflect</artifactId>
-      <version>0.0.3</version>
-    </dependency>
   </dependencies>
   <build>
-    <finalName>${project.name}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -50,7 +49,6 @@
           <artifactSet>
             <includes>
               <include>com.mengcraft.common:dbmanager</include>
-              <include>com.mengcraft.bukkit:reflect</include>
               <include>com.google.code.gson:gson</include>
             </includes>
           </artifactSet>
@@ -63,7 +61,8 @@
             </goals>
           </execution>
         </executions>
-      </plugin><plugin>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.5.1</version>
@@ -72,13 +71,14 @@
           <target>1.7</target>
         </configuration>
       </plugin>
-      
-    </plugins><resources>
+
+    </plugins>
+    <resources>
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
       </resource>
     </resources>
-    
+
   </build>
 </project>
