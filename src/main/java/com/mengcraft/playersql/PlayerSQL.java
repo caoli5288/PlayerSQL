@@ -6,7 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
-import com.mengcraft.common.sql.DBManager;
+import com.mengcraft.playersql.util.DBManager;
 
 /**
  * @author mengcraft.com

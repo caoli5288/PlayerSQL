@@ -23,8 +23,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.mengcraft.common.sql.DBManager;
-import com.mengcraft.common.sql.DBManager.PreparedAct;
+import com.mengcraft.playersql.util.DBManager;
+import com.mengcraft.playersql.util.DBManager.PreparedAct;
 import com.mengcraft.playersql.util.FixedPlayerExp;
 
 /**

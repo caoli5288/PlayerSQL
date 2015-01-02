@@ -2,3 +2,4 @@ main: com.mengcraft.playersql.PlayerSQL
 name: PlayerSQL
 version: ${project.version}
 website: http://www.spigotmc.org/resources/playersql.552/
+depend: [ProtocolLib]
