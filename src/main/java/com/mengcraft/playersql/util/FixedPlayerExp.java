@@ -7,13 +7,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class FixedPlayerExp {
-	private final static String VERSION = Bukkit.getServer().getClass().getName().split("\\.")[3];
-	private final static FixedPlayerExp FIXED_PLAYER_EXP = new FixedPlayerExp();
+
+	private final String v = Bukkit.getServer().getClass().getName().split("\\.")[3];
+
 	private final Class<?> c;
 	private final Method g;
 	private final Method s;
 
-	private FixedPlayerExp() {
+	public FixedPlayerExp() {
 		this.c = getCompatibleClass();
 		this.s = setMethod();
 		this.g = getMethod();
@@ -72,7 +73,7 @@ public class FixedPlayerExp {
 	private Class<?> getCompatibleClass() {
 		Class<?> com = null;
 		try {
-			com = Class.forName("com.mengcraft.playersql.lib." + VERSION + ".SetExpFix");
+			com = Class.forName("com.mengcraft.playersql.lib." + this.v + ".SetExpFix");
 		} catch (ClassNotFoundException e) {
 			com = getDefaultClass();
 		}
@@ -88,9 +89,4 @@ public class FixedPlayerExp {
 		}
 		return def;
 	}
-
-	public static FixedPlayerExp getDefault() {
-		return FIXED_PLAYER_EXP;
-	}
-
 }

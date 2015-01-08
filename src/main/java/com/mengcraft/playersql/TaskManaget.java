@@ -1,6 +1,5 @@
 package com.mengcraft.playersql;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,15 +16,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.comphenix.protocol.utility.StreamSerializer;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.mengcraft.playersql.util.DBManager;
 import com.mengcraft.playersql.util.DBManager.PreparedAct;
 import com.mengcraft.playersql.util.FixedPlayerExp;
+import com.mengcraft.playersql.util.ProtocolHandlerItemUtil;
+import com.mengcraft.playersql.util.ReflectFuncionItemUtil;
 
 /**
  * @author mengcraft.com
@@ -35,6 +35,16 @@ public class TaskManaget {
 	private final TimerTask timerTask = new TimerTask();
 	private final ExecutorService pool = Executors.newCachedThreadPool();
 	private final List<String> onlineList = Collections.synchronizedList(new ArrayList<String>());
+	private final FixedPlayerExp exp = new FixedPlayerExp();
+	private final ItemUtil util;
+
+	private TaskManaget() {
+		if (Bukkit.getServer().getClass().getName().split("\\.")[3].startsWith("v1_8")) {
+			this.util = ReflectFuncionItemUtil.getUtil();
+		} else {
+			this.util = new ProtocolHandlerItemUtil();
+		}
+	}
 
 	public static TaskManaget getManaget() {
 		return MANAGET;
@@ -69,6 +79,14 @@ public class TaskManaget {
 
 	public TimerTask getSaveTask() {
 		return timerTask;
+	}
+
+	public FixedPlayerExp getFixedExp() {
+		return exp;
+	}
+
+	public ItemUtil getItemUtil() {
+		return util;
 	}
 
 	private class TimerTask implements Runnable {
@@ -126,12 +144,12 @@ public class TaskManaget {
 			JsonArray array = new JsonArray();
 			array.add(new JsonPrimitive(player.getHealth()));
 			array.add(new JsonPrimitive(player.getFoodLevel()));
-			array.add(new JsonPrimitive(FixedPlayerExp.getDefault().get(player)));
+			array.add(new JsonPrimitive(getFixedExp().get(player)));
 			try {
 				array.add(stacksToArray(player.getInventory().getContents()));
 				array.add(stacksToArray(player.getInventory().getArmorContents()));
 				array.add(stacksToArray(player.getEnderChest().getContents()));
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			array.add(effectsToArray(player.getActivePotionEffects()));
@@ -151,15 +169,13 @@ public class TaskManaget {
 			return array;
 		}
 
-		private JsonArray stacksToArray(ItemStack[] contents) throws IOException {
-			Gson json = new Gson();
+		private JsonArray stacksToArray(ItemStack[] contents) throws Exception {
 			JsonArray array = new JsonArray();
-			StreamSerializer serializer = StreamSerializer.getDefault();
 			for (ItemStack content : contents) {
 				if (content != null && content.getType() != Material.AIR) {
-					array.add(json.toJsonTree(serializer.serializeItemStack(content)));
+					array.add(new JsonPrimitive(getItemUtil().getString(content)));
 				} else {
-					array.add(json.toJsonTree(null));
+					array.add(JsonNull.INSTANCE);
 				}
 			}
 			return array;
@@ -223,7 +239,7 @@ public class TaskManaget {
 			Player player = Bukkit.getPlayerExact(this.name);
 			if (player.isOnline() && array != null) {
 				if (Configure.SYNC_EXP) {
-					FixedPlayerExp.getDefault().set(player, array.get(2).getAsInt());
+					getFixedExp().set(player, array.get(2).getAsInt());
 				}
 				if (Configure.SYNC_POTION) {
 					for (PotionEffect effect : player.getActivePotionEffects()) {
@@ -245,9 +261,7 @@ public class TaskManaget {
 					try {
 						player.getInventory().setContents(arrayToStacks(array.get(3).getAsJsonArray()));
 						player.getInventory().setArmorContents(arrayToStacks(array.get(4).getAsJsonArray()));
-					} catch (IllegalArgumentException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 					player.setItemOnCursor(new ItemStack(Material.AIR));
@@ -255,9 +269,7 @@ public class TaskManaget {
 				if (Configure.SYNC_CHEST) {
 					try {
 						player.getEnderChest().setContents(arrayToStacks(array.get(5).getAsJsonArray()));
-					} catch (IllegalArgumentException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
@@ -277,14 +289,13 @@ public class TaskManaget {
 			return effectList;
 		}
 
-		private ItemStack[] arrayToStacks(JsonArray array) throws IOException {
+		private ItemStack[] arrayToStacks(JsonArray array) throws Exception {
 			List<ItemStack> stackList = new ArrayList<ItemStack>();
-			StreamSerializer serializer = StreamSerializer.getDefault();
 			for (JsonElement element : array) {
 				if (element.isJsonNull()) {
 					stackList.add(new ItemStack(Material.AIR));
 				} else {
-					stackList.add(serializer.deserializeItemStack(element.getAsString()));
+					stackList.add(getItemUtil().getItemStack(element.getAsString()));
 				}
 			}
 			return stackList.toArray(new ItemStack[array.size()]);

@@ -13,13 +13,11 @@ import com.mengcraft.playersql.util.DBManager;
  */
 
 public class PlayerSQL extends JavaPlugin {
-	@Override
-	public void onLoad() {
-		saveDefaultConfig();
-	}
 
 	@Override
 	public void onEnable() {
+		saveDefaultConfig();
+		
 		String[] strings = { getConfig().getString("plugin.database"), getConfig().getString("plugin.username"), getConfig().getString("plugin.password") };
 		if (DBManager.getManager().setConnection(strings)) {
 			String table = "`Id` int NOT NULL AUTO_INCREMENT, `Player` text NULL, `Data` text NULL, `Online` int NULL, `Last` bigint NULL, PRIMARY KEY(`Id`)";
@@ -38,6 +36,7 @@ public class PlayerSQL extends JavaPlugin {
 			setEnabled(false);
 		}
 		getLogger().info("Author: min梦梦");
+		
 	}
 
 	@Override
