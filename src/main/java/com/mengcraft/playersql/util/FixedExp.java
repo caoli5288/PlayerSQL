@@ -1,9 +1,10 @@
-package com.mengcraft.playersql.lib.v1_6_R3;
+package com.mengcraft.playersql.util;
 
 import org.bukkit.entity.Player;
 
-public class SetExpFix {
-	public static void setTotalExperience(Player player, int exp)
+public class FixedExp
+{
+	public static void setExp(Player player, int exp)
 	{
 		if (exp < 0) { throw new IllegalArgumentException("Experience is negative!"); }
 		player.setExp(0.0F);
@@ -28,6 +29,21 @@ public class SetExpFix {
 		}
 	}
 
+	public static int getExp(Player player)
+	{
+		int exp = Math.round(getExpAtLevel(player) * player.getExp());
+		int currentLevel = player.getLevel();
+		while (currentLevel > 0)
+		{
+			currentLevel--;
+			exp += getExpAtLevel(currentLevel);
+		}
+		if (exp < 0) {
+			exp = 2147483647;
+		}
+		return exp;
+	}
+
 	private static int getExpAtLevel(Player player)
 	{
 		return getExpAtLevel(player.getLevel());
@@ -35,9 +51,9 @@ public class SetExpFix {
 
 	public static int getExpAtLevel(int level)
 	{
-		if (level > 29) { return 62 + (level - 30) * 7; }
-		if (level > 15) { return 17 + (level - 15) * 3; }
-		return 17;
+		if (level <= 15) { return 2 * level + 7; }
+		if ((level >= 16) && (level <= 30)) { return 5 * level - 38; }
+		return 9 * level - 158;
 	}
 
 	public static int getExpToLevel(int level)
@@ -48,21 +64,6 @@ public class SetExpFix {
 		{
 			exp += getExpAtLevel(currentLevel);
 			currentLevel++;
-		}
-		if (exp < 0) {
-			exp = 2147483647;
-		}
-		return exp;
-	}
-
-	public static int getTotalExperience(Player player)
-	{
-		int exp = Math.round(getExpAtLevel(player) * player.getExp());
-		int currentLevel = player.getLevel();
-		while (currentLevel > 0)
-		{
-			currentLevel--;
-			exp += getExpAtLevel(currentLevel);
 		}
 		if (exp < 0) {
 			exp = 2147483647;

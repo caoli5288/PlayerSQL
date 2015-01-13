@@ -13,10 +13,9 @@ import java.lang.reflect.Method;
 import org.bukkit.inventory.ItemStack;
 import org.ow2.util.base64.Base64;
 
-import com.mengcraft.playersql.ItemUtil;
-
-public class ReflectFuncionItemUtil implements ItemUtil {
-	private final static ReflectFuncionItemUtil UTIL = new ReflectFuncionItemUtil();
+public class ItemUtil {
+	
+	private final static ItemUtil UTIL = new ItemUtil();
 
 	private final Class<?> cachedItemStack;
 	private final Class<?> cachedNBTTagCompound;
@@ -31,7 +30,7 @@ public class ReflectFuncionItemUtil implements ItemUtil {
 	private final Method cachedCraftItemMirror;
 	private final Field cachedCraftItemHandle;
 
-	private ReflectFuncionItemUtil() {
+	private ItemUtil() {
 		this.cachedItemStack = getItemStackClass();
 		this.cachedNBTTagCompound = getNBTTagCompoundClass();
 		this.cachedNBTReadLimiter = initNBTReadLimiterClass();
@@ -180,26 +179,46 @@ public class ReflectFuncionItemUtil implements ItemUtil {
 		return null;
 	}
 
-	@Override
-	public ItemStack getItemStack(String string) throws Exception {
+	public ItemStack getItemStack(String string) {
 		DataInput input = new DataInputStream(new ByteArrayInputStream(Base64.decode(string.toCharArray())));
-		Object tag = this.cachedNBTTagCompound.newInstance();
-		this.cachedNBTTagLoad.invoke(tag, new Object[] { input, 0, this.cachedNBTReadUnlimited });
-		Object handle = this.cachedItemStackCreate.invoke(this.cachedItemStack, tag);
-		Object stack = this.cachedCraftItemMirror.invoke(this.cachedCraftStack, handle);
+		Object stack = null;
+		try {
+			Object tag = this.cachedNBTTagCompound.newInstance();
+			this.cachedNBTTagLoad.invoke(tag, new Object[] { input, 0, this.cachedNBTReadUnlimited });
+			Object handle = this.cachedItemStackCreate.invoke(this.cachedItemStack, tag);
+			stack = this.cachedCraftItemMirror.invoke(this.cachedCraftStack, handle);
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
 		return (ItemStack) stack;
 	}
 
-	@Override
-	public String getString(ItemStack stack) throws Exception {
+	public String getString(ItemStack stack) {
 		Object object = stack;
 		if (stack instanceof ItemStack) {
 			object = getAsCraftCopy(stack);
 		}
-		Object tag = this.cachedNBTTagCompound.newInstance();
-		this.cachedItemStackSave.invoke(this.cachedCraftItemHandle.get(object), tag);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		this.cachedNBTTagWrite.invoke(tag, new DataOutputStream(out));
+		ByteArrayOutputStream out = null;
+		try {
+			Object tag = this.cachedNBTTagCompound.newInstance();
+			this.cachedItemStackSave.invoke(this.cachedCraftItemHandle.get(object), tag);
+			out = new ByteArrayOutputStream();
+			this.cachedNBTTagWrite.invoke(tag, new DataOutputStream(out));
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
 		return new String(Base64.encode(out.toByteArray()));
 	}
 
@@ -216,7 +235,8 @@ public class ReflectFuncionItemUtil implements ItemUtil {
 		return null;
 	}
 
-	public static ReflectFuncionItemUtil getUtil() {
+	public static ItemUtil getUtil() {
 		return UTIL;
 	}
+
 }
