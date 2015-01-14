@@ -16,8 +16,8 @@ import org.bukkit.potion.PotionEffectType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.mengcraft.playersql.LoadedData;
-import com.mengcraft.playersql.common.LoadedQueue;
-import com.mengcraft.playersql.common.LockedPlayer;
+import com.mengcraft.playersql.LoadedQueue;
+import com.mengcraft.playersql.LockedPlayer;
 import com.mengcraft.playersql.util.FixedExp;
 import com.mengcraft.playersql.util.ItemUtil;
 

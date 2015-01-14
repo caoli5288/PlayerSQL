@@ -1,4 +1,4 @@
-package com.mengcraft.playersql.common;
+package com.mengcraft.playersql;
 
 import java.util.Map;
 import java.util.UUID;

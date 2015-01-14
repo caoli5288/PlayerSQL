@@ -3,8 +3,8 @@ package com.mengcraft.playersql.task;
 import java.util.Queue;
 import java.util.UUID;
 
-import com.mengcraft.playersql.common.LoadTaskQueue;
-import com.mengcraft.playersql.common.TaskManager;
+import com.mengcraft.playersql.LoadTaskQueue;
+import com.mengcraft.playersql.TaskManager;
 
 public class CheckQueuedTask implements Runnable {
 

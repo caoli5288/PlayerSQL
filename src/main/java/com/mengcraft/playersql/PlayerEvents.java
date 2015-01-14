@@ -14,10 +14,6 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 
-import com.mengcraft.playersql.common.LoadTaskQueue;
-import com.mengcraft.playersql.common.LockedPlayer;
-import com.mengcraft.playersql.common.TaskManager;
-
 public class PlayerEvents implements Listener {
 
 	private final Queue<UUID> tasks;

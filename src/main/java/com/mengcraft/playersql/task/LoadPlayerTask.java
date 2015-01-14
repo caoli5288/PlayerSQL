@@ -11,12 +11,12 @@ import java.util.UUID;
 import com.avaje.ebeaninternal.server.lib.sql.DataSourceManager;
 import com.avaje.ebeaninternal.server.lib.sql.DataSourcePool;
 import com.google.gson.JsonParser;
+import com.mengcraft.playersql.DataManager;
+import com.mengcraft.playersql.LoadTaskQueue;
 import com.mengcraft.playersql.LoadedData;
-import com.mengcraft.playersql.common.DataManager;
-import com.mengcraft.playersql.common.LoadTaskQueue;
-import com.mengcraft.playersql.common.LoadedQueue;
-import com.mengcraft.playersql.common.LockedPlayer;
-import com.mengcraft.playersql.common.RetryHandler;
+import com.mengcraft.playersql.LoadedQueue;
+import com.mengcraft.playersql.LockedPlayer;
+import com.mengcraft.playersql.RetryHandler;
 
 public class LoadPlayerTask implements Runnable {
 

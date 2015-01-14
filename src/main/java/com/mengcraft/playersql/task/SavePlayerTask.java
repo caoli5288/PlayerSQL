@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.avaje.ebeaninternal.server.lib.sql.DataSourcePool;
-import com.mengcraft.playersql.common.DataManager;
+import com.mengcraft.playersql.DataManager;
 
 public class SavePlayerTask implements Runnable {
 

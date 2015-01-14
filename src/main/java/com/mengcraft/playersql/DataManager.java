@@ -1,4 +1,4 @@
-package com.mengcraft.playersql.common;
+package com.mengcraft.playersql;
 
 import com.avaje.ebeaninternal.server.lib.sql.DataSourceManager;
 

@@ -8,8 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.avaje.ebean.config.DataSourceConfig;
 import com.avaje.ebeaninternal.server.lib.sql.DataSourceManager;
 import com.avaje.ebeaninternal.server.lib.sql.DataSourcePool;
-import com.mengcraft.playersql.common.DataManager;
-import com.mengcraft.playersql.common.TaskManager;
 import com.mengcraft.playersql.task.CheckLoadedTask;
 import com.mengcraft.playersql.task.CheckQueuedTask;
 import com.mengcraft.playersql.task.TimerSaveTask;

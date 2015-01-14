@@ -1,10 +1,8 @@
-package com.mengcraft.playersql.common;
+package com.mengcraft.playersql;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -15,10 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.mengcraft.playersql.task.LoadPlayerTask;
 import com.mengcraft.playersql.task.SavePlayerTask;
 import com.mengcraft.playersql.util.FixedExp;
@@ -103,29 +98,6 @@ public class TaskManager {
 		}
 		builder.append("]");
 		return builder.toString();
-	}
-
-	public Collection<PotionEffect> arrayToEffects(JsonArray effectArray) {
-		List<PotionEffect> effectList = new ArrayList<PotionEffect>();
-		for (JsonElement element : effectArray) {
-			JsonArray array = element.getAsJsonArray();
-			String i = array.get(0).getAsString();
-			int j = array.get(1).getAsInt();
-			effectList.add(new PotionEffect(PotionEffectType.getByName(i), j, array.get(2).getAsInt(), array.get(3).getAsBoolean()));
-		}
-		return effectList;
-	}
-
-	public ItemStack[] arrayToStacks(JsonArray array) throws Exception {
-		List<ItemStack> stackList = new ArrayList<ItemStack>();
-		for (JsonElement element : array) {
-			if (element.isJsonNull()) {
-				stackList.add(new ItemStack(Material.AIR));
-			} else {
-				stackList.add(this.util.getItemStack(element.getAsString()));
-			}
-		}
-		return stackList.toArray(new ItemStack[array.size()]);
 	}
 
 	public static TaskManager getManager() {

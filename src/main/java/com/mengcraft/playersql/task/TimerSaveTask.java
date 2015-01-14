@@ -2,7 +2,7 @@ package com.mengcraft.playersql.task;
 
 import org.bukkit.plugin.Plugin;
 
-import com.mengcraft.playersql.common.TaskManager;
+import com.mengcraft.playersql.TaskManager;
 
 public class TimerSaveTask implements Runnable {
 
