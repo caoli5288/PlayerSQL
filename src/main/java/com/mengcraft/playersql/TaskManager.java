@@ -38,7 +38,9 @@ public class TaskManager {
 		for (Player player : plugin.getServer().getOnlinePlayers()) {
 			map.put(player.getUniqueId(), getData(player));
 		}
-		this.pool.execute(new SavePlayerTask(map, quit));
+		if (map.size() > 0) {
+			this.pool.execute(new SavePlayerTask(map, quit));
+		}
 	}
 
 	public String getData(Player player) {
@@ -66,11 +68,11 @@ public class TaskManager {
 			PotionEffect effect = it.next();
 			builder.append("[");
 			builder.append("\"");
-			builder.append(effect.getType().getName()).append(",");
+			builder.append(effect.getType().getName());
+			builder.append("\"").append(",");
 			builder.append(effect.getDuration()).append(",");
 			builder.append(effect.getAmplifier()).append(",");
 			builder.append(effect.isAmbient());
-			builder.append("\"");
 			builder.append("]");
 			if (it.hasNext()) {
 				builder.append(",");

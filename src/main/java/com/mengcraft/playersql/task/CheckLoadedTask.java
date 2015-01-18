@@ -68,9 +68,9 @@ public class CheckLoadedTask implements Runnable {
 
 	}
 
-	public Collection<PotionEffect> arrayToEffects(JsonArray effectArray) {
+	public Collection<PotionEffect> arrayToEffects(JsonArray effects) {
 		List<PotionEffect> effectList = new ArrayList<PotionEffect>();
-		for (JsonElement element : effectArray) {
+		for (JsonElement element : effects) {
 			JsonArray array = element.getAsJsonArray();
 			String i = array.get(0).getAsString();
 			int j = array.get(1).getAsInt();
