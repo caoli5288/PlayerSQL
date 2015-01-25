@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -26,6 +27,13 @@ public class PlayerEvents implements Listener {
 			// DO NOTHING
 		} else {
 			this.lockeds.add(event.getPlayer().getUniqueId());
+		}
+	}
+	
+	@EventHandler
+	public void onDead(PlayerDeathEvent event) {
+		if (this.lockeds.contains(event.getEntity().getUniqueId())) {
+			event.getDrops().clear();
 		}
 	}
 
