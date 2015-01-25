@@ -210,6 +210,8 @@ public class ItemUtil {
 			this.cachedItemStackSave.invoke(this.cachedCraftItemHandle.get(object), tag);
 			out = new ByteArrayOutputStream();
 			this.cachedNBTTagWrite.invoke(tag, new DataOutputStream(out));
+			
+			return new String(Base64.encode(out.toByteArray()));
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
@@ -219,7 +221,7 @@ public class ItemUtil {
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
-		return new String(Base64.encode(out.toByteArray()));
+		return null;
 	}
 
 	private Object getAsCraftCopy(ItemStack stack) {
