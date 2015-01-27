@@ -7,13 +7,13 @@ import java.util.UUID;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerEvents implements Listener {
 
@@ -31,9 +31,9 @@ public class PlayerEvents implements Listener {
 	}
 	
 	@EventHandler
-	public void onDead(PlayerDeathEvent event) {
+	public void onDamage(EntityDamageEvent event) {
 		if (this.lockeds.contains(event.getEntity().getUniqueId())) {
-			event.getDrops().clear();
+			event.setCancelled(true);
 		}
 	}
 
