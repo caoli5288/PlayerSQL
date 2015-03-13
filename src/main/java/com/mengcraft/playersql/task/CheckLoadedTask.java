@@ -93,7 +93,6 @@ public class CheckLoadedTask implements Runnable {
 
 	public CheckLoadedTask(Plugin plugin) {
 		this.plugin = plugin;
-
 		this.handle = LoadedQueue.getDefault().getHandle();
 		this.lockeds = LockedPlayer.getDefault().getHandle();
 	}

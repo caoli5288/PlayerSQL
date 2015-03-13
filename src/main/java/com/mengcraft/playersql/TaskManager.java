@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_8_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -90,9 +91,10 @@ public class TaskManager {
 				builder.append(",");
 			}
 			ItemStack stack = stacks[i];
+			CraftItemStack copy = CraftItemStack.asCraftCopy(stack);
 			if (stack != null && stack.getType() != Material.AIR) {
 				builder.append("\"");
-				builder.append(this.util.getString(stack));
+				builder.append(this.util.getString(copy));
 				builder.append("\"");
 			} else {
 				builder.append("null");

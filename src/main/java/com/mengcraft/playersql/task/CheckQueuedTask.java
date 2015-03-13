@@ -8,14 +8,14 @@ import com.mengcraft.playersql.TaskManager;
 
 public class CheckQueuedTask implements Runnable {
 
-	private final Queue<UUID> handle;
+	private final Queue<UUID> queue;
 
 	private final TaskManager manager = TaskManager.getManager();
 
 	@Override
 	public void run() {
-		if (this.handle.size() > 0) {
-			work(this.handle.poll());
+		if (this.queue.size() > 0) {
+			work(this.queue.poll());
 		}
 	}
 
@@ -24,7 +24,7 @@ public class CheckQueuedTask implements Runnable {
 	}
 
 	public CheckQueuedTask() {
-		this.handle = LoadTaskQueue.getManager().getHandle();
+		this.queue = LoadTaskQueue.getManager().getHandle();
 	}
 
 }

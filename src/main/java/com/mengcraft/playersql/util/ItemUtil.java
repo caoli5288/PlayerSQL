@@ -10,77 +10,32 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.bukkit.inventory.ItemStack;
+import net.minecraft.server.v1_8_R2.ItemStack;
+import net.minecraft.server.v1_8_R2.NBTReadLimiter;
+import net.minecraft.server.v1_8_R2.NBTTagCompound;
+
+import org.bukkit.craftbukkit.v1_8_R2.inventory.CraftItemStack;
 import org.ow2.util.base64.Base64;
 
 public class ItemUtil {
-	
+
 	private final static ItemUtil UTIL = new ItemUtil();
 
-	private final Class<?> cachedItemStack;
-	private final Class<?> cachedNBTTagCompound;
-	private final Class<?> cachedCraftStack;
-	private final Class<?> cachedNBTReadLimiter;
-	private final Object cachedNBTReadUnlimited;
 	private final Method cachedNBTTagWrite;
 	private final Method cachedNBTTagLoad;
-	private final Method cachedItemStackCreate;
 	private final Method cachedItemStackSave;
-	private final Method cachedCraftItemConversion;
-	private final Method cachedCraftItemMirror;
 	private final Field cachedCraftItemHandle;
 
 	private ItemUtil() {
-		this.cachedItemStack = getItemStackClass();
-		this.cachedNBTTagCompound = getNBTTagCompoundClass();
-		this.cachedNBTReadLimiter = initNBTReadLimiterClass();
-		this.cachedNBTReadUnlimited = getNBTReadLimiterObject();
 		this.cachedNBTTagWrite = getNBTTagWriteMethod();
 		this.cachedNBTTagLoad = getNBTTagLoadMethod();
-		this.cachedItemStackCreate = getItemStackCreateMethod();
-		this.cachedCraftStack = getCraftStack();
-		this.cachedCraftItemConversion = getCraftItemConversionMethod();
 		this.cachedCraftItemHandle = getCraftItemHandle();
-		this.cachedCraftItemMirror = getCraftItemMirror();
 		this.cachedItemStackSave = getItemStackSave();
-	}
-
-	private Object getNBTReadLimiterObject() {
-		try {
-			Field field = this.cachedNBTReadLimiter.getDeclaredField("a");
-			field.setAccessible(true);
-			Object object = field.get(this.cachedNBTReadLimiter);
-			return object;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private Class<?> initNBTReadLimiterClass() {
-		try {
-			return Class.forName("net.minecraft.server.v1_8_R1.NBTReadLimiter");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return null;
 	}
 
 	private Method getItemStackSave() {
 		try {
-			Method method = this.cachedItemStack.getMethod("save", this.cachedNBTTagCompound);
-			return method;
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private Method getCraftItemMirror() {
-		try {
-			Method method = this.cachedCraftStack.getDeclaredMethod("asCraftMirror", this.cachedItemStack);
+			Method method = net.minecraft.server.v1_8_R2.ItemStack.class.getMethod("save", NBTTagCompound.class);
 			return method;
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
@@ -92,7 +47,7 @@ public class ItemUtil {
 
 	private Field getCraftItemHandle() {
 		try {
-			Field handle = this.cachedCraftStack.getDeclaredField("handle");
+			Field handle = CraftItemStack.class.getDeclaredField("handle");
 			handle.setAccessible(true);
 			return handle;
 		} catch (NoSuchFieldException e) {
@@ -103,41 +58,9 @@ public class ItemUtil {
 		return null;
 	}
 
-	private Method getCraftItemConversionMethod() {
-		try {
-			Method c = this.cachedCraftStack.getMethod("asCraftCopy", ItemStack.class);
-			return c;
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private Class<?> getCraftStack() {
-		try {
-			Class<?> c = Class.forName("org.bukkit.craftbukkit.v1_8_R1.inventory.CraftItemStack");
-			return c;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private Method getItemStackCreateMethod() {
-		try {
-			Method create = this.cachedItemStack.getMethod("createStack", this.cachedNBTTagCompound);
-			return create;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 	private Method getNBTTagLoadMethod() {
 		try {
-			Method load = this.cachedNBTTagCompound.getDeclaredMethod("load", new Class[] { DataInput.class, int.class, this.cachedNBTReadLimiter });
+			Method load = NBTTagCompound.class.getDeclaredMethod("load", new Class[] { DataInput.class, int.class, NBTReadLimiter.class });
 			load.setAccessible(true);
 			return load;
 		} catch (NoSuchMethodException e) {
@@ -150,7 +73,7 @@ public class ItemUtil {
 
 	private Method getNBTTagWriteMethod() {
 		try {
-			Method write = this.cachedNBTTagCompound.getDeclaredMethod("write", DataOutput.class);
+			Method write = NBTTagCompound.class.getDeclaredMethod("write", DataOutput.class);
 			write.setAccessible(true);
 			return write;
 		} catch (Exception e) {
@@ -159,36 +82,11 @@ public class ItemUtil {
 		return null;
 	}
 
-	private Class<?> getNBTTagCompoundClass() {
-		try {
-			Class<?> c = Class.forName("net.minecraft.server.v1_8_R1.NBTTagCompound");
-			return c;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private Class<?> getItemStackClass() {
-		try {
-			Class<?> c = Class.forName("net.minecraft.server.v1_8_R1.ItemStack");
-			return c;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public ItemStack getItemStack(String string) {
+	public CraftItemStack getItemStack(String string) {
 		DataInput input = new DataInputStream(new ByteArrayInputStream(Base64.decode(string.toCharArray())));
-		Object stack = null;
+		NBTTagCompound tag = new NBTTagCompound();
 		try {
-			Object tag = this.cachedNBTTagCompound.newInstance();
-			this.cachedNBTTagLoad.invoke(tag, new Object[] { input, 0, this.cachedNBTReadUnlimited });
-			Object handle = this.cachedItemStackCreate.invoke(this.cachedItemStack, tag);
-			stack = this.cachedCraftItemMirror.invoke(this.cachedCraftStack, handle);
-		} catch (InstantiationException e) {
-			e.printStackTrace();
+			this.cachedNBTTagLoad.invoke(tag, new Object[] { input, 0, NBTReadLimiter.a });
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
@@ -196,24 +94,16 @@ public class ItemUtil {
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
-		return (ItemStack) stack;
+		ItemStack handle = ItemStack.createStack(tag);
+		return CraftItemStack.asCraftMirror(handle);
 	}
 
-	public String getString(ItemStack stack) {
-		Object object = stack;
-		if (stack instanceof ItemStack) {
-			object = getAsCraftCopy(stack);
-		}
-		ByteArrayOutputStream out = null;
+	public String getString(CraftItemStack stack) {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			Object tag = this.cachedNBTTagCompound.newInstance();
-			this.cachedItemStackSave.invoke(this.cachedCraftItemHandle.get(object), tag);
-			out = new ByteArrayOutputStream();
+			NBTTagCompound tag = new NBTTagCompound();
+			this.cachedItemStackSave.invoke(this.cachedCraftItemHandle.get(stack), tag);
 			this.cachedNBTTagWrite.invoke(tag, new DataOutputStream(out));
-			
-			return new String(Base64.encode(out.toByteArray()));
-		} catch (InstantiationException e) {
-			e.printStackTrace();
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
@@ -221,20 +111,7 @@ public class ItemUtil {
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
-		return null;
-	}
-
-	private Object getAsCraftCopy(ItemStack stack) {
-		try {
-			return this.cachedCraftItemConversion.invoke(this.cachedCraftStack, stack);
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return new String(Base64.encode(out.toByteArray()));
 	}
 
 	public static ItemUtil getUtil() {
