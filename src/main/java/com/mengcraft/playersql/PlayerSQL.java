@@ -47,7 +47,6 @@ public class PlayerSQL extends JavaPlugin {
 		} catch (Exception e) {
 			getLogger().warning("Unable to connect to database.");
 		}
-		getServer().shutdown();
 	}
 
 	private void registerEvents() {
