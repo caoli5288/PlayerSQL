@@ -91,8 +91,8 @@ public class TaskManager {
 				builder.append(",");
 			}
 			ItemStack stack = stacks[i];
-			CraftItemStack copy = CraftItemStack.asCraftCopy(stack);
 			if (stack != null && stack.getType() != Material.AIR) {
+			    CraftItemStack copy = CraftItemStack.asCraftCopy(stack);
 				builder.append("\"");
 				builder.append(this.util.getString(copy));
 				builder.append("\"");
