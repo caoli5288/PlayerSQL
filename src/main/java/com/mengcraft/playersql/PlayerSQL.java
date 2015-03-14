@@ -34,8 +34,8 @@ public class PlayerSQL extends JavaPlugin {
 			connection.close();
 			registerEvents();
 		} catch (Exception e) {
-			getLogger().warning("Can not link to database.");
-			getLogger().warning("Simply shoutdown server..");
+			getLogger().warning("Unable to connect to database.");
+			getLogger().warning("Shutting down server...");
 			setEnabled(false);
 		}
 	}
@@ -45,7 +45,7 @@ public class PlayerSQL extends JavaPlugin {
 		try {
 			TaskManager.getManager().runSaveAll(this, 0);
 		} catch (Exception e) {
-			getLogger().warning("Can not link to database.");
+			getLogger().warning("Unable to connect to database.");
 		}
 		getServer().shutdown();
 	}
