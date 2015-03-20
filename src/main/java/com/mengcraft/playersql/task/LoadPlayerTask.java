@@ -8,10 +8,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 
-import com.avaje.ebeaninternal.server.lib.sql.DataSourceManager;
-import com.avaje.ebeaninternal.server.lib.sql.DataSourcePool;
 import com.google.gson.JsonParser;
-import com.mengcraft.playersql.DataManager;
+import com.mengcraft.jdbc.ConnectionHandler;
 import com.mengcraft.playersql.LoadTaskQueue;
 import com.mengcraft.playersql.LoadedData;
 import com.mengcraft.playersql.LoadedQueue;
@@ -22,7 +20,6 @@ public class LoadPlayerTask implements Runnable {
 
 	private final UUID uuid;
 
-	private final DataSourcePool pool;
 	private final Queue<LoadedData> queue;
 	private final Queue<UUID> loads;
 	private final List<UUID> locks;
@@ -32,7 +29,7 @@ public class LoadPlayerTask implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Connection connection = this.pool.getConnection();
+			Connection connection = ConnectionHandler.getConnection("playersql");
 			PreparedStatement sql = connection.prepareStatement("SELECT `Data`, `Online` FROM `PlayerData` WHERE `Player` = ?;");
 			sql.setString(1, this.uuid.toString());
 			ResultSet result = sql.executeQuery();
@@ -61,7 +58,6 @@ public class LoadPlayerTask implements Runnable {
 			}
 			result.close();
 			sql.close();
-			connection.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -73,10 +69,6 @@ public class LoadPlayerTask implements Runnable {
 
 	public LoadPlayerTask(UUID uuid) {
 		this.uuid = uuid;
-
-		DataSourceManager manager = DataManager.getDefault().getHandle();
-		this.pool = manager.getDataSource("default");
-
 		this.queue = LoadedQueue.getDefault().getHandle();
 		this.locks = LockedPlayer.getDefault().getHandle();
 		this.loads = LoadTaskQueue.getManager().getHandle();

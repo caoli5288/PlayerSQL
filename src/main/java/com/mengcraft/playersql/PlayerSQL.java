@@ -5,38 +5,46 @@ import java.sql.Statement;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.avaje.ebean.config.DataSourceConfig;
-import com.avaje.ebeaninternal.server.lib.sql.DataSourceManager;
-import com.avaje.ebeaninternal.server.lib.sql.DataSourcePool;
+import com.mengcraft.jdbc.ConnectionFactory;
+import com.mengcraft.jdbc.ConnectionHandler;
 import com.mengcraft.playersql.task.CheckLoadedTask;
 import com.mengcraft.playersql.task.CheckQueuedTask;
 import com.mengcraft.playersql.task.TimerSaveTask;
 
 public class PlayerSQL extends JavaPlugin {
 
-	private final DataSourceManager source = DataManager.getDefault().getHandle();
-
 	@Override
 	public void onEnable() {
-		DataSourceConfig config = new DataSourceConfig();
-		config.setDriver("com.mysql.jdbc.Driver");
-		config.setUrl(getConfig().getString("plugin.database"));
-		config.setUsername(getConfig().getString("plugin.username"));
-		config.setPassword(getConfig().getString("plugin.password"));
+		saveDefaultConfig();
+		saveConfig();
+		ConnectionFactory factory = new ConnectionFactory(
+				getConfig().getString("plugin.database"),
+				getConfig().getString("plugin.username"),
+				getConfig().getString("plugin.password"));
+		ConnectionHandler handler = new ConnectionHandler(factory, "playersql");
 		try {
-			DataSourcePool pool = this.source.getDataSource("default", config);
-			Connection connection = pool.getConnection();
-			String table = "`Id` int NOT NULL AUTO_INCREMENT, `Player` text NULL, `Data` text NULL, `Online` int NULL, `Last` bigint NULL, PRIMARY KEY(`Id`)";
-			String sql = "CREATE TABLE IF NOT EXISTS PlayerData(" + table + ");";
+			Connection connection = handler.getConnection();
+			String sql = "CREATE TABLE IF NOT EXISTS PlayerData("
+					+ "`Id` int NOT NULL AUTO_INCREMENT, "
+					+ "`Player` text NULL, "
+					+ "`Data` text NULL, "
+					+ "`Online` int NULL, "
+					+ "`Last` bigint NULL, "
+					+ "PRIMARY KEY(`Id`));";
 			Statement action = connection.createStatement();
 			action.executeUpdate(sql);
 			action.close();
-			connection.close();
-			registerEvents();
+			getServer().getPluginManager().registerEvents(new PlayerEvents(), this);
+			getServer().getScheduler().runTaskTimer(this, new CheckLoadedTask(this), 1, 1);
+			getServer().getScheduler().runTaskTimer(this, new CheckQueuedTask(), 5, 5);
+			getServer().getScheduler().runTaskTimer(this, new TimerSaveTask(this), 6000, 6000);
+
 		} catch (Exception e) {
 			getLogger().warning("Unable to connect to database.");
+			e.printStackTrace();
 			getLogger().warning("Shutting down server...");
 			setEnabled(false);
+			getServer().shutdown();
 		}
 	}
 
@@ -46,18 +54,8 @@ public class PlayerSQL extends JavaPlugin {
 			TaskManager.getManager().runSaveAll(this, 0);
 		} catch (Exception e) {
 			getLogger().warning("Unable to connect to database.");
+			e.printStackTrace();
 		}
-	}
-
-	private void registerEvents() {
-		getServer().getPluginManager().registerEvents(new PlayerEvents(), this);
-		getServer().getScheduler().runTaskTimer(this, new CheckLoadedTask(this), 1, 1);
-		getServer().getScheduler().runTaskTimer(this, new CheckQueuedTask(), 5, 5);
-		getServer().getScheduler().runTaskTimer(this, new TimerSaveTask(this), 6000, 6000);
-	}
-
-	public PlayerSQL() {
-		saveDefaultConfig();
 	}
 
 }

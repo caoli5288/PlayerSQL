@@ -23,6 +23,7 @@ import com.mengcraft.playersql.util.ItemUtil;
 public class TaskManager {
 
 	private final static TaskManager MANAGER = new TaskManager();
+	
 	private final ExecutorService pool = Executors.newCachedThreadPool();
 	private final ItemUtil util = ItemUtil.getUtil();
 

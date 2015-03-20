@@ -8,37 +8,29 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import com.avaje.ebeaninternal.server.lib.sql.DataSourcePool;
-import com.mengcraft.playersql.DataManager;
+import com.mengcraft.jdbc.ConnectionHandler;
 
 public class SavePlayerTask implements Runnable {
 
-	private final DataSourcePool pool = DataManager.getDefault().getHandle().getDataSource("default");
 	private final int quit;
 	private final Map<UUID, String> map;
 
 	@Override
 	public void run() {
 		try {
-			Connection connection = this.pool.getConnection();
+			Connection connection = ConnectionHandler.getConnection("playersql");
 			PreparedStatement sql = connection.prepareStatement("UPDATE `PlayerData` SET `Data` = ?, `Online` = ?, `Last` = ? WHERE `Player` = ?;");
 			sql.setLong(3, System.currentTimeMillis());
 			sql.setInt(2, this.quit);
-			addBatch(sql);
+			for (Entry<UUID, String> entry : this.map.entrySet()) {
+				sql.setString(4, entry.getKey().toString());
+				sql.setString(1, entry.getValue());
+				sql.addBatch();
+			}
 			sql.executeBatch();
 			sql.close();
-			connection.commit();
-			connection.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}
-	}
-
-	private void addBatch(PreparedStatement sql) throws SQLException {
-		for (Entry<UUID, String> entry : this.map.entrySet()) {
-			sql.setString(4, entry.getKey().toString());
-			sql.setString(1, entry.getValue());
-			sql.addBatch();
 		}
 	}
 
