@@ -39,7 +39,6 @@ public class LoadPlayerTask implements Runnable {
 				insert.setString(1, this.uuid.toString());
 				insert.executeUpdate();
 				insert.close();
-				connection.commit();
 				// Unlock player.
 				this.locks.remove(this.uuid);
 			} else if (result.getInt(2) < 1) {
@@ -47,7 +46,6 @@ public class LoadPlayerTask implements Runnable {
 				PreparedStatement lock = connection.prepareStatement("UPDATE `PlayerData` SET `Online` = 1 WHERE `Player` = ?;");
 				lock.setString(1, this.uuid.toString());
 				lock.executeUpdate();
-				connection.commit();
 				lock.close();
 				offer(result.getString(1));
 			} else if (this.retry.check(this.uuid)) {
