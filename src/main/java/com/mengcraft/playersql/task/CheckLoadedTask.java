@@ -37,8 +37,12 @@ public class CheckLoadedTask implements Runnable {
 	}
 
 	private void work(LoadedData poll) {
-		sync(this.plugin.getServer().getPlayer(poll.getKey()), poll.getValue());
-		this.lockeds.remove(poll.getKey());
+		UUID key = poll.getKey();
+		Player p = this.plugin.getServer().getPlayer(key);
+		if (p != null) {
+			sync(p, poll.getValue());
+		}
+		this.lockeds.remove(key);
 	}
 
 	private void sync(Player player, JsonArray value) {
@@ -74,7 +78,8 @@ public class CheckLoadedTask implements Runnable {
 			JsonArray array = element.getAsJsonArray();
 			String i = array.get(0).getAsString();
 			int j = array.get(1).getAsInt();
-			effectList.add(new PotionEffect(PotionEffectType.getByName(i), j, array.get(2).getAsInt(), array.get(3).getAsBoolean()));
+			effectList.add(new PotionEffect(PotionEffectType.getByName(i), j, array.get(2).getAsInt(), array.get(3)
+					.getAsBoolean()));
 		}
 		return effectList;
 	}
