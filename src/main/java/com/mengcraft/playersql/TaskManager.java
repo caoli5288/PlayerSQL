@@ -25,7 +25,7 @@ public class TaskManager {
 	private final static TaskManager MANAGER = new TaskManager();
 	
 	private final ExecutorService pool = Executors.newCachedThreadPool();
-	private final ItemUtil util = ItemUtil.getUtil();
+	private final ItemUtil util = ItemUtil.DEFAULT;
 
 	public void runLoadTask(UUID uuid) {
 		this.pool.execute(new LoadPlayerTask(uuid));

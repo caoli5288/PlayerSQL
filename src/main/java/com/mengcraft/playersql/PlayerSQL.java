@@ -21,7 +21,7 @@ public class PlayerSQL extends JavaPlugin {
 				getConfig().getString("plugin.database"),
 				getConfig().getString("plugin.username"),
 				getConfig().getString("plugin.password"));
-		ConnectionHandler handler = new ConnectionHandler(factory, "playersql");
+		ConnectionHandler handler = new ConnectionHandler("playersql", factory);
 		try {
 			Connection connection = handler.getConnection();
 			String sql = "CREATE TABLE IF NOT EXISTS PlayerData("

@@ -14,17 +14,19 @@ import net.minecraft.server.v1_8_R2.ItemStack;
 import net.minecraft.server.v1_8_R2.NBTReadLimiter;
 import net.minecraft.server.v1_8_R2.NBTTagCompound;
 
+import org.apache.commons.codec.binary.Base64;
 import org.bukkit.craftbukkit.v1_8_R2.inventory.CraftItemStack;
-import org.ow2.util.base64.Base64;
 
 public class ItemUtil {
 
-	private final static ItemUtil UTIL = new ItemUtil();
+	public final static ItemUtil DEFAULT = new ItemUtil();
 
 	private final Method cachedNBTTagWrite;
 	private final Method cachedNBTTagLoad;
 	private final Method cachedItemStackSave;
 	private final Field cachedCraftItemHandle;
+
+	private final Base64 base64 = new Base64();
 
 	private ItemUtil() {
 		this.cachedNBTTagWrite = getNBTTagWriteMethod();
@@ -60,7 +62,8 @@ public class ItemUtil {
 
 	private Method getNBTTagLoadMethod() {
 		try {
-			Method load = NBTTagCompound.class.getDeclaredMethod("load", new Class[] { DataInput.class, int.class, NBTReadLimiter.class });
+			Method load = NBTTagCompound.class.getDeclaredMethod("load", new Class[] { DataInput.class, int.class,
+					NBTReadLimiter.class });
 			load.setAccessible(true);
 			return load;
 		} catch (NoSuchMethodException e) {
@@ -83,7 +86,7 @@ public class ItemUtil {
 	}
 
 	public CraftItemStack getItemStack(String string) {
-		DataInput input = new DataInputStream(new ByteArrayInputStream(Base64.decode(string.toCharArray())));
+		DataInput input = new DataInputStream(new ByteArrayInputStream(base64.decode(string)));
 		NBTTagCompound tag = new NBTTagCompound();
 		try {
 			this.cachedNBTTagLoad.invoke(tag, new Object[] { input, 0, NBTReadLimiter.a });
@@ -111,11 +114,7 @@ public class ItemUtil {
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
-		return new String(Base64.encode(out.toByteArray()));
-	}
-
-	public static ItemUtil getUtil() {
-		return UTIL;
+		return base64.encodeToString(out.toByteArray());
 	}
 
 }

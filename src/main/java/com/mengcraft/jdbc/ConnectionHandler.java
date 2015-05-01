@@ -11,7 +11,7 @@ public class ConnectionHandler {
 	private final ConnectionFactory factory;
 	private Connection connection;
 
-	public ConnectionHandler(ConnectionFactory factory, String name) {
+	public ConnectionHandler(String name, ConnectionFactory factory) {
 		this.factory = factory;
 		MAP.put(name, this);
 	}
@@ -39,4 +39,5 @@ public class ConnectionHandler {
 		}
 		return 0;
 	}
+	
 }
