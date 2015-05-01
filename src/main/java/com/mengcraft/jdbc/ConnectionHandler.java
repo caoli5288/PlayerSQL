@@ -21,7 +21,7 @@ public class ConnectionHandler {
 	}
 
 	public Connection getConnection() {
-		if (connection == null || check() > 0) {
+		if (connection == null || !check()) {
 			try {
 				connection = factory.create();
 			} catch (SQLException e) {
@@ -31,13 +31,13 @@ public class ConnectionHandler {
 		return connection;
 	}
 
-	private int check() {
+	private boolean check() {
 		try {
-			return connection.isValid(1) ? 0 : 1;
+			return connection.isValid(1);
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return false;
 		}
-		return 0;
 	}
 	
 }
