@@ -47,19 +47,20 @@ public class TaskManager {
 
 	public String getData(Player player) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("[");
-		builder.append(player.getHealth()).append(",");
-		builder.append(player.getFoodLevel()).append(",");
-		builder.append(FixedExp.getExp(player)).append(",");
+		builder.append('[');
+		builder.append(player.getHealth()).append(',');
+		builder.append(player.getFoodLevel()).append(',');
+		builder.append(FixedExp.getExp(player)).append(',');
 		ItemStack[] inventory = player.getInventory().getContents();
 		ItemStack[] armors = player.getInventory().getArmorContents();
 		ItemStack[] chest = player.getEnderChest().getContents();
-		builder.append(getString(inventory)).append(",");
-		builder.append(getString(armors)).append(",");
-		builder.append(getString(chest)).append(",");
+		builder.append(getString(inventory)).append(',');
+		builder.append(getString(armors)).append(',');
+		builder.append(getString(chest)).append(',');
 		Collection<PotionEffect> effects = player.getActivePotionEffects();
-		builder.append(getString(effects));
-		builder.append("]");
+		builder.append(getString(effects)).append(',');
+		builder.append(player.getInventory().getHeldItemSlot());
+		builder.append(']');
 		return builder.toString();
 	}
 
