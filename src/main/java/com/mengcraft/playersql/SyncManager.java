@@ -71,9 +71,9 @@ public class SyncManager {
     private void load(Player p, JsonArray array) {
         if (Configs.SYN_HEAL) {
             double j = array.get(0).getAsDouble();
-            double d = j > p.getMaxHealth() ?
-                    p.getMaxHealth() :
-                    j;
+            double d = j <= p.getMaxHealth() ?
+                    j != 0 ? j : p.getHealth() :
+                    p.getMaxHealth();
             p.setHealth(d);
         }
         if (Configs.SYN_FOOD) {
