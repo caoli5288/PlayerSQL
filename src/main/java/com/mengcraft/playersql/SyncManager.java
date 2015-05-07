@@ -25,9 +25,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mengcraft.jdbc.ConnectionManager;
+import com.mengcraft.playersql.util.ExpsUtil;
+import com.mengcraft.playersql.util.ItemUtil;
 import com.mengcraft.util.ArrayBuilder;
-import com.mengcraft.util.ExpsUtil;
-import com.mengcraft.util.ItemUtil;
 
 public class SyncManager {
 
@@ -228,12 +228,14 @@ class LoadTask implements Runnable {
             ResultSet result = select.executeQuery();
             if (!result.next()) {
                 create(c);
-                compond.map().put(uuid, null);
-            } else if (result.getInt(2) != 1) {
+                compond.map().put(uuid, DataCompond.STRING_EMPTY);
+            } else if (result.getInt(2) == 0) {
                 update(c);
-                compond.map().put(uuid, result.getString("Data"));
-            } else if (check(result.getLong("Last")) > 3) {
-                compond.map().put(uuid, result.getString("Data"));
+                compond.map().put(uuid, result.getString(1));
+            } else if (check(result.getLong(3)) > 3) {
+                String data = result.getString(1);
+                compond.map().put(uuid, data != null ?
+                        data : DataCompond.STRING_EMPTY);
             } else {
                 kick();
             }

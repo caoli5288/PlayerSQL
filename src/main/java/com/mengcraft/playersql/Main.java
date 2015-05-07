@@ -43,6 +43,11 @@ public class Main extends JavaPlugin {
         }
     }
 
+    @Override
+    public void onDisable() {
+        ConnectionManager.DEFAULT.shutdown();
+    }
+
     private BukkitScheduler scheduler() {
         return getServer().getScheduler();
     }

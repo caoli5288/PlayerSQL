@@ -34,7 +34,7 @@ public class CheckTask implements Runnable {
         List<UUID> list = compond.entry();
         for (UUID uuid : list) {
             String data = map.get(uuid);
-            if (data != null) {
+            if (data != DataCompond.STRING_EMPTY) {
                 Player p = server.getPlayer(uuid);
                 manager.load(p, data);
             }

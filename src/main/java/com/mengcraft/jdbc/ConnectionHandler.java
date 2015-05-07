@@ -47,6 +47,7 @@ public class ConnectionHandler {
         for (Connection connection : queue) {
             close(connection);
         }
+        queue.clear();
     }
 
     private void close(Connection connection) {

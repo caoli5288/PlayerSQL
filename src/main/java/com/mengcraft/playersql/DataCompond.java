@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DataCompond {
 
     public static final DataCompond DEFAULT = new DataCompond();
+    public static final String STRING_EMPTY = new String();
 
     private final List<UUID> list = new ArrayList<>();
     private final Map<UUID, String> map = new ConcurrentHashMap<>();

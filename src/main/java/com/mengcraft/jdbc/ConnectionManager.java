@@ -42,5 +42,6 @@ public class ConnectionManager {
         for (ConnectionHandler handler : map.values()) {
             handler.shutdown();
         }
+        map.clear();
     }
 }
