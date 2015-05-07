@@ -2,42 +2,59 @@ package com.mengcraft.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConnectionHandler {
 
-	public static final ConcurrentHashMap<String, ConnectionHandler> MAP = new ConcurrentHashMap<>();
+    private final String name;
+    private final ConnectionFactory factory;
+    private final LinkedBlockingQueue<Connection> queue;
 
-	private final ConnectionFactory factory;
-	private Connection connection;
+    protected ConnectionHandler(String name, ConnectionFactory factory) {
+        this.name = name;
+        this.factory = factory;
+        this.queue = new LinkedBlockingQueue<>();
+    }
 
-	public ConnectionHandler(String name, ConnectionFactory factory) {
-		this.factory = factory;
-		MAP.put(name, this);
-	}
+    public String name() {
+        return name;
+    }
 
-	public static Connection getConnection(String name) {
-		return MAP.get(name).getConnection();
-	}
+    public Connection getConnection() throws SQLException {
+        Connection c = queue.poll();
+        if (c == null) {
+            c = factory.create();
+        } else if (!check(c)) {
+            return getConnection();
+        }
+        return c;
+    }
 
-	public Connection getConnection() {
-		if (connection == null || !check()) {
-			try {
-				connection = factory.create();
-			} catch (SQLException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		return connection;
-	}
+    public void release(Connection c) {
+        queue.offer(c);
+    }
 
-	private boolean check() {
-		try {
-			return connection.isValid(1);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-	
+    private boolean check(Connection c) {
+        try {
+            return c.isValid(1);
+        } catch (SQLException e) {
+            // e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void shutdown() {
+        for (Connection connection : queue) {
+            close(connection);
+        }
+    }
+
+    private void close(Connection connection) {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            // e.printStackTrace();
+        }
+    }
+
 }

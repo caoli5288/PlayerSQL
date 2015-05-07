@@ -10,5 +10,3 @@ sync:
   inventory: true
   chest: true
   potion: true
-
-version: 1.8.0

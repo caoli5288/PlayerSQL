@@ -1,4 +1,4 @@
-main: com.mengcraft.playersql.PlayerSQL
+main: com.mengcraft.playersql.Main
 name: PlayerSQL
-version: ${project.version}
+version: '1.10'
 website: http://www.spigotmc.org/resources/playersql.552/

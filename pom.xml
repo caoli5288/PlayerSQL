@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.mengcraft</groupId>
   <artifactId>playersql</artifactId>
-  <version>1.9.0-SNAPSHOT</version>
+  <version>1.10</version>
   <name>PlayerSQL</name>
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>

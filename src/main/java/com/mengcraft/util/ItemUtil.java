@@ -1,4 +1,4 @@
-package com.mengcraft.playersql.util;
+package com.mengcraft.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,7 +19,7 @@ import org.bukkit.craftbukkit.v1_8_R2.inventory.CraftItemStack;
 
 public class ItemUtil {
 
-	public final static ItemUtil DEFAULT = new ItemUtil();
+	public final static ItemUtil UTIL = new ItemUtil();
 
 	private final Method cachedNBTTagWrite;
 	private final Method cachedNBTTagLoad;
