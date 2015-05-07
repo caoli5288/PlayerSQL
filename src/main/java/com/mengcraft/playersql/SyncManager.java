@@ -37,7 +37,7 @@ public class SyncManager {
     private final JsonParser parser = new JsonParser();
 
     private SyncManager() {
-        this.service = new ThreadPoolExecutor(1, Integer.MAX_VALUE,
+        this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
                 60000,
                 TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>()
@@ -232,7 +232,7 @@ class LoadTask implements Runnable {
             } else if (result.getInt(2) == 0) {
                 update(c);
                 compond.map().put(uuid, result.getString(1));
-            } else if (check(result.getLong(3)) > 3) {
+            } else if (check(result.getLong(3)) > 5) {
                 String data = result.getString(1);
                 compond.map().put(uuid, data != null ?
                         data : DataCompond.STRING_EMPTY);
