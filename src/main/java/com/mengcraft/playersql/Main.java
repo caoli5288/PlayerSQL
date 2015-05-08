@@ -3,12 +3,14 @@ package com.mengcraft.playersql;
 import java.sql.Connection;
 import java.sql.Statement;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.mengcraft.jdbc.ConnectionFactory;
 import com.mengcraft.jdbc.ConnectionHandler;
 import com.mengcraft.jdbc.ConnectionManager;
+import com.mengcraft.playersql.task.TimerCheckTask;
 
 public class Main extends JavaPlugin {
 
@@ -35,7 +37,7 @@ public class Main extends JavaPlugin {
             action.close();
             handler.release(connection);
             scheduler().runTask(this, new MetricsTask(this));
-            scheduler().runTaskTimer(this, new CheckTask(this), 5, 5);
+            scheduler().runTaskTimer(this, new TimerCheckTask(this), 0, 0);
             register(new Events(this), this);
         } catch (Exception e) {
             getLogger().warning("Unable to connect to database.");
@@ -45,10 +47,14 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        SyncManager manager = SyncManager.DEFAULT;
+        for (Player p : getServer().getOnlinePlayers()) {
+            manager.save(p, 0);
+        }
         ConnectionManager.DEFAULT.shutdown();
     }
 
-    private BukkitScheduler scheduler() {
+    public BukkitScheduler scheduler() {
         return getServer().getScheduler();
     }
 

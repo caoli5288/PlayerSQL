@@ -1,9 +1,5 @@
 package com.mengcraft.playersql;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -24,7 +20,9 @@ import org.bukkit.potion.PotionEffectType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mengcraft.jdbc.ConnectionManager;
+import com.mengcraft.playersql.task.LoadTask;
+import com.mengcraft.playersql.task.SaveTask;
+import com.mengcraft.playersql.task.UnlockTask;
 import com.mengcraft.playersql.util.ExpsUtil;
 import com.mengcraft.playersql.util.ItemUtil;
 import com.mengcraft.util.ArrayBuilder;
@@ -35,6 +33,7 @@ public class SyncManager {
 
     private final ExecutorService service;
     private final JsonParser parser = new JsonParser();
+    private final DataCompond compond = DataCompond.DEFAULT;
 
     private SyncManager() {
         this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
@@ -57,14 +56,22 @@ public class SyncManager {
         if (player == null || !player.isOnline()) {
             throw new NullPointerException();
         }
-        UUID uuid = player.getUniqueId();
-        service.execute(new LoadTask(uuid));
+        service.execute(new LoadTask(player.getUniqueId()));
     }
 
-    public void load(Player p, String value) {
-        if (p != null && p.isOnline()) {
+    public void load(final Player p, String value) {
+        UUID key = p.getUniqueId();
+        if (p.isOnline()) {
             JsonArray array = parser.parse(value).getAsJsonArray();
             load(p, array);
+            compond.unlock(key);
+            compond.map().remove(key);
+        } else {
+            /*
+             * If player is null(may impossible) or offline in this method,
+             * means player's data on SQL is locked. Do unlock task.
+             */
+            service.execute(new UnlockTask(key));
         }
     }
 
@@ -194,131 +201,4 @@ public class SyncManager {
         builder.append(']');
         return builder.toString();
     }
-}
-
-class LoadTask implements Runnable {
-
-    private static final String SELECT;
-    private static final String INSERT;
-    private static final String UPDATE;
-
-    static {
-        SELECT = "SELECT `Data`,`Online`,`Last` FROM `PlayerData` " +
-                "WHERE `Player` = ?";
-        INSERT = "INSERT INTO `PlayerData`(`Player`, `Online`) " +
-                "VALUES(?, 1)";
-        UPDATE = "UPDATE `PlayerData` SET `Online` = 1 " +
-                "WHERE `Player` = ?";
-    }
-
-    private final ConnectionManager manager = ConnectionManager.DEFAULT;
-    private final DataCompond compond = DataCompond.DEFAULT;
-    private final UUID uuid;
-
-    public LoadTask(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    @Override
-    public void run() {
-        try {
-            Connection c = manager.getConnection("playersql");
-            PreparedStatement select = c.prepareStatement(SELECT);
-            select.setString(1, uuid.toString());
-            ResultSet result = select.executeQuery();
-            if (!result.next()) {
-                create(c);
-                compond.map().put(uuid, DataCompond.STRING_EMPTY);
-            } else if (result.getInt(2) == 0) {
-                update(c);
-                compond.map().put(uuid, result.getString(1));
-            } else if (check(result.getLong(3)) > 5) {
-                String data = result.getString(1);
-                compond.map().put(uuid, data != null ?
-                        data : DataCompond.STRING_EMPTY);
-            } else {
-                kick();
-            }
-            result.close();
-            select.close();
-            manager.release("playersql", c);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void kick() {
-        List<UUID> kick = compond.kick();
-        synchronized (kick) {
-            kick.add(uuid);
-        }
-    }
-
-    private long check(long last) {
-        return (System.currentTimeMillis() - last) / 60000;
-    }
-
-    private void update(Connection c) {
-        try {
-            PreparedStatement update = c.prepareStatement(UPDATE);
-            update.setString(1, uuid.toString());
-            update.executeUpdate();
-            update.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void create(Connection c) {
-        try {
-            PreparedStatement insert = c.prepareStatement(INSERT);
-            insert.setString(1, uuid.toString());
-            insert.executeUpdate();
-            insert.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-}
-
-class SaveTask implements Runnable {
-
-    private static final String UPDATE;
-
-    static {
-        UPDATE = "UPDATE `PlayerData` " +
-                "SET `Data` = ?, `Last` = ? , Online = ? " +
-                "WHERE `Player` = ?";
-    }
-
-    private final String data;
-    private final UUID uuid;
-    private final ConnectionManager manager;
-    private final int lock;
-
-    public SaveTask(UUID uuid, String data, int lock) {
-        this.uuid = uuid;
-        this.data = data;
-        this.lock = lock;
-        manager = ConnectionManager.DEFAULT;
-    }
-
-    @Override
-    public void run() {
-        try {
-            Connection c = manager.getConnection("playersql");
-            PreparedStatement update = c.prepareStatement(UPDATE);
-            update.setString(1, data);
-            update.setLong(2, System.currentTimeMillis());
-            update.setInt(3, lock);
-            update.setString(4, uuid.toString());
-            update.executeUpdate();
-            update.close();
-            manager.release("playersql", c);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

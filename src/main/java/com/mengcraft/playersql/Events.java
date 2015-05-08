@@ -25,7 +25,11 @@ public class Events implements Listener {
 
     @EventHandler
     public void handle(PlayerLoginEvent event) {
-        if (event.getResult() == Result.ALLOWED) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        if (compond.islocked(uuid)) {
+            event.setResult(Result.KICK_OTHER);
+            event.setKickMessage(DataCompond.MESSAGE_KICK);
+        } else if (event.getResult() == Result.ALLOWED) {
             compond.lock(event.getPlayer().getUniqueId());
         }
     }
@@ -37,17 +41,14 @@ public class Events implements Listener {
                 manager.load(event.getPlayer());
             }
         };
-        main.getServer().getScheduler().
-                runTaskLater(main, task, 30);
+        main.scheduler().runTaskLater(main, task, 30);
     }
 
     @EventHandler
     public void handle(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
-        if (compond.islocked(uuid)) {
-            compond.unlock(uuid);
-        } else {
+        if (!compond.islocked(uuid)) {
             manager.save(player, 0);
         }
     }

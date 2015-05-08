@@ -11,6 +11,12 @@ public class DataCompond {
 
     public static final DataCompond DEFAULT = new DataCompond();
     public static final String STRING_EMPTY = new String();
+    public static final String STRING_SPECI = new String();
+    public static final String MESSAGE_KICK;;
+
+    static {
+        MESSAGE_KICK = "Your data is locked, login later.";
+    }
 
     private final List<UUID> list = new ArrayList<>();
     private final Map<UUID, String> map = new ConcurrentHashMap<>();
