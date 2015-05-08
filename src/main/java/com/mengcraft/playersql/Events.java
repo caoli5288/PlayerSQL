@@ -49,7 +49,7 @@ public class Events implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         if (!compond.islocked(uuid)) {
-            manager.save(player, 0);
+            manager.save(player, true);
         }
     }
 

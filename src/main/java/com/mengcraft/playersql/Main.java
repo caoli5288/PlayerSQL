@@ -2,6 +2,9 @@ package com.mengcraft.playersql;
 
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -10,6 +13,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.mengcraft.jdbc.ConnectionFactory;
 import com.mengcraft.jdbc.ConnectionHandler;
 import com.mengcraft.jdbc.ConnectionManager;
+import com.mengcraft.playersql.task.SaveTask;
 import com.mengcraft.playersql.task.TimerCheckTask;
 
 public class Main extends JavaPlugin {
@@ -48,8 +52,12 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         SyncManager manager = SyncManager.DEFAULT;
+        Map<UUID, String> map = new HashMap<>();
         for (Player p : getServer().getOnlinePlayers()) {
-            manager.save(p, 0);
+            map.put(p.getUniqueId(), manager.data(p));
+        }
+        if (map.size() != 0) {
+            new SaveTask(map, true);
         }
         ConnectionManager.DEFAULT.shutdown();
     }

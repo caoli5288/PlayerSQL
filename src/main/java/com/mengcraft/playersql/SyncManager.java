@@ -43,15 +43,15 @@ public class SyncManager {
                 );
     }
 
-    public void save(Player player, int lock) {
+    public void save(Player player, boolean unlock) {
         if (player == null) {
             throw new NullPointerException();
         }
-        String data = getPlayerData(player);
+        String data = data(player);
         UUID uuid = player.getUniqueId();
-        service.execute(new SaveTask(uuid, data, lock));
+        service.execute(new SaveTask(uuid, data, unlock));
     }
-
+    
     public void load(Player player) {
         if (player == null || !player.isOnline()) {
             throw new NullPointerException();
@@ -73,6 +73,25 @@ public class SyncManager {
              */
             service.execute(new UnlockTask(key));
         }
+    }
+
+    public String data(Player player) {
+        ItemStack[] inventory = player.getInventory().getContents();
+        ItemStack[] armors = player.getInventory().getArmorContents();
+        ItemStack[] chest = player.getEnderChest().getContents();
+        Collection<PotionEffect> effects = player.getActivePotionEffects();
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        builder.append(player.getHealth()).append(',');
+        builder.append(player.getFoodLevel()).append(',');
+        builder.append(ExpsUtil.UTIL.getExp(player)).append(',');
+        builder.append(getStackData(inventory)).append(',');
+        builder.append(getStackData(armors)).append(',');
+        builder.append(getStackData(chest)).append(',');
+        builder.append(getEffectData(effects)).append(',');
+        builder.append(player.getInventory().getHeldItemSlot());
+        builder.append(']');
+        return builder.toString();
     }
 
     private void load(Player p, JsonArray array) {
@@ -138,25 +157,6 @@ public class SyncManager {
             }
         }
         return builder.build(ItemStack.class);
-    }
-
-    private String getPlayerData(Player player) {
-        ItemStack[] inventory = player.getInventory().getContents();
-        ItemStack[] armors = player.getInventory().getArmorContents();
-        ItemStack[] chest = player.getEnderChest().getContents();
-        Collection<PotionEffect> effects = player.getActivePotionEffects();
-        StringBuilder builder = new StringBuilder();
-        builder.append('[');
-        builder.append(player.getHealth()).append(',');
-        builder.append(player.getFoodLevel()).append(',');
-        builder.append(ExpsUtil.UTIL.getExp(player)).append(',');
-        builder.append(getStackData(inventory)).append(',');
-        builder.append(getStackData(armors)).append(',');
-        builder.append(getStackData(chest)).append(',');
-        builder.append(getEffectData(effects)).append(',');
-        builder.append(player.getInventory().getHeldItemSlot());
-        builder.append(']');
-        return builder.toString();
     }
 
     private String getEffectData(Collection<PotionEffect> effects) {
