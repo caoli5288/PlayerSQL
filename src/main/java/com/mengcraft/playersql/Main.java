@@ -57,7 +57,7 @@ public class Main extends JavaPlugin {
             map.put(p.getUniqueId(), manager.data(p));
         }
         if (map.size() != 0) {
-            new SaveTask(map, true);
+            new SaveTask(map, true).run();
         }
         ConnectionManager.DEFAULT.shutdown();
     }
