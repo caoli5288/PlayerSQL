@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
 
 public class CheckTask implements Runnable {
 
@@ -21,10 +22,12 @@ public class CheckTask implements Runnable {
     private final Server server;
     private final List<UUID> kick;
     private final Map<UUID, String> map;
+    private final BukkitScheduler scheduler;
 
     public CheckTask(Main main) {
         this.main = main;
         this.server = main.getServer();
+        this.scheduler = server.getScheduler();
         this.kick = compond.kick();
         this.map = compond.map();
     }
@@ -60,7 +63,12 @@ public class CheckTask implements Runnable {
             server.getScheduler().cancelTask(task.remove(uuid));
         }
         Runnable runnable = new TimerSaveTask(server, uuid);
-        server.getScheduler().runTaskTimer(main, runnable, 3600, 3600);
+        int id = scheduleTask(runnable, 3600, 3600);
+        compond.task().put(uuid, id);
+    }
+
+    private int scheduleTask(Runnable runnable, int i, int j) {
+        return scheduler.runTaskTimer(main, runnable, i, j).getTaskId();
     }
 
 }
