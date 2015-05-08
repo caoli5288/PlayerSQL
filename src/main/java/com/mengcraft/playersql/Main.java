@@ -52,9 +52,12 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         SyncManager manager = SyncManager.DEFAULT;
+        DataCompond compond = DataCompond.DEFAULT;
         Map<UUID, String> map = new HashMap<>();
         for (Player p : getServer().getOnlinePlayers()) {
-            map.put(p.getUniqueId(), manager.data(p));
+            UUID uuid = p.getUniqueId();
+            if (!compond.islocked(uuid))
+                map.put(uuid, manager.data(p));
         }
         if (map.size() != 0) {
             new SaveTask(map, true).run();
