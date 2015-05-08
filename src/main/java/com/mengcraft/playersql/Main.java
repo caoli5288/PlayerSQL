@@ -73,4 +73,12 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(events, main);
     }
 
+    public void info(String string) {
+        getLogger().info(string);
+    }
+
+    public void warn(String string) {
+        getLogger().warning(string);
+    }
+
 }

@@ -8,6 +8,7 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import com.mengcraft.playersql.Configs;
 import com.mengcraft.playersql.DataCompond;
 import com.mengcraft.playersql.Main;
 import com.mengcraft.playersql.SyncManager;
@@ -40,12 +41,9 @@ public class TimerCheckTask implements Runnable {
             if (data == DataCompond.STRING_SPECI) {
                 compond.unlock(uuid);
             } else if (data == DataCompond.STRING_EMPTY) {
-                compond.unlock(uuid);
-                scheduleTask(uuid);
+                sempty(uuid);
             } else {
-                Player p = server.getPlayer(uuid);
-                manager.load(p, data);
-                scheduleTask(uuid);
+                normal(uuid, data);
             }
         }
         synchronized (kick) {
@@ -53,10 +51,30 @@ public class TimerCheckTask implements Runnable {
         }
     }
 
+    private void sempty(UUID uuid) {
+        compond.unlock(uuid);
+        scheduleTask(uuid);
+        if (Configs.DEBUG) {
+            main.info("#5 New player " + uuid + ".");
+        }
+    }
+
+    private void normal(UUID uuid, String data) {
+        Player p = server.getPlayer(uuid);
+        manager.load(p, data);
+        scheduleTask(uuid);
+        if (Configs.DEBUG) {
+            main.info("#1 Load " + uuid + " data done.");
+        }
+    }
+
     private void checkKick() {
         for (UUID uuid : kick) {
             server.getPlayer(uuid).kickPlayer(DataCompond.MESSAGE_KICK);
             compond.unlock(uuid);
+            if (Configs.DEBUG) {
+                main.warn("#2 Kick " + uuid + " in data locked.");
+            }
         }
         kick.clear();
     }
@@ -65,10 +83,16 @@ public class TimerCheckTask implements Runnable {
         Map<UUID, Integer> task = compond.task();
         if (task.get(uuid) != null) {
             server.getScheduler().cancelTask(task.remove(uuid));
+            if (Configs.DEBUG) {
+                main.warn("#3 Cancel exists timer task for " + uuid + ".");
+            }
         }
         Runnable runnable = new TimerSaveTask(server, uuid);
         int id = scheduleTask(runnable, 3600, 3600);
         compond.task().put(uuid, id);
+        if (Configs.DEBUG) {
+            main.info("#4 Schedule a timer task for " + uuid + ".");
+        }
     }
 
     private int scheduleTask(Runnable runnable, int i, int j) {

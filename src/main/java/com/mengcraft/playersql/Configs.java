@@ -17,6 +17,8 @@ public class Configs {
     public static final File FILE;
     public static final Configuration CONF;
 
+    public static final boolean DEBUG;
+
     static {
         FILE = new File("plugins/PlayerSQL/config.yml");
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(FILE);
@@ -26,6 +28,7 @@ public class Configs {
         SYN_EFCT = yml.getBoolean("sync.potion", true);
         SYN_EXPS = yml.getBoolean("sync.exp", true);
         SYN_FOOD = yml.getBoolean("sync.food", true);
+        DEBUG = yml.getBoolean("plugin.debug", false);
         CONF = yml;
     }
 
