@@ -19,8 +19,8 @@ public class LoadTask implements Runnable {
     static {
         SELECT = "SELECT `Data`,`Online`,`Last` FROM `PlayerData` " +
                 "WHERE `Player` = ?";
-        INSERT = "INSERT INTO `PlayerData`(`Player`, `Online`) " +
-                "VALUES(?, 1)";
+        INSERT = "INSERT INTO `PlayerData`(`Player`,`Online`,`LAST`) " +
+                "VALUES(?,1,?)";
         UPDATE = "UPDATE `PlayerData` SET `Online` = 1 " +
                 "WHERE `Player` = ?";
     }
@@ -87,6 +87,7 @@ public class LoadTask implements Runnable {
         try {
             PreparedStatement insert = c.prepareStatement(INSERT);
             insert.setString(1, uuid.toString());
+            insert.setLong(2, System.currentTimeMillis());
             insert.executeUpdate();
             insert.close();
         } catch (SQLException e) {
