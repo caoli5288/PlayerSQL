@@ -37,6 +37,7 @@ public class Events implements Listener {
     @EventHandler
     public void handle(final PlayerJoinEvent event) {
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 manager.load(event.getPlayer());
             }
@@ -51,6 +52,7 @@ public class Events implements Listener {
         if (!compond.islocked(uuid)) {
             manager.save(player, true);
         }
+        compond.unlock(uuid);
     }
 
     @EventHandler
