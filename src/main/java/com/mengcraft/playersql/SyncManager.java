@@ -68,8 +68,9 @@ public class SyncManager {
             compond.map().remove(key);
         } else {
             /*
-             * If player is null(may impossible) or offline in this method,
-             * means player's data on SQL is locked. Do unlock task.
+             * Player is null(may be impossible) or offline here
+             * but the player's data on the database has been locked. Perform an unlock task.
+             * This is an infrequent case.
              */
             service.execute(new UnlockTask(key));
         }
