@@ -7,12 +7,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.mengcraft.jdbc.ConnectionFactory;
 import com.mengcraft.jdbc.ConnectionHandler;
 import com.mengcraft.jdbc.ConnectionManager;
+import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SaveTask;
 import com.mengcraft.playersql.task.TimerCheckTask;
 
@@ -47,10 +49,19 @@ public class Main extends JavaPlugin {
             getLogger().warning("Unable to connect to database.");
             setEnabled(false);
         }
+        
+        DataCompond compond = DataCompond.DEFAULT;
+        for (Player p : getServer().getOnlinePlayers()) {
+            UUID uuid = p.getUniqueId();
+            compond.lock(uuid);
+            new LoadTask(uuid).run();
+        }
+        
     }
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
         SyncManager manager = SyncManager.DEFAULT;
         DataCompond compond = DataCompond.DEFAULT;
         Map<UUID, String> map = new HashMap<>();
