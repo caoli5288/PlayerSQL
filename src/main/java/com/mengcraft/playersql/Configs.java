@@ -13,7 +13,8 @@ public class Configs {
     public static final boolean SYN_EFCT;
     public static final boolean SYN_EXPS;
     public static final boolean SYN_FOOD;
-
+    
+    public static final int SYN_DELY;
     public static final File FILE;
     public static final Configuration CONF;
 
@@ -28,6 +29,7 @@ public class Configs {
         SYN_EFCT = yml.getBoolean("sync.potion", true);
         SYN_EXPS = yml.getBoolean("sync.exp", true);
         SYN_FOOD = yml.getBoolean("sync.food", true);
+        SYN_DELY = yml.getInt("sync.delay", 30);
         DEBUG = yml.getBoolean("plugin.debug", false);
         CONF = yml;
     }

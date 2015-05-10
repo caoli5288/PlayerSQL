@@ -12,6 +12,7 @@ import com.mengcraft.playersql.Configs;
 import com.mengcraft.playersql.DataCompond;
 import com.mengcraft.playersql.Main;
 import com.mengcraft.playersql.SyncManager;
+import com.mengcraft.playersql.SyncManager.State;
 
 public class TimerCheckTask implements Runnable {
 
@@ -19,7 +20,6 @@ public class TimerCheckTask implements Runnable {
     private final SyncManager manager;
     private final Main main;
     private final Server server;
-    private final List<UUID> kick;
     private final Map<UUID, String> map;
     private final BukkitScheduler scheduler;
 
@@ -29,57 +29,53 @@ public class TimerCheckTask implements Runnable {
         this.main = main;
         this.server = main.getServer();
         this.scheduler = server.getScheduler();
-        this.kick = compond.kick();
         this.map = compond.map();
     }
 
     @Override
     public void run() {
-        List<UUID> list = compond.entry();
+        List<UUID> list = compond.keys();
         for (UUID uuid : list) {
-            String data = map.get(uuid);
-            if (data == DataCompond.STRING_SPECI) {
-                compond.unlock(uuid);
-            } else if (data == DataCompond.STRING_EMPTY) {
-                sempty(uuid);
-            } else {
-                normal(uuid, data);
+            State state = compond.state(uuid);
+            if (state == State.JOIN_DONE) {
+                load(uuid);
+            } else if (state == State.JOIN_FAID) {
+                kick(uuid);
             }
         }
-        synchronized (kick) {
-            checkKick();
-        }
     }
 
-    private void sempty(UUID uuid) {
-        compond.unlock(uuid);
-        scheduleTask(uuid);
-        if (Configs.DEBUG) {
-            main.info("#5 New player " + uuid + ".");
-        }
-    }
-
-    private void normal(UUID uuid, String data) {
+    private void kick(UUID uuid) {
         Player p = server.getPlayer(uuid);
-        manager.load(p, data);
-        scheduleTask(uuid);
-        if (Configs.DEBUG) {
-            main.info("#1 Load " + uuid + " data done.");
+        /*
+         * Possible offline here.
+         */
+        if (p.isOnline()) {
+            p.kickPlayer(DataCompond.MESSAGE_KICK);
         }
+        compond.state(uuid, null);
     }
 
-    private void checkKick() {
-        for (UUID uuid : kick) {
-            server.getPlayer(uuid).kickPlayer(DataCompond.MESSAGE_KICK);
-            compond.unlock(uuid);
+    private void load(UUID uuid) {
+        String data = map.get(uuid);
+        if (data == DataCompond.STRING_SPECI) {
+            compond.state(uuid, null);
+        } else if (data == DataCompond.STRING_EMPTY) {
+            compond.state(uuid, null);
             if (Configs.DEBUG) {
-                main.warn("#2 Kick " + uuid + " in data locked.");
+                main.info("#5 New player " + uuid + ".");
             }
+            task(uuid);
+        } else {
+            manager.load(server.getPlayer(uuid), data);
+            if (Configs.DEBUG) {
+                main.info("#1 Load " + uuid + " done..");
+            }
+            task(uuid);
         }
-        kick.clear();
     }
 
-    private void scheduleTask(UUID uuid) {
+    private void task(UUID uuid) {
         Map<UUID, Integer> task = compond.task();
         if (task.get(uuid) != null) {
             server.getScheduler().cancelTask(task.remove(uuid));

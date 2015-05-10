@@ -3,7 +3,9 @@ package com.mengcraft.playersql;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -51,7 +53,15 @@ public class SyncManager {
         UUID uuid = player.getUniqueId();
         service.execute(new SaveTask(uuid, data, unlock));
     }
-    
+
+    public void save(List<Player> list, boolean unlock) {
+        Map<UUID, String> map = new LinkedHashMap<>();
+        for (Player p : list) {
+            map.put(p.getUniqueId(), data(p));
+        }
+        service.execute(new SaveTask(map, unlock));
+    }
+
     public void load(Player player) {
         if (player == null || !player.isOnline()) {
             throw new NullPointerException();
@@ -60,23 +70,23 @@ public class SyncManager {
     }
 
     public void load(final Player p, String value) {
-        UUID key = p.getUniqueId();
+        UUID uuid = p.getUniqueId();
         if (p.isOnline()) {
             JsonArray array = parser.parse(value).getAsJsonArray();
             load(p, array);
-            compond.unlock(key);
-            compond.map().remove(key);
+            compond.state(uuid, null);
+            compond.map().remove(uuid);
         } else {
             /*
-             * Player is null(may be impossible) or offline here
-             * but the player's data on the database has been locked. Perform an unlock task.
-             * This is an infrequent case.
+             * Player is null(may be impossible) or offline here but the
+             * player's data on the database has been locked. Perform an unlock
+             * task. This is an infrequent case.
              */
-            service.execute(new UnlockTask(key));
+            service.execute(new UnlockTask(uuid));
         }
     }
 
-    public String data(Player player) {
+    private String data(Player player) {
         ItemStack[] inventory = player.getInventory().getContents();
         ItemStack[] armors = player.getInventory().getArmorContents();
         ItemStack[] chest = player.getEnderChest().getContents();
@@ -202,4 +212,12 @@ public class SyncManager {
         builder.append(']');
         return builder.toString();
     }
+
+    public enum State {
+        CONN_DONE,
+        JOIN_WAIT,
+        JOIN_DONE,
+        JOIN_FAID
+    }
+
 }

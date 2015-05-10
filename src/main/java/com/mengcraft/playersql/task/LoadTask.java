@@ -4,11 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.UUID;
 
 import com.mengcraft.jdbc.ConnectionManager;
 import com.mengcraft.playersql.DataCompond;
+import com.mengcraft.playersql.SyncManager.State;
 
 public class LoadTask implements Runnable {
 
@@ -37,21 +37,35 @@ public class LoadTask implements Runnable {
     public void run() {
         try {
             Connection c = manager.getConnection("playersql");
+
             PreparedStatement select = c.prepareStatement(SELECT);
             select.setString(1, uuid.toString());
+
             ResultSet result = select.executeQuery();
             if (!result.next()) {
-                create(c);
+                PreparedStatement insert = c.prepareStatement(INSERT);
+                insert.setString(1, uuid.toString());
+                insert.setLong(2, System.currentTimeMillis());
+                insert.executeUpdate();
+                insert.close();
+                
                 compond.map().put(uuid, DataCompond.STRING_EMPTY);
+                compond.state(uuid, State.JOIN_DONE);
             } else if (result.getInt(2) == 0) {
-                update(c);
+                PreparedStatement update = c.prepareStatement(UPDATE);
+                update.setString(1, uuid.toString());
+                update.executeUpdate();
+                update.close();
+                
                 compond.map().put(uuid, result.getString(1));
+                compond.state(uuid, State.JOIN_DONE);
             } else if (check(result.getLong(3)) > 5) {
                 String data = result.getString(1);
                 compond.map().put(uuid, data != null ?
                         data : DataCompond.STRING_EMPTY);
+                compond.state(uuid, State.JOIN_DONE);
             } else {
-                kick();
+                compond.state(uuid, State.JOIN_FAID);
             }
             result.close();
             select.close();
@@ -61,38 +75,8 @@ public class LoadTask implements Runnable {
         }
     }
 
-    private void kick() {
-        List<UUID> kick = compond.kick();
-        synchronized (kick) {
-            kick.add(uuid);
-        }
-    }
-
     private long check(long last) {
         return (System.currentTimeMillis() - last) / 60000;
-    }
-
-    private void update(Connection c) {
-        try {
-            PreparedStatement update = c.prepareStatement(UPDATE);
-            update.setString(1, uuid.toString());
-            update.executeUpdate();
-            update.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void create(Connection c) {
-        try {
-            PreparedStatement insert = c.prepareStatement(INSERT);
-            insert.setString(1, uuid.toString());
-            insert.setLong(2, System.currentTimeMillis());
-            insert.executeUpdate();
-            insert.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
 }

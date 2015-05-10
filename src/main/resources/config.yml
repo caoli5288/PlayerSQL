@@ -11,3 +11,7 @@ sync:
   inventory: true
   chest: true
   potion: true
+  # The delay before read database. If player
+  # - "Your data is locked, login later"
+  # too often, grow this value. Values by tick.
+  delay: 30
