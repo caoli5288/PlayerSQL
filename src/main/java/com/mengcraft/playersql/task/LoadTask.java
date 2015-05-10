@@ -46,7 +46,7 @@ public class LoadTask implements Runnable {
             } else if (result.getInt(2) == 0) {
                 update(c);
                 compond.map().put(uuid, result.getString(1));
-            } else if (check(result.getLong(3)) > 5) {
+            } else if (result.getLong(3) != 0 && check(result.getLong(3)) > 5) {
                 String data = result.getString(1);
                 compond.map().put(uuid, data != null ?
                         data : DataCompond.STRING_EMPTY);
