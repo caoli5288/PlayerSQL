@@ -69,18 +69,17 @@ public class SyncManager {
         service.execute(new LoadTask(player.getUniqueId()));
     }
 
-    public void load(final Player p, String value) {
-        UUID uuid = p.getUniqueId();
-        if (p.isOnline()) {
+    public void load(Player player, UUID uuid, String value) {
+        if (player != null && player.isOnline()) {
             JsonArray array = parser.parse(value).getAsJsonArray();
-            load(p, array);
+            load(player, array);
             compond.state(uuid, null);
             compond.map().remove(uuid);
         } else {
             /*
-             * Player is null(may be impossible) or offline here but the
-             * player's data on the database has been locked. Perform an unlock
-             * task. This is an infrequent case.
+             * Player is null or offline here but the player's data on the
+             * database has been locked. Perform an unlock task. This is an
+             * infrequent case.
              */
             service.execute(new UnlockTask(uuid));
         }
