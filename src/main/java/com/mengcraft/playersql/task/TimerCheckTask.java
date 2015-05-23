@@ -60,8 +60,10 @@ public class TimerCheckTask implements Runnable {
         String data = map.get(uuid);
         if (data == DataCompond.STRING_SPECI) {
             compond.state(uuid, null);
+            compond.map().remove(uuid);
         } else if (data == DataCompond.STRING_EMPTY) {
             compond.state(uuid, null);
+            compond.map().remove(uuid);
             if (Configs.DEBUG) {
                 main.info("#5 New player " + uuid + ".");
             }
