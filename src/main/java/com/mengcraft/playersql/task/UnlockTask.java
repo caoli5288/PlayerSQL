@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 import com.mengcraft.jdbc.ConnectionManager;
-import com.mengcraft.playersql.DataCompond;
+import com.mengcraft.playersql.DataCompound;
 
 public class UnlockTask implements Runnable {
 
@@ -33,7 +33,8 @@ public class UnlockTask implements Runnable {
             unlock.execute();
             unlock.close();
             ConnectionManager.DEFAULT.release("playersql", c);
-            DataCompond.DEFAULT.map().put(uuid, DataCompond.STRING_SPECI);
+            DataCompound.DEFAULT.map().put(uuid, DataCompound.STRING_SPECI);
+            DataCompound.DEFAULT.state(uuid, null);
         } catch (SQLException e) {
             e.printStackTrace();
         }

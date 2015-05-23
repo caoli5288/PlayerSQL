@@ -9,14 +9,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.mengcraft.playersql.Configs;
-import com.mengcraft.playersql.DataCompond;
+import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.Main;
 import com.mengcraft.playersql.SyncManager;
 import com.mengcraft.playersql.SyncManager.State;
 
 public class TimerCheckTask implements Runnable {
 
-    private final DataCompond compond;
+    private final DataCompound compond;
     private final SyncManager manager;
     private final Main main;
     private final Server server;
@@ -24,7 +24,7 @@ public class TimerCheckTask implements Runnable {
     private final BukkitScheduler scheduler;
 
     public TimerCheckTask(Main main) {
-        this.compond = DataCompond.DEFAULT;
+        this.compond = DataCompound.DEFAULT;
         this.manager = SyncManager.DEFAULT;
         this.main = main;
         this.server = main.getServer();
@@ -51,17 +51,17 @@ public class TimerCheckTask implements Runnable {
          * Possible offline here.
          */
         if (p.isOnline()) {
-            p.kickPlayer(DataCompond.MESSAGE_KICK);
+            p.kickPlayer(DataCompound.MESSAGE_KICK);
         }
         compond.state(uuid, null);
     }
 
     private void load(UUID uuid) {
         String data = map.get(uuid);
-        if (data == DataCompond.STRING_SPECI) {
+        if (data == DataCompound.STRING_SPECI) {
             compond.state(uuid, null);
             compond.map().remove(uuid);
-        } else if (data == DataCompond.STRING_EMPTY) {
+        } else if (data == DataCompound.STRING_EMPTY) {
             compond.state(uuid, null);
             compond.map().remove(uuid);
             if (Configs.DEBUG) {

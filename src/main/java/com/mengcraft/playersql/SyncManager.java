@@ -35,7 +35,7 @@ public class SyncManager {
 
     private final ExecutorService service;
     private final JsonParser parser = new JsonParser();
-    private final DataCompond compond = DataCompond.DEFAULT;
+    private final DataCompound compond = DataCompound.DEFAULT;
 
     private SyncManager() {
         this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
@@ -47,10 +47,10 @@ public class SyncManager {
 
     public void save(Player player, boolean unlock) {
         if (player == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("#11 Can not save a null player.");
         }
         String data = data(player);
-        UUID uuid = player.getUniqueId();
+        UUID   uuid = player.getUniqueId();
         service.execute(new SaveTask(uuid, data, unlock));
     }
 

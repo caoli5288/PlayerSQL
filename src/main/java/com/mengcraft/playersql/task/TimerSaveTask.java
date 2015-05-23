@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
-import com.mengcraft.playersql.DataCompond;
+import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.SyncManager;
 
 public class TimerSaveTask implements Runnable {
@@ -24,7 +24,7 @@ public class TimerSaveTask implements Runnable {
         if (p != null && p.isOnline()) {
             SyncManager.DEFAULT.save(p, false);
         } else {
-            int id = DataCompond.DEFAULT.task().remove(uuid);
+            int id = DataCompound.DEFAULT.task().remove(uuid);
             server.getScheduler().cancelTask(id);
         }
     }

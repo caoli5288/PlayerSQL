@@ -9,9 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.mengcraft.playersql.SyncManager.State;
 
-public class DataCompond {
+public class DataCompound {
 
-    public static final DataCompond DEFAULT = new DataCompond();
+    public static final DataCompound DEFAULT = new DataCompound();
     public static final String STRING_EMPTY = new String();
     public static final String STRING_SPECI = new String();
     public static final String MESSAGE_KICK;

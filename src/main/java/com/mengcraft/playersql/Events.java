@@ -18,7 +18,7 @@ import com.mengcraft.playersql.SyncManager.State;
 public class Events implements Listener {
 
     private final SyncManager manager = SyncManager.DEFAULT;
-    private final DataCompond compond = DataCompond.DEFAULT;
+    private final DataCompound compond = DataCompound.DEFAULT;
     private final Main main;
 
     public Events(Main main) {
@@ -31,7 +31,7 @@ public class Events implements Listener {
         State state = compond.state(uuid);
         if (state != null && state != State.CONN_DONE) {
             event.setResult(Result.KICK_OTHER);
-            event.setKickMessage(DataCompond.MESSAGE_KICK);
+            event.setKickMessage(DataCompound.MESSAGE_KICK);
         } else if (event.getResult() == Result.ALLOWED) {
             compond.state(uuid, State.CONN_DONE);
         }

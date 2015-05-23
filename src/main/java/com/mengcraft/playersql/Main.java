@@ -49,7 +49,7 @@ public class Main extends JavaPlugin {
             setEnabled(false);
         }
 
-        DataCompond compond = DataCompond.DEFAULT;
+        DataCompound compond = DataCompound.DEFAULT;
         for (Player p : getServer().getOnlinePlayers()) {
             UUID uuid = p.getUniqueId();
             compond.state(uuid, State.JOIN_WAIT);
@@ -61,7 +61,7 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         SyncManager manager = SyncManager.DEFAULT;
-        DataCompond compond = DataCompond.DEFAULT;
+        DataCompound compond = DataCompound.DEFAULT;
         List<Player> list = new LinkedList<>();
         for (Player p : getServer().getOnlinePlayers()) {
             UUID uuid = p.getUniqueId();

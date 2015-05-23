@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 import com.mengcraft.jdbc.ConnectionManager;
-import com.mengcraft.playersql.DataCompond;
+import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.SyncManager.State;
 
 public class LoadTask implements Runnable {
@@ -26,7 +26,7 @@ public class LoadTask implements Runnable {
     }
 
     private final ConnectionManager manager = ConnectionManager.DEFAULT;
-    private final DataCompond compond = DataCompond.DEFAULT;
+    private final DataCompound compond = DataCompound.DEFAULT;
     private final UUID uuid;
 
     public LoadTask(UUID uuid) {
@@ -49,7 +49,7 @@ public class LoadTask implements Runnable {
                 insert.executeUpdate();
                 insert.close();
                 
-                compond.map().put(uuid, DataCompond.STRING_EMPTY);
+                compond.map().put(uuid, DataCompound.STRING_EMPTY);
                 compond.state(uuid, State.JOIN_DONE);
             } else if (result.getInt(2) == 0) {
                 PreparedStatement update = c.prepareStatement(UPDATE);
@@ -62,7 +62,7 @@ public class LoadTask implements Runnable {
             } else if (check(result.getLong(3)) > 5) {
                 String data = result.getString(1);
                 compond.map().put(uuid, data != null ?
-                        data : DataCompond.STRING_EMPTY);
+                        data : DataCompound.STRING_EMPTY);
                 compond.state(uuid, State.JOIN_DONE);
             } else {
                 compond.state(uuid, State.JOIN_FAID);
