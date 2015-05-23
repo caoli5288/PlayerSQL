@@ -20,8 +20,8 @@ public class DataCompond {
         MESSAGE_KICK = "Your data is locked, login later.";
     }
 
-    private final Map<UUID, State> state = new ConcurrentHashMap<>();
-    private final Map<UUID, String> data = new ConcurrentHashMap<>();
+    private final Map<UUID, State>  state = new ConcurrentHashMap<>();
+    private final Map<UUID, String>  data = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> task = new HashMap<>();
 
     public Map<UUID, String> map() {

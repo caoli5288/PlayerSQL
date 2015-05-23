@@ -53,7 +53,7 @@ public class Events implements Listener {
     public void handle(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
-        if (compond.state(uuid) != null) {
+        if (compond.state(uuid) == null) {
             manager.save(player, true);
         }
     }
