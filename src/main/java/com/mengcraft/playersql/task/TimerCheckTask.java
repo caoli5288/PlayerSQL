@@ -69,7 +69,7 @@ public class TimerCheckTask implements Runnable {
             }
             task(uuid);
         } else {
-            manager.load(server.getPlayer(uuid), uuid , data);
+            manager.sync(uuid , data);
             if (Configs.DEBUG) {
                 main.info("#1 Load " + uuid + " done..");
             }

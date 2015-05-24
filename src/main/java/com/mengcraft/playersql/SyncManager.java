@@ -12,7 +12,9 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.craftbukkit.v1_8_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +38,7 @@ public class SyncManager {
     private final ExecutorService service;
     private final JsonParser parser = new JsonParser();
     private final DataCompound compond = DataCompound.DEFAULT;
+    private final Server server = Bukkit.getServer();
 
     private SyncManager() {
         this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
@@ -74,7 +77,8 @@ public class SyncManager {
         }
     }
 
-    public void load(Player player, UUID uuid, String value) {
+    public void sync(UUID uuid, String value) {
+        Player player = server.getPlayer(uuid);
         if (player != null && player.isOnline()) {
             JsonArray array = parser.parse(value).getAsJsonArray();
             load(player, array);
