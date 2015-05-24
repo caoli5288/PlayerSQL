@@ -17,7 +17,7 @@ public class DataCompound {
     public static final String MESSAGE_KICK;
 
     static {
-        MESSAGE_KICK = "Your data is locked, login later.";
+        MESSAGE_KICK = "Your data is locked; login later.";
     }
 
     private final Map<UUID, State>  state = new ConcurrentHashMap<>();

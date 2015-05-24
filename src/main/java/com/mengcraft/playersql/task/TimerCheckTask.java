@@ -65,13 +65,13 @@ public class TimerCheckTask implements Runnable {
             compond.state(uuid, null);
             compond.map().remove(uuid);
             if (Configs.DEBUG) {
-                main.info("#5 New player " + uuid + ".");
+                main.info("#5 New player: " + uuid);
             }
             task(uuid);
         } else {
             manager.sync(uuid , data);
             if (Configs.DEBUG) {
-                main.info("#1 Load " + uuid + " done..");
+                main.info("#1 Synchronized data for " + uuid);
             }
             task(uuid);
         }
@@ -82,14 +82,14 @@ public class TimerCheckTask implements Runnable {
         if (task.get(uuid) != null) {
             server.getScheduler().cancelTask(task.remove(uuid));
             if (Configs.DEBUG) {
-                main.warn("#3 Cancel exists timer task for " + uuid + ".");
+                main.warn("#3 Cancelled existing timer task for " + uuid);
             }
         }
         Runnable runnable = new TimerSaveTask(server, uuid);
         int id = scheduleTask(runnable, 3600, 3600);
         compond.task().put(uuid, id);
         if (Configs.DEBUG) {
-            main.info("#4 Schedule a timer task for " + uuid + ".");
+            main.info("#4 Started a timer task for " + uuid);
         }
     }
 
