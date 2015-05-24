@@ -41,6 +41,7 @@ public class Events implements Listener {
     public void handle(final PlayerJoinEvent event) {
         compond.state(event.getPlayer().getUniqueId(),
                 State.JOIN_WAIT);
+        event.getPlayer().sendMessage(Configs.MSG_LOADING);
         Runnable task = new Runnable() {
             @Override
             public void run() {

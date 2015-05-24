@@ -15,3 +15,7 @@ sync:
   # - "Your data is locked, login later"
   # too often, grow this value. Values by tick.
   delay: 30
+
+messages:
+  dataLoading: "&aPlease wait while your data is being loaded :)"
+  dataSynchronized: "&aEnjoy! All your data has been synchronized."
