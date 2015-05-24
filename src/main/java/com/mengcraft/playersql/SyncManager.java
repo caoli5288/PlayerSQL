@@ -64,6 +64,22 @@ public class SyncManager {
         }
         service.execute(new SaveTask(map, unlock));
     }
+    
+    /**
+     * Used by the main thread to save all players on disable.
+     */
+    public void blockingSave(List<Player> list, boolean unlock) {
+        save(list, unlock);
+        service.shutdown();
+        try
+        {
+            service.awaitTermination(1, TimeUnit.MINUTES);
+        }
+        catch(InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
     public void load(Player player) {
         if (player == null) {

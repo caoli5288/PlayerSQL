@@ -70,7 +70,7 @@ public class Main extends JavaPlugin {
             }
         }
         if (list.size() > 0) {
-            manager.save(list, true);
+            manager.blockingSave(list, true);
         }
         ConnectionManager.DEFAULT.shutdown();
     }
