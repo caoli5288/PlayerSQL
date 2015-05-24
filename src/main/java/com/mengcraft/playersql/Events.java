@@ -42,6 +42,7 @@ public class Events implements Listener {
         compond.state(event.getPlayer().getUniqueId(),
                 State.JOIN_WAIT);
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 manager.load(event.getPlayer());
             }
@@ -60,6 +61,7 @@ public class Events implements Listener {
 
     @EventHandler
     public void handle(EntityDamageEvent event) {
+        if(!(event.getEntity() instanceof Player)) return;
         UUID uuid = event.getEntity().getUniqueId();
         if (compond.state(uuid) != null) {
             event.setCancelled(true);
