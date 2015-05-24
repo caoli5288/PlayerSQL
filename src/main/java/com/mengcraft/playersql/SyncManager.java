@@ -63,10 +63,15 @@ public class SyncManager {
     }
 
     public void load(Player player) {
-        if (player == null || !player.isOnline()) {
-            throw new NullPointerException();
+        if (player == null) {
+            throw new NullPointerException("Player can't be null!");
+        } else if (!player.isOnline()) {
+            // Player has gone
+            compond.state(player.getUniqueId(), null);
+            return;
+        } else {
+            service.execute(new LoadTask(player.getUniqueId()));
         }
-        service.execute(new LoadTask(player.getUniqueId()));
     }
 
     public void load(Player player, UUID uuid, String value) {
