@@ -91,4 +91,8 @@ public class Main extends JavaPlugin {
         getLogger().warning(string);
     }
 
+    public Player getPlayer(UUID uuid) {
+        return getServer().getPlayer(uuid);
+    }
+
 }

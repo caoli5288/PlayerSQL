@@ -50,7 +50,7 @@ public class SyncManager {
 
     public void save(Player player, boolean unlock) {
         if (player == null) {
-            throw new NullPointerException("#11 Can not save a null player.");
+            throw new NullPointerException("#11 Player can't be null!");
         }
         String data = data(player);
         UUID   uuid = player.getUniqueId();
@@ -83,13 +83,12 @@ public class SyncManager {
 
     public void load(Player player) {
         if (player == null) {
-            throw new NullPointerException("Player can't be null!");
-        } else if (!player.isOnline()) {
+            throw new NullPointerException("#12 Player can't be null!");
+        } else if (player.isOnline()) {
+            service.execute(new LoadTask(player.getUniqueId()));
+        } else {
             // Player has gone
             compond.state(player.getUniqueId(), null);
-            return;
-        } else {
-            service.execute(new LoadTask(player.getUniqueId()));
         }
     }
 

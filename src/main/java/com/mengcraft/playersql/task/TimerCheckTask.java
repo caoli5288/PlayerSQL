@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -69,14 +68,14 @@ public class TimerCheckTask implements Runnable {
                 main.info("#5 New player: " + uuid);
             }
             task(uuid);
-            Bukkit.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
+            main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
         } else {
             manager.sync(uuid , data);
             if (Configs.DEBUG) {
                 main.info("#1 Synchronized data for " + uuid);
             }
             task(uuid);
-            Bukkit.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
+            main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
         }
     }
 
