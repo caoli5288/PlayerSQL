@@ -10,12 +10,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import net.minecraft.server.v1_8_R2.ItemStack;
-import net.minecraft.server.v1_8_R2.NBTReadLimiter;
-import net.minecraft.server.v1_8_R2.NBTTagCompound;
+import net.minecraft.server.v1_8_R3.ItemStack;
+import net.minecraft.server.v1_8_R3.NBTReadLimiter;
+import net.minecraft.server.v1_8_R3.NBTTagCompound;
 
 import org.apache.commons.codec.binary.Base64;
-import org.bukkit.craftbukkit.v1_8_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 
 public class ItemUtil {
 
@@ -37,7 +37,7 @@ public class ItemUtil {
 
 	private Method getItemStackSave() {
 		try {
-			Method method = net.minecraft.server.v1_8_R2.ItemStack.class.getMethod("save", NBTTagCompound.class);
+			Method method = net.minecraft.server.v1_8_R3.ItemStack.class.getMethod("save", NBTTagCompound.class);
 			return method;
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
@@ -62,7 +62,8 @@ public class ItemUtil {
 
 	private Method getNBTTagLoadMethod() {
 		try {
-			Method load = NBTTagCompound.class.getDeclaredMethod("load", new Class[] { DataInput.class, int.class,
+			Method load = NBTTagCompound.class.getDeclaredMethod("load", 
+			        new Class[] { DataInput.class, int.class,
 					NBTReadLimiter.class });
 			load.setAccessible(true);
 			return load;
@@ -76,7 +77,8 @@ public class ItemUtil {
 
 	private Method getNBTTagWriteMethod() {
 		try {
-			Method write = NBTTagCompound.class.getDeclaredMethod("write", DataOutput.class);
+			Method write = NBTTagCompound.class.getDeclaredMethod("write",
+			        DataOutput.class);
 			write.setAccessible(true);
 			return write;
 		} catch (Exception e) {

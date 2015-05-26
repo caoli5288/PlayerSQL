@@ -38,17 +38,13 @@ public class Events implements Listener {
     }
 
     @EventHandler
-    public void handle(final PlayerJoinEvent event) {
+    public void handle(PlayerJoinEvent event) {
         compond.state(event.getPlayer().getUniqueId(),
                 State.JOIN_WAIT);
         event.getPlayer().sendMessage(Configs.MSG_LOADING);
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                manager.load(event.getPlayer());
-            }
-        };
-        main.scheduler().runTaskLater(main, task, Configs.SYN_DELY);
+        main.scheduler().runTaskLater(main, 
+                ()-> manager.load(event.getPlayer()), 
+                Configs.SYN_DELY);
     }
 
     @EventHandler
