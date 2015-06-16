@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.google.common.collect.ImmutableMap;
-import com.mengcraft.jdbc.ConnectionManager;
+import com.mengcraft.playersql.jdbc.ConnectionManager;
 
 public class SaveTask implements Runnable {
 

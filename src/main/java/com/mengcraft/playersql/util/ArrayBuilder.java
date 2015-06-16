@@ -1,4 +1,4 @@
-package com.mengcraft.util;
+package com.mengcraft.playersql.util;
 
 import java.lang.reflect.Array;
 

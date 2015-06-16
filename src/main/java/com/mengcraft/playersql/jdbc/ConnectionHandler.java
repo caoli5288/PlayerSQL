@@ -1,4 +1,4 @@
-package com.mengcraft.jdbc;
+package com.mengcraft.playersql.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;

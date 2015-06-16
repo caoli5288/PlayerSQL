@@ -27,9 +27,9 @@ import com.google.gson.JsonParser;
 import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SaveTask;
 import com.mengcraft.playersql.task.UnlockTask;
+import com.mengcraft.playersql.util.ArrayBuilder;
 import com.mengcraft.playersql.util.ExpsUtil;
 import com.mengcraft.playersql.util.ItemUtil;
-import com.mengcraft.util.ArrayBuilder;
 
 public class SyncManager {
 
