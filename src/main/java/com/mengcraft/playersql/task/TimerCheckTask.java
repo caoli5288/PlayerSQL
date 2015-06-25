@@ -50,7 +50,7 @@ public class TimerCheckTask implements Runnable {
         /*
          * Possible offline here.
          */
-        if (p.isOnline()) {
+        if (p != null && p.isOnline()) {
             p.kickPlayer(DataCompound.MESSAGE_KICK);
         }
         compond.state(uuid, null);
