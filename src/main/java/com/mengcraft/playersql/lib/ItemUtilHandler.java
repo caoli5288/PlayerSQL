@@ -46,7 +46,7 @@ public class ItemUtilHandler {
             ItemUtil util = new ItemUtil.WarpedItemUtil();
 
             if (item().equals(util.convert(util.convert(item())))) {
-                proxy.getLogger().info("Server version: " + version);
+                proxy.getLogger().info("Server version: " + version + '.');
                 proxy.getLogger().info("Warped util work well!");
             } else {
                 throw new RuntimeException("Warped util not work!");
@@ -63,7 +63,7 @@ public class ItemUtilHandler {
             ItemUtil util = new ItemUtil.SimpleItemUtil(version);
 
             if (item().equals(util.convert(util.convert(item())))) {
-                proxy.getLogger().info("Server version: " + version);
+                proxy.getLogger().info("Server version: " + version + '.');
                 proxy.getLogger().info("Build-in util work well!");
             } else {
                 throw new RuntimeException("Build-in util not work!");
