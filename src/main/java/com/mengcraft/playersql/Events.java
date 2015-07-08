@@ -17,12 +17,13 @@ import com.mengcraft.playersql.SyncManager.State;
 
 public class Events implements Listener {
 
-    private final SyncManager manager = SyncManager.DEFAULT;
+    private final SyncManager manager;
     private final DataCompound compond = DataCompound.DEFAULT;
     private final Main main;
 
     public Events(Main main) {
         this.main = main;
+        this.manager = main.manager;
     }
 
     @EventHandler

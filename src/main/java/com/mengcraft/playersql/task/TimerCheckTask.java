@@ -25,7 +25,7 @@ public class TimerCheckTask implements Runnable {
 
     public TimerCheckTask(Main main) {
         this.compond = DataCompound.DEFAULT;
-        this.manager = SyncManager.DEFAULT;
+        this.manager = main.manager;
         this.main = main;
         this.server = main.getServer();
         this.scheduler = server.getScheduler();
@@ -87,7 +87,7 @@ public class TimerCheckTask implements Runnable {
                 main.warn("#3 Cancelled existing timer task for " + uuid);
             }
         }
-        Runnable runnable = new TimerSaveTask(server, uuid);
+        Runnable runnable = new TimerSaveTask(main, uuid);
         int id = scheduleTask(runnable, 3600, 3600);
         compond.task().put(uuid, id);
         if (Configs.DEBUG) {

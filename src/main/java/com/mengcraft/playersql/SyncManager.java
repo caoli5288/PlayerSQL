@@ -24,28 +24,28 @@ import org.bukkit.potion.PotionEffectType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.mengcraft.playersql.lib.ExpsUtil;
+import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SaveTask;
 import com.mengcraft.playersql.task.UnlockTask;
 import com.mengcraft.playersql.util.ArrayBuilder;
-import com.mengcraft.playersql.util.ExpsUtil;
-import com.mengcraft.playersql.util.ItemUtil;
 
 public class SyncManager {
-
-    public static final SyncManager DEFAULT = new SyncManager();
 
     private final ExecutorService service;
     private final JsonParser parser = new JsonParser();
     private final DataCompound compond = DataCompound.DEFAULT;
     private final Server server = Bukkit.getServer();
+    private final ItemUtil util;
 
-    private SyncManager() {
+    SyncManager(Main main) {
         this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
                 60000,
                 TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>()
                 );
+        this.util = main.util;
     }
 
     public void save(Player player, boolean unlock) {
@@ -187,7 +187,11 @@ public class SyncManager {
                 builder.append(new ItemStack(Material.AIR));
             } else {
                 String data = element.getAsString();
-                builder.append(ItemUtil.UTIL.getItemStack(data));
+                try {
+                    builder.append(util.convert(data));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return builder.build(ItemStack.class);
@@ -226,7 +230,11 @@ public class SyncManager {
             if (stack != null && stack.getType() != Material.AIR) {
                 CraftItemStack copy = CraftItemStack.asCraftCopy(stack);
                 builder.append('\"');
-                builder.append(ItemUtil.UTIL.getString(copy));
+                try {
+                    builder.append(util.convert(copy));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 builder.append('\"');
             } else {
                 builder.append("null");
