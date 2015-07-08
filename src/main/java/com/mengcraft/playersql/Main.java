@@ -14,6 +14,8 @@ import com.mengcraft.playersql.SyncManager.State;
 import com.mengcraft.playersql.jdbc.ConnectionFactory;
 import com.mengcraft.playersql.jdbc.ConnectionHandler;
 import com.mengcraft.playersql.jdbc.ConnectionManager;
+import com.mengcraft.playersql.lib.ExpUtil;
+import com.mengcraft.playersql.lib.ExpUtilHandler;
 import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.ItemUtilHandler;
 import com.mengcraft.playersql.task.LoadTask;
@@ -22,8 +24,9 @@ import com.mengcraft.playersql.task.TimerCheckTask;
 public class Main extends JavaPlugin {
 
     public ItemUtil util;
+    public ExpUtil exp;
     public SyncManager manager;
-    
+
     private boolean enable;
 
     @Override
@@ -33,9 +36,10 @@ public class Main extends JavaPlugin {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        manager = new SyncManager(this);
         
+        exp = new ExpUtilHandler(this).handle();
+        manager = new SyncManager(this);
+
         saveResource("config.yml", false);
         ConnectionFactory factory = new ConnectionFactory(
                 getConfig().getString("plugin.database"),

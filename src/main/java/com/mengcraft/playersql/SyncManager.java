@@ -12,10 +12,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
-import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -24,7 +22,7 @@ import org.bukkit.potion.PotionEffectType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mengcraft.playersql.lib.ExpsUtil;
+import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SaveTask;
@@ -36,8 +34,9 @@ public class SyncManager {
     private final ExecutorService service;
     private final JsonParser parser = new JsonParser();
     private final DataCompound compond = DataCompound.DEFAULT;
-    private final Server server = Bukkit.getServer();
+    private final Server server;
     private final ItemUtil util;
+    private final ExpUtil exp;
 
     SyncManager(Main main) {
         this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
@@ -46,6 +45,8 @@ public class SyncManager {
                 new SynchronousQueue<Runnable>()
                 );
         this.util = main.util;
+        this.server = main.getServer();
+        this.exp = main.exp;
     }
 
     public void save(Player player, boolean unlock) {
@@ -118,7 +119,7 @@ public class SyncManager {
         builder.append('[');
         builder.append(player.getHealth()).append(',');
         builder.append(player.getFoodLevel()).append(',');
-        builder.append(ExpsUtil.UTIL.getExp(player)).append(',');
+        builder.append(exp.getExp(player)).append(',');
         builder.append(getStackData(inventory)).append(',');
         builder.append(getStackData(armors)).append(',');
         builder.append(getStackData(chest)).append(',');
@@ -140,7 +141,7 @@ public class SyncManager {
             p.setFoodLevel(array.get(1).getAsInt());
         }
         if (Configs.SYN_EXPS) {
-            ExpsUtil.UTIL.setExp(p, array.get(2).getAsInt());
+            exp.setExp(p, array.get(2).getAsInt());
         }
         if (Configs.SYN_INVT) {
             ItemStack[] stacks = arrayToStacks(array.get(3).getAsJsonArray());
@@ -228,10 +229,9 @@ public class SyncManager {
             }
             ItemStack stack = stacks[i];
             if (stack != null && stack.getType() != Material.AIR) {
-                CraftItemStack copy = CraftItemStack.asCraftCopy(stack);
                 builder.append('\"');
                 try {
-                    builder.append(util.convert(copy));
+                    builder.append(util.convert(stack));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
