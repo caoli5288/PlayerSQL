@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.LinkedList;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.mcstats.Metrics;
 
 import com.mengcraft.playersql.SyncManager.State;
 import com.mengcraft.playersql.jdbc.ConnectionFactory;
@@ -36,7 +38,7 @@ public class Main extends JavaPlugin {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
+
         exp = new ExpUtilHandler(this).handle();
         manager = new SyncManager(this);
 
@@ -47,6 +49,7 @@ public class Main extends JavaPlugin {
                 getConfig().getString("plugin.password"));
         ConnectionManager manager = ConnectionManager.DEFAULT;
         ConnectionHandler handler = manager.getHandler("playersql", factory);
+
         try {
             Connection connection = handler.getConnection();
             String sql = "CREATE TABLE IF NOT EXISTS PlayerData("
@@ -59,20 +62,25 @@ public class Main extends JavaPlugin {
             Statement action = connection.createStatement();
             action.executeUpdate(sql);
             action.close();
+
             handler.release(connection);
-            scheduler().runTask(this, new MetricsTask(this));
-            scheduler().runTaskTimer(this, new TimerCheckTask(this), 0, 0);
-            register(new Events(this), this);
         } catch (Exception e) {
-            getLogger().warning("Unable to connect to database.");
-            setEnabled(false);
+            throw new RuntimeException(e);
         }
 
+        scheduler().runTaskTimer(this, new TimerCheckTask(this), 0, 0);
+        register(new Events(this));
+        
         DataCompound compond = DataCompound.DEFAULT;
         for (Player p : getServer().getOnlinePlayers()) {
             UUID uuid = p.getUniqueId();
             compond.state(uuid, State.JOIN_WAIT);
             new LoadTask(uuid).run();
+        }
+        try {
+            new Metrics(this).start();
+        } catch (IOException e) {
+            getLogger().warning(e.toString());
         }
         enable = true;
     }
@@ -99,8 +107,8 @@ public class Main extends JavaPlugin {
         return getServer().getScheduler();
     }
 
-    private void register(Events events, Main main) {
-        getServer().getPluginManager().registerEvents(events, main);
+    private void register(Events events) {
+        getServer().getPluginManager().registerEvents(events, this);
     }
 
     public void info(String string) {
