@@ -1,7 +1,6 @@
 package com.mengcraft.playersql.lib;
 
 import java.util.Arrays;
-import java.util.Random;
 
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -11,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 import com.mengcraft.playersql.lib.ItemUtil.SimpleItemUtil;
+
 
 public class ItemUtilHandler {
 
@@ -23,12 +23,14 @@ public class ItemUtilHandler {
     private ItemMeta meta;
 
     public ItemUtilHandler(Plugin in) {
-        if (in == null) { throw new NullPointerException(); }
+        if (in == null) {
+            throw new NullPointerException();
+        }
         this.proxy = in;
         this.server = in.getServer();
     }
 
-    public ItemUtil handle() throws Exception {
+    public ItemUtil handle() {
         if (util == null) {
             if (test(version())) {
                 util = new SimpleItemUtil(version());
@@ -84,7 +86,6 @@ public class ItemUtilHandler {
             meta.setLore(Arrays.asList("a", "b", "c"));
 
             item.setItemMeta(meta);
-            item.setAmount(new Random().nextInt(64));
             item.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 0);
         }
         return item;
