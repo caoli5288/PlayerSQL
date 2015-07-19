@@ -54,11 +54,14 @@ public class Main extends JavaPlugin {
             Connection connection = handler.getConnection();
             String sql = "CREATE TABLE IF NOT EXISTS PlayerData("
                     + "`Id` int NOT NULL AUTO_INCREMENT, "
-                    + "`Player` text NULL, "
+                    + "`Player` varchar(16) NULL, " // player nicknames are limited to 16 characters
                     + "`Data` text NULL, "
                     + "`Online` int NULL, "
                     + "`Last` bigint NULL, "
-                    + "PRIMARY KEY(`Id`));";
+                 // Instead of bigInt NULL, you could avoid manually setting the last time, and let SQL take care of this automatically:
+                 // + "`Last` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+                    + "PRIMARY KEY(`Id`), "
+                    + "INDEX `player_index` (`Player`));"; // Index on Player column will optimize lookups (fixes complain: https://www.spigotmc.org/resources/playersql.552/reviews#review-26795-20521 )
             Statement action = connection.createStatement();
             action.executeUpdate(sql);
             action.close();
