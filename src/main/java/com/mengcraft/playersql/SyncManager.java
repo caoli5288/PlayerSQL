@@ -19,11 +19,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ItemUtil;
+import com.mengcraft.playersql.lib.gson.JsonArray;
+import com.mengcraft.playersql.lib.gson.JsonElement;
+import com.mengcraft.playersql.lib.gson.JsonParser;
 import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SaveTask;
 import com.mengcraft.playersql.task.UnlockTask;
@@ -54,7 +54,7 @@ public class SyncManager {
             throw new NullPointerException("#11 Player can't be null!");
         }
         String data = data(player);
-        UUID   uuid = player.getUniqueId();
+        UUID uuid = player.getUniqueId();
         service.execute(new SaveTask(uuid, data, unlock));
     }
 
@@ -65,19 +65,16 @@ public class SyncManager {
         }
         service.execute(new SaveTask(map, unlock));
     }
-    
+
     /**
      * Used by the main thread to save all players on disable.
      */
     public void blockingSave(List<Player> list, boolean unlock) {
         save(list, unlock);
         service.shutdown();
-        try
-        {
+        try {
             service.awaitTermination(1, TimeUnit.MINUTES);
-        }
-        catch(InterruptedException e)
-        {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
