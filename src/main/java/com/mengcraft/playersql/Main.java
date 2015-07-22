@@ -54,7 +54,7 @@ public class Main extends JavaPlugin {
             Connection connection = handler.getConnection();
             String sql = "CREATE TABLE IF NOT EXISTS PlayerData("
                     + "`Id` int NOT NULL AUTO_INCREMENT, "
-                    + "`Player` varchar(16) NULL, " // player nicknames are limited to 16 characters
+                    + "`Player` char(36) NULL, "
                     + "`Data` text NULL, "
                     + "`Online` int NULL, "
                     + "`Last` bigint NULL, "
