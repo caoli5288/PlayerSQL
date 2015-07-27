@@ -14,6 +14,8 @@ public class Configs {
     public static final boolean SYN_EFCT;
     public static final boolean SYN_EXPS;
     public static final boolean SYN_FOOD;
+
+    public static final boolean MSG_ENABLE;
     
     public static final String MSG_LOADING;
     public static final String MSG_SYNCHRONIZED;
@@ -34,6 +36,7 @@ public class Configs {
         SYN_EXPS = yml.getBoolean("sync.exp", true);
         SYN_FOOD = yml.getBoolean("sync.food", true);
         SYN_DELY = yml.getInt("sync.delay", 30);
+        MSG_ENABLE = yml.getBoolean("plugin.messages", false);
         MSG_LOADING = ChatColor.translateAlternateColorCodes('&', yml.getString("messages.dataLoading", "&aPlease wait while your data is being loaded :)"));
         MSG_SYNCHRONIZED = ChatColor.translateAlternateColorCodes('&', yml.getString("messages.dataSynchronized", "&aEnjoy! All your data has been synchronized."));
         DEBUG = yml.getBoolean("plugin.debug", false);
