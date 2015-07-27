@@ -21,6 +21,7 @@ import com.mengcraft.playersql.lib.ExpUtilHandler;
 import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.ItemUtilHandler;
 import com.mengcraft.playersql.task.LoadTask;
+import com.mengcraft.playersql.task.SwitchServerTask;
 import com.mengcraft.playersql.task.TimerCheckTask;
 
 public class Main extends JavaPlugin {
@@ -71,8 +72,9 @@ public class Main extends JavaPlugin {
             throw new RuntimeException(e);
         }
 
-        scheduler().runTaskTimer(this, new TimerCheckTask(this), 0, 0);
-        register(new Events(this));
+        new TimerCheckTask(this).register();
+        new Executor(this).register();
+        new SwitchServerTask(this).register();
         
         DataCompound compond = DataCompound.DEFAULT;
         for (Player p : getServer().getOnlinePlayers()) {
@@ -108,10 +110,6 @@ public class Main extends JavaPlugin {
 
     public BukkitScheduler scheduler() {
         return getServer().getScheduler();
-    }
-
-    private void register(Events events) {
-        getServer().getPluginManager().registerEvents(events, this);
     }
 
     public void info(String string) {

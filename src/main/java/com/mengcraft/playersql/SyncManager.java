@@ -25,6 +25,7 @@ import com.mengcraft.playersql.lib.gson.JsonArray;
 import com.mengcraft.playersql.lib.gson.JsonElement;
 import com.mengcraft.playersql.lib.gson.JsonParser;
 import com.mengcraft.playersql.task.LoadTask;
+import com.mengcraft.playersql.task.SaveAndSwitchTask;
 import com.mengcraft.playersql.task.SaveTask;
 import com.mengcraft.playersql.task.UnlockTask;
 import com.mengcraft.playersql.util.ArrayBuilder;
@@ -49,13 +50,15 @@ public class SyncManager {
         this.exp = main.exp;
     }
 
+    public void saveAndSwitch(Player player, String target) {
+        service.execute(new SaveAndSwitchTask(player, data(player), target));
+    }
+
     public void save(Player player, boolean unlock) {
         if (player == null) {
             throw new NullPointerException("#11 Player can't be null!");
         }
-        String data = data(player);
-        UUID uuid = player.getUniqueId();
-        service.execute(new SaveTask(uuid, data, unlock));
+        service.execute(new SaveTask(player.getUniqueId(), data(player), unlock));
     }
 
     public void save(List<Player> list, boolean unlock) {

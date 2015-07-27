@@ -68,14 +68,16 @@ public class TimerCheckTask implements Runnable {
                 main.info("#5 New player: " + uuid);
             }
             task(uuid);
-            if(Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
+            if (Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(
+                    Configs.MSG_SYNCHRONIZED);
         } else {
             manager.sync(uuid, data);
             if (Configs.DEBUG) {
                 main.info("#1 Synchronized data for " + uuid);
             }
             task(uuid);
-            if(Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
+            if (Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(
+                    Configs.MSG_SYNCHRONIZED);
         }
     }
 
@@ -97,6 +99,10 @@ public class TimerCheckTask implements Runnable {
 
     private int scheduleTask(Runnable runnable, int i, int j) {
         return scheduler.runTaskTimer(main, runnable, i, j).getTaskId();
+    }
+
+    public void register() {
+        main.getServer().getScheduler().runTaskTimer(main, this, 0, 0);
     }
 
 }

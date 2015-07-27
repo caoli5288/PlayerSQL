@@ -16,8 +16,8 @@ public class SaveTask implements Runnable {
 
     static {
         UPDATE = "UPDATE `PlayerData` " +
-                "SET `Data` = ?, `Last` = ? , Online = ? " +
-                "WHERE `Player` = ?";
+                 "SET `Data` = ?, `Last` = ? , Online = ? " +
+                 "WHERE `Player` = ?";
     }
 
     private final Map<UUID, String> map;
