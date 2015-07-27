@@ -7,6 +7,7 @@ import java.util.Queue;
 
 import org.bukkit.entity.Player;
 
+import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.Main;
 import com.mengcraft.playersql.SwitchRequest;
 
@@ -34,6 +35,11 @@ public class SwitchServerTask implements Runnable {
         Player player = main.getPlayer(poll.getPlayer());
         if (player != null) {
             player.sendPluginMessage(main, channel, message(poll));
+            main.getServer().getScheduler().runTaskLater(main, () -> {
+                if (player != null && player.isOnline()) {
+                    DataCompound.DEFAULT.state(poll.getPlayer(), null);
+                }
+            }, 10);
         }
     }
 
@@ -50,11 +56,11 @@ public class SwitchServerTask implements Runnable {
 
     public void register() {
         main.getServer()
-            .getMessenger()
-            .registerOutgoingPluginChannel(main, "Bungee");
+                .getMessenger()
+                .registerOutgoingPluginChannel(main, "Bungee");
         main.getServer()
-            .getScheduler()
-            .runTaskTimer(main, this, 0, 0);
+                .getScheduler()
+                .runTaskTimer(main, this, 0, 0);
     }
 
 }

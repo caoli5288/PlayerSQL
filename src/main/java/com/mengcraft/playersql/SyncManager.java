@@ -248,7 +248,8 @@ public class SyncManager {
         CONN_DONE,
         JOIN_WAIT,
         JOIN_DONE,
-        JOIN_FAID
+        JOIN_FAID,
+        SWIT_WAIT
     }
 
 }

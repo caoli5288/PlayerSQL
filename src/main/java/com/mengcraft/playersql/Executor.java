@@ -33,6 +33,7 @@ public class Executor implements Listener {
         if (!event.isCancelled()) {
             Player player = event.getPlayer();
             if (compond.state(player.getUniqueId()) == null) {
+                compond.state(player.getUniqueId(), State.SWIT_WAIT);
                 manager.saveAndSwitch(player, event.getTarget());
             }
         }
