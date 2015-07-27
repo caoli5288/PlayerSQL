@@ -42,7 +42,7 @@ public class Events implements Listener {
     public void handle(PlayerJoinEvent event) {
         compond.state(event.getPlayer().getUniqueId(),
                 State.JOIN_WAIT);
-        event.getPlayer().sendMessage(Configs.MSG_LOADING);
+        if(Configs.MSG_ENABLE) event.getPlayer().sendMessage(Configs.MSG_LOADING);
         main.scheduler().runTaskLater(main, 
                 ()-> manager.load(event.getPlayer()), 
                 Configs.SYN_DELY);

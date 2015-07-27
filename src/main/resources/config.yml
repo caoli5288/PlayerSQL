@@ -3,6 +3,7 @@ plugin:
   username: username
   password: password
   debug: false
+  messages: false
 
 sync:
   health: true

@@ -68,14 +68,14 @@ public class TimerCheckTask implements Runnable {
                 main.info("#5 New player: " + uuid);
             }
             task(uuid);
-            main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
+            if(Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
         } else {
-            manager.sync(uuid , data);
+            manager.sync(uuid, data);
             if (Configs.DEBUG) {
                 main.info("#1 Synchronized data for " + uuid);
             }
             task(uuid);
-            main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
+            if(Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(Configs.MSG_SYNCHRONIZED);
         }
     }
 
