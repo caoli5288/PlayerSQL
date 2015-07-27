@@ -1,5 +1,7 @@
 [![Build Status](http://ci.mengcraft.com:8080/job/PlayerSQL/badge/icon)](http://ci.mengcraft.com:8080/job/PlayerSQL/)
 
+****
+
 PlayerSQL
 =========
 允许你通过这个插件在不同的Minecraft服务器之间同步玩家数据。包括：

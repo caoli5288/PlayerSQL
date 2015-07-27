@@ -55,7 +55,7 @@ public class SwitchServerTask implements Runnable {
     public void register() {
         main.getServer()
                 .getMessenger()
-                .registerOutgoingPluginChannel(main, "Bungee");
+                .registerOutgoingPluginChannel(main, "BungeeCord");
         main.getServer()
                 .getScheduler()
                 .runTaskTimer(main, this, 0, 0);

@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.mcstats.Metrics;
 
 import com.mengcraft.playersql.SyncManager.State;
 import com.mengcraft.playersql.jdbc.ConnectionFactory;
@@ -20,6 +19,7 @@ import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ExpUtilHandler;
 import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.ItemUtilHandler;
+import com.mengcraft.playersql.lib.Metrics;
 import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SwitchServerTask;
 import com.mengcraft.playersql.task.TimerCheckTask;
