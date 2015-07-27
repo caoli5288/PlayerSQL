@@ -2,6 +2,10 @@ package com.mengcraft.playersql;
 
 import java.util.UUID;
 
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,15 +21,41 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import com.mengcraft.playersql.SyncManager.State;
 import com.mengcraft.playersql.api.PlayerPreSwitchServerEvent;
 
-public class Executor implements Listener {
+public class Executor implements Listener, CommandExecutor {
 
     private final SyncManager manager;
     private final DataCompound compond = DataCompound.DEFAULT;
     private final Main main;
+    private final String[] info;
 
     public Executor(Main main) {
         this.main = main;
         this.manager = main.manager;
+        this.info = new String[] {
+                ChatColor.GOLD + "/playersql send <player> <target>"
+        };
+    }
+
+    @Override
+    public boolean onCommand(CommandSender arg0, Command arg1, String arg2,
+            String[] arg3) {
+        if (arg3.length != 3) {
+            arg0.sendMessage(info);
+        } else if (arg3[0].equals("send")) {
+            send(arg0, arg3[1], arg3[2]);
+        } else {
+            arg0.sendMessage(info);
+        }
+        return false;
+    }
+
+    private void send(CommandSender caller, String who, String target) {
+        Player p = main.getServer().getPlayerExact(who);
+        if (p == null) {
+            caller.sendMessage(ChatColor.DARK_RED + "Player not found!");
+        } else {
+            handle(new PlayerPreSwitchServerEvent(p, target));
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -98,7 +128,7 @@ public class Executor implements Listener {
 
     public void register() {
         main.getServer().getPluginManager().registerEvents(this, main);
-
+        main.getCommand("playersql").setExecutor(this);
     }
 
 }

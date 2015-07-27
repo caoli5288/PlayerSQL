@@ -2,3 +2,14 @@ main: com.mengcraft.playersql.Main
 name: PlayerSQL
 version: 1.14.2
 website: http://www.spigotmc.org/resources/playersql.552/
+
+commands:
+  playersql:
+    aliases: [psql]
+    description: None.
+    permission: playersql.admin
+    
+permissions:
+  playersql.admin:
+    description: None.
+    default: op

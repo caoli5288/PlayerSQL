@@ -36,9 +36,7 @@ public class SwitchServerTask implements Runnable {
         if (player != null) {
             player.sendPluginMessage(main, channel, message(poll));
             main.getServer().getScheduler().runTaskLater(main, () -> {
-                if (player != null && player.isOnline()) {
-                    DataCompound.DEFAULT.state(poll.getPlayer(), null);
-                }
+                DataCompound.DEFAULT.state(poll.getPlayer(), null);
             }, 10);
         }
     }
