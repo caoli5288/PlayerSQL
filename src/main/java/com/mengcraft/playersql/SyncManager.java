@@ -19,11 +19,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ItemUtil;
-import com.mengcraft.playersql.lib.gson.JsonArray;
-import com.mengcraft.playersql.lib.gson.JsonElement;
-import com.mengcraft.playersql.lib.gson.JsonParser;
 import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SaveAndSwitchTask;
 import com.mengcraft.playersql.task.SaveTask;
