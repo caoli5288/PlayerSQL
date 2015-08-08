@@ -50,6 +50,7 @@ public class Executor implements Listener, CommandExecutor {
     }
 
     private void send(CommandSender caller, String who, String target) {
+        @SuppressWarnings("deprecation")
         Player p = main.getServer().getPlayerExact(who);
         if (p == null) {
             caller.sendMessage(ChatColor.DARK_RED + "Player not found!");

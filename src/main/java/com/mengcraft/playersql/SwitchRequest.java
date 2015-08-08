@@ -32,7 +32,7 @@ public class SwitchRequest {
         private final Queue<SwitchRequest> queue;
 
         private Manager() {
-            this.queue = new LinkedBlockingQueue();
+            this.queue = new LinkedBlockingQueue<>();
         }
 
         public SwitchRequest poll() {
