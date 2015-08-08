@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.Main;
 import com.mengcraft.playersql.SwitchRequest;
+import com.mengcraft.playersql.SyncManager.State;
 
 public class SwitchServerTask implements Runnable {
 
@@ -18,6 +19,8 @@ public class SwitchServerTask implements Runnable {
 
     private final String channel = "BungeeCord";
     private final String connect = "Connect";
+    
+    private final DataCompound compound = DataCompound.DEFAULT;
 
     public SwitchServerTask(Main main) {
         this.main = main;
@@ -36,7 +39,9 @@ public class SwitchServerTask implements Runnable {
         if (player != null) {
             player.sendPluginMessage(main, channel, message(poll));
             main.getServer().getScheduler().runTaskLater(main, () -> {
-                DataCompound.DEFAULT.state(poll.getPlayer(), null);
+            	if (compound.state(poll.getPlayer()) == State.SWIT_WAIT) {
+            		compound.state(poll.getPlayer(), null);
+            	}
             }, 10);
         }
     }
