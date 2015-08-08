@@ -74,7 +74,7 @@ public class Main extends JavaPlugin {
         }
 
         new TimerCheckTask(this).register();
-        new Executor(this).register();
+        new Events(this).register();
         new SwitchServerTask(this).register();
         
         new SendCommand().register(this);

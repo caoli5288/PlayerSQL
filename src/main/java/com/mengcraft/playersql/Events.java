@@ -17,13 +17,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import com.mengcraft.playersql.SyncManager.State;
 import com.mengcraft.playersql.api.PlayerPreSwitchServerEvent;
 
-public class Executor implements Listener {
+public class Events implements Listener {
 
     private final SyncManager manager;
     private final DataCompound compond = DataCompound.DEFAULT;
     private final Main main;
 
-    public Executor(Main main) {
+    public Events(Main main) {
         this.main = main;
         this.manager = main.manager;
     }
