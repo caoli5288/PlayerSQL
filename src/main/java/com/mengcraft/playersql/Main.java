@@ -12,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.mengcraft.playersql.SyncManager.State;
+import com.mengcraft.playersql.commands.SendCommand;
 import com.mengcraft.playersql.jdbc.ConnectionFactory;
 import com.mengcraft.playersql.jdbc.ConnectionHandler;
 import com.mengcraft.playersql.jdbc.ConnectionManager;
@@ -75,6 +76,8 @@ public class Main extends JavaPlugin {
         new TimerCheckTask(this).register();
         new Executor(this).register();
         new SwitchServerTask(this).register();
+        
+        new SendCommand().register(this);
         
         DataCompound compond = DataCompound.DEFAULT;
         for (Player p : getServer().getOnlinePlayers()) {
