@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -94,6 +95,13 @@ public class Events implements Listener {
         if (compond.state(uuid) != null) {
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void handle(InventoryOpenEvent event) {
+    	if (compond.state(event.getPlayer().getUniqueId()) != null) {
+    		event.setCancelled(true);
+    	}
     }
 
     public void register() {
