@@ -143,6 +143,9 @@ public class SyncManager {
             exp.setExp(p, array.get(2).getAsInt());
         }
         if (Configs.SYN_INVT) {
+        	// Solve duplicate items issue.
+        	p.closeInventory();
+        	
             ItemStack[] stacks = arrayToStacks(array.get(3).getAsJsonArray());
             ItemStack[] armors = arrayToStacks(array.get(4).getAsJsonArray());
             int hold = array.size() > 7 ?
