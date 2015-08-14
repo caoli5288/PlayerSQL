@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -76,6 +77,14 @@ public class Events implements Listener {
     public void handle(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
         UUID uuid = event.getEntity().getUniqueId();
+        if (compond.state(uuid) != null) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void handle(PlayerPickupItemEvent event) {
+    	UUID uuid = event.getPlayer().getUniqueId();
         if (compond.state(uuid) != null) {
             event.setCancelled(true);
         }
