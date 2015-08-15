@@ -110,6 +110,7 @@ public class SyncManager {
     }
 
     private String data(Player player) {
+    	player.closeInventory(); // In order to prevent loss items.
         ItemStack[] inventory = player.getInventory().getContents();
         ItemStack[] armors = player.getInventory().getArmorContents();
         ItemStack[] chest = player.getEnderChest().getContents();
