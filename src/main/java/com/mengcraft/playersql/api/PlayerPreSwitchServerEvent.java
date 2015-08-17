@@ -7,54 +7,53 @@ import org.bukkit.event.HandlerList;
 
 public class PlayerPreSwitchServerEvent extends Event implements Cancellable {
 
-    private static final HandlerList handlers = new HandlerList();
+	private static HandlerList handlers = new HandlerList();
 
-    private Player player;
-    private String target;
+	private String target;
+	private boolean cancelled;
 
-    private boolean cancelled;
+	private final Player player;
 
-    public PlayerPreSwitchServerEvent(Player player, String target) {
-        if (player == null || target == null) {
-            throw new NullPointerException("Arguments can not be null!");
-        }
-        this.player = player;
-        this.target = target;
-    }
+	public PlayerPreSwitchServerEvent(Player player, String target) {
+		if (player == null || target == null) {
+			throw new NullPointerException("Argument canot be null!");
+		}
+		this.player = player;
+		this.target = target;
+	}
 
-    public Player getPlayer() {
-        return player;
-    }
+	public Player getPlayer() {
+		return player;
+	}
 
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
+	public String getTarget() {
+		return target;
+	}
 
-    public String getTarget() {
-        return target;
-    }
+	public void setTarget(String target) {
+		if (target == null) {
+			throw new NullPointerException("Target can not be null!");
+		}
+		this.target = target;
+	}
 
-    public void setTarget(String target) {
-        this.target = target;
-    }
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
+	@Override
+	public boolean isCancelled() {
+		return cancelled;
+	}
 
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
+	@Override
+	public void setCancelled(boolean cancelled) {
+		this.cancelled = cancelled;
+	}
 
 }
