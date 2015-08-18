@@ -1,6 +1,6 @@
 main: com.mengcraft.playersql.Main
 name: PlayerSQL
-version: 1.16
+version: 1.17
 website: http://www.spigotmc.org/resources/playersql.552/
 
 commands:
