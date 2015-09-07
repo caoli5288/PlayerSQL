@@ -1,6 +1,7 @@
 package com.mengcraft.playersql;
 
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

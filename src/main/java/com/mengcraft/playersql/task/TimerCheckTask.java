@@ -89,8 +89,9 @@ public class TimerCheckTask implements Runnable {
                 main.warn("#3 Cancelled existing timer task for " + uuid);
             }
         }
-        Runnable runnable = new TimerSaveTask(main, uuid);
+        TimerSaveTask runnable = new TimerSaveTask(main, uuid);
         int id = scheduleTask(runnable, 3600, 3600);
+        runnable.setId(id);
         compond.task().put(uuid, id);
         if (Configs.DEBUG) {
             main.info("#4 Started a timer task for " + uuid);
