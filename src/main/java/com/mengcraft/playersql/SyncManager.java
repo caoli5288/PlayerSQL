@@ -38,32 +38,32 @@ public class SyncManager {
     private final ItemUtil util;
     private final ExpUtil exp;
 
-    SyncManager(Main main) {
-        this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
-                60000,
-                TimeUnit.MILLISECONDS,
-                new SynchronousQueue<Runnable>()
-                );
-        this.util = main.util;
-        this.server = main.getServer();
-        this.exp = main.exp;
-    }
+	SyncManager(Main main) {
+		this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
+				60000,
+				TimeUnit.MILLISECONDS,
+				new SynchronousQueue<Runnable>()
+				);
+		this.util = main.util;
+		this.server = main.getServer();
+		this.exp = main.exp;
+	}
 
     public void saveAndSwitch(Player player, String target) {
-        service.execute(new SaveAndSwitchTask(player, data(player), target));
+        service.execute(new SaveAndSwitchTask(player, data(player, true), target));
     }
 
     public void save(Player player, boolean unlock) {
         if (player == null) {
             throw new NullPointerException("#11 Player can't be null!");
         }
-        service.execute(new SaveTask(player.getUniqueId(), data(player), unlock));
+        service.execute(new SaveTask(player.getUniqueId(), data(player, unlock), unlock));
     }
 
     public void save(List<Player> list, boolean unlock) {
         Map<UUID, String> map = new LinkedHashMap<>();
         for (Player p : list) {
-            map.put(p.getUniqueId(), data(p));
+            map.put(p.getUniqueId(), data(p, unlock));
         }
         service.execute(new SaveTask(map, unlock));
     }
@@ -109,8 +109,8 @@ public class SyncManager {
         }
     }
 
-    private String data(Player player) {
-    	player.closeInventory(); // In order to prevent loss items.
+    private String data(Player player, boolean b) {
+    	if(b) player.closeInventory(); // In order to prevent loss items.
         ItemStack[] inventory = player.getInventory().getContents();
         ItemStack[] armors = player.getInventory().getArmorContents();
         ItemStack[] chest = player.getEnderChest().getContents();
