@@ -52,24 +52,25 @@ public class Main extends JavaPlugin {
         ConnectionManager manager = ConnectionManager.DEFAULT;
         ConnectionHandler handler = manager.getHandler("playersql", factory);
 
-        try {
-            Connection connection = handler.getConnection();
-            String sql = "CREATE TABLE IF NOT EXISTS PlayerData("
-                    + "`Id` int NOT NULL AUTO_INCREMENT, "
-                    + "`Player` char(36) NULL, "
-                    + "`Data` text NULL, "
-                    + "`Online` int NULL, "
-                    + "`Last` bigint NULL, "
-                 // Instead of bigInt NULL, you could avoid manually setting the last time, and let SQL take care of this automatically:
-                 // + "`Last` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
-                    + "PRIMARY KEY(`Id`), "
-                    + "INDEX `player_index` (`Player`));"; // Index on Player column will optimize lookups (fixes complain: https://www.spigotmc.org/resources/playersql.552/reviews#review-26795-20521 )
-            Statement action = connection.createStatement();
-            action.executeUpdate(sql);
-            action.close();
+		try {
+			Connection connection = handler.getConnection();
+			
+			String sql = "CREATE TABLE IF NOT EXISTS PlayerData("
+					   + "`Id` int NOT NULL AUTO_INCREMENT, "
+					   + "`Player` char(36) NOT NULL,"
+					   + "`Data` text NOT NULL,"
+					   + "`Online` int(1) NOT NULL,"
+					   + "`Last` bigint NOT NULL,"
+					   + "PRIMARY KEY(`Id`),"
+					   + "UNIQUE KEY `uni_player` (`Player`)"
+					   + ");"; 
+			
+			Statement action = connection.createStatement();
+			action.executeUpdate(sql);
+			action.close();
 
-            handler.release(connection);
-        } catch (Exception e) {
+			handler.release(connection);
+		} catch (Exception e) {
             throw new RuntimeException(e);
         }
 
