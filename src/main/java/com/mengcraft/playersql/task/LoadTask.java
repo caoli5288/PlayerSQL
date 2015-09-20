@@ -18,11 +18,11 @@ public class LoadTask implements Runnable {
 
     static {
         SELECT = "SELECT `Data`,`Online`,`Last` FROM `PlayerData` " +
-                "WHERE `Player` = ?";
+                  "WHERE `Player` = ?";
         INSERT = "INSERT INTO `PlayerData`(`Player`,`Online`,`LAST`) " +
-                "VALUES(?,1,?)";
+                  "VALUES(?,1,?)";
         UPDATE = "UPDATE `PlayerData` SET `Online` = 1 " +
-                "WHERE `Player` = ?";
+                  "WHERE `Player` = ?";
     }
 
     private final ConnectionManager manager = ConnectionManager.DEFAULT;

@@ -56,11 +56,11 @@ public class Main extends JavaPlugin {
 			Connection connection = handler.getConnection();
 			
 			String sql = "CREATE TABLE IF NOT EXISTS PlayerData("
-					   + "`Id` int NOT NULL AUTO_INCREMENT, "
+					   + "`Id` int NOT NULL AUTO_INCREMENT,"
 					   + "`Player` char(36) NOT NULL,"
-					   + "`Data` text NOT NULL,"
-					   + "`Online` int(1) NOT NULL,"
-					   + "`Last` bigint NOT NULL,"
+					   + "`Data` text NULL,"
+					   + "`Online` int(1) NULL,"
+					   + "`Last` bigint NULL,"
 					   + "PRIMARY KEY(`Id`),"
 					   + "UNIQUE KEY `uni_player` (`Player`)"
 					   + ");"; 
