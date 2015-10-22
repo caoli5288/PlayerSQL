@@ -114,6 +114,30 @@ public class Events implements Listener {
     	}
     }
 
+    @EventHandler
+    public void handle(PlayerInteractAtEntityEvent event) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        if (compond.state(uuid) != null) {
+            e.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void handle(PlayerInteractEntityEvent event) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        if (compond.state(uuid) != null) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void handle(PlayerCommandPreprocessEvent event) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        if (compond.state(uuid) != null) {
+            e.setCancelled(true);
+        }
+    }
+
     public void register() {
         main.getServer().getPluginManager().registerEvents(this, main);
     }
