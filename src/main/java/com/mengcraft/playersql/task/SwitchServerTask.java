@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 
 import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.Main;
-import com.mengcraft.playersql.SwitchRequest;
 import com.mengcraft.playersql.SyncManager.State;
 
 public class SwitchServerTask implements Runnable {

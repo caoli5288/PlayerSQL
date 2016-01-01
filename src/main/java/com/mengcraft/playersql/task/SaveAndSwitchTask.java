@@ -4,8 +4,6 @@ import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
-import com.mengcraft.playersql.SwitchRequest;
-
 public class SaveAndSwitchTask extends SaveTask {
 
     private final String target;
