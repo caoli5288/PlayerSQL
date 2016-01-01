@@ -8,7 +8,7 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import com.mengcraft.playersql.Configs;
+import com.mengcraft.playersql.Config;
 import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.Main;
 import com.mengcraft.playersql.SyncManager;
@@ -64,20 +64,20 @@ public class TimerCheckTask implements Runnable {
         } else if (data == DataCompound.STRING_EMPTY) {
             compond.state(uuid, null);
             compond.map().remove(uuid);
-            if (Configs.DEBUG) {
+            if (Config.DEBUG) {
                 main.info("#5 New player: " + uuid);
             }
             task(uuid);
-            if (Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(
-                    Configs.MSG_SYNCHRONIZED);
+            if (Config.MSG_ENABLE) main.getPlayer(uuid).sendMessage(
+                    Config.MSG_SYNCHRONIZED);
         } else {
             manager.sync(uuid, data);
-            if (Configs.DEBUG) {
+            if (Config.DEBUG) {
                 main.info("#1 Synchronized data for " + uuid);
             }
             task(uuid);
-            if (Configs.MSG_ENABLE) main.getPlayer(uuid).sendMessage(
-                    Configs.MSG_SYNCHRONIZED);
+            if (Config.MSG_ENABLE) main.getPlayer(uuid).sendMessage(
+                    Config.MSG_SYNCHRONIZED);
         }
     }
 
@@ -85,7 +85,7 @@ public class TimerCheckTask implements Runnable {
         Map<UUID, Integer> task = compond.task();
         if (task.get(uuid) != null) {
             server.getScheduler().cancelTask(task.remove(uuid));
-            if (Configs.DEBUG) {
+            if (Config.DEBUG) {
                 main.warn("#3 Cancelled existing timer task for " + uuid);
             }
         }
@@ -93,7 +93,7 @@ public class TimerCheckTask implements Runnable {
         int id = scheduleTask(runnable, 3600, 3600);
         runnable.setId(id);
         compond.task().put(uuid, id);
-        if (Configs.DEBUG) {
+        if (Config.DEBUG) {
             main.info("#4 Started a timer task for " + uuid);
         }
     }

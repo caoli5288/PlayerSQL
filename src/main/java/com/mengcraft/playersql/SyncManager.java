@@ -1,24 +1,5 @@
 package com.mengcraft.playersql;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.bukkit.Material;
-import org.bukkit.Server;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -28,6 +9,18 @@ import com.mengcraft.playersql.task.LoadTask;
 import com.mengcraft.playersql.task.SaveAndSwitchTask;
 import com.mengcraft.playersql.task.SaveTask;
 import com.mengcraft.playersql.task.UnlockTask;
+import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class SyncManager {
 
@@ -38,16 +31,16 @@ public class SyncManager {
     private final ItemUtil util;
     private final ExpUtil exp;
 
-	SyncManager(Main main) {
-		this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
-				60000,
-				TimeUnit.MILLISECONDS,
-				new SynchronousQueue<Runnable>()
-				);
-		this.util = main.util;
-		this.server = main.getServer();
-		this.exp = main.exp;
-	}
+    SyncManager(Main main) {
+        this.service = new ThreadPoolExecutor(2, Integer.MAX_VALUE,
+                60000,
+                TimeUnit.MILLISECONDS,
+                new SynchronousQueue<Runnable>()
+        );
+        this.util = main.util;
+        this.server = main.getServer();
+        this.exp = main.exp;
+    }
 
     public void saveAndSwitch(Player player, String target) {
         service.execute(new SaveAndSwitchTask(player, data(player, true), target));
@@ -110,7 +103,7 @@ public class SyncManager {
     }
 
     private String data(Player player, boolean b) {
-    	if(b) player.closeInventory(); // In order to prevent loss items.
+        if (b) player.closeInventory(); // In order to prevent loss items.
         ItemStack[] inventory = player.getInventory().getContents();
         ItemStack[] armors = player.getInventory().getArmorContents();
         ItemStack[] chest = player.getEnderChest().getContents();
@@ -130,23 +123,23 @@ public class SyncManager {
     }
 
     private void load(Player p, JsonArray array) {
-        if (Configs.SYN_HEAL) {
+        if (Config.SYN_HEALTH) {
             double j = array.get(0).getAsDouble();
             double d = j <= p.getMaxHealth() ?
                     j != 0 ? j : p.getHealth() :
                     p.getMaxHealth();
             p.setHealth(d);
         }
-        if (Configs.SYN_FOOD) {
+        if (Config.SYN_FOOD) {
             p.setFoodLevel(array.get(1).getAsInt());
         }
-        if (Configs.SYN_EXPS) {
+        if (Config.SYN_EXP) {
             exp.setExp(p, array.get(2).getAsInt());
         }
-        if (Configs.SYN_INVT) {
-        	// Solve duplicate items issue.
-        	p.closeInventory();
-        	
+        if (Config.SYN_INVENTORY) {
+            // Solve duplicate items issue.
+            p.closeInventory();
+
             ItemStack[] stacks = arrayToStacks(array.get(3).getAsJsonArray());
             ItemStack[] armors = arrayToStacks(array.get(4).getAsJsonArray());
             int hold = array.size() > 7 ?
@@ -156,11 +149,11 @@ public class SyncManager {
             p.getInventory().setArmorContents(armors);
             p.getInventory().setHeldItemSlot(hold);
         }
-        if (Configs.SYN_CEST) {
+        if (Config.SYN_CHEST) {
             ItemStack[] stacks = arrayToStacks(array.get(5).getAsJsonArray());
             p.getEnderChest().setContents(stacks);
         }
-        if (Configs.SYN_EFCT) {
+        if (Config.SYN_EFFECT) {
             for (PotionEffect effect : p.getActivePotionEffects()) {
                 p.removePotionEffect(effect.getType());
             }
@@ -205,7 +198,7 @@ public class SyncManager {
         StringBuilder builder = new StringBuilder();
         builder.append('[');
         Iterator<PotionEffect> it = effects.iterator();
-        for (; it.hasNext();) {
+        for (; it.hasNext(); ) {
             PotionEffect effect = it.next();
             builder.append('[');
             builder.append('\"');
