@@ -66,4 +66,7 @@ public class PluginMain extends JavaPlugin {
         return getServer().getScheduler().runTaskTimerAsynchronously(this, r, i, i);
     }
 
+    public BukkitTask runTaskAsynchronously(Runnable r) {
+        return getServer().getScheduler().runTaskAsynchronously(this, r);
+    }
 }

@@ -70,13 +70,29 @@ public final class UserManager {
         this.main.getDatabase().save(user);
     }
 
-    /**
-     *
-     */
     public void syncUser(Player player) {
         User user = this.userMap.get(player.getUniqueId());
         synchronized (user) {
-            // TODO
+            if (Config.SYN_HEALTH) {
+                user.setHealth(player.getHealth());
+            }
+            if (Config.SYN_FOOD) {
+                user.setFood(player.getFoodLevel());
+            }
+            if (Config.SYN_INVENTORY) {
+                user.setInventory(toString(player.getInventory().getContents()));
+                user.setArmor(toString(player.getInventory().getArmorContents()));
+                user.setHand(player.getInventory().getHeldItemSlot());
+            }
+            if (Config.SYN_CHEST) {
+                user.setChest(toString(player.getEnderChest().getContents()));
+            }
+            if (Config.SYN_EFFECT) {
+                user.setEffect(toString(player.getActivePotionEffects()));
+            }
+            if (Config.SYN_EXP) {
+                user.setExp(this.expUtil.getExp(player));
+            }
         }
     }
 
@@ -90,9 +106,16 @@ public final class UserManager {
     }
 
     private void pend(User polled) {
-        // May need synchronized on polled.
         Player player = this.main.getPlayer(polled.getUuid());
         if (player != null && player.isOnline()) {
+            pend(polled, player);
+        } else this.main.runTaskAsynchronously(() -> {
+            saveUser(polled.setLocked(false));
+        });
+    }
+
+    private void pend(User polled, Player player) {
+        synchronized (polled) {
             if (Config.SYN_INVENTORY) {
                 player.closeInventory();
                 player.getInventory().setContents(toStack(polled.getInventory()));
@@ -116,11 +139,8 @@ public final class UserManager {
             if (Config.SYN_CHEST) {
                 player.getEnderChest().setContents(toStack(polled.getChest()));
             }
-            EventExecutor.LOCKED.remove(player.getUniqueId());
-        } else {
-            // TODO
-            throw new RuntimeException();
         }
+        EventExecutor.LOCKED.remove(player.getUniqueId());
     }
 
     @SuppressWarnings("unchecked")
@@ -163,7 +183,7 @@ public final class UserManager {
     }
 
     @SuppressWarnings("unchecked")
-    private String toString(List<PotionEffect> effects) {
+    private String toString(Collection<PotionEffect> effects) {
         JSONArray array = new JSONArray();
         for (PotionEffect effect : effects)
             array.add(new JSONArray() {{
