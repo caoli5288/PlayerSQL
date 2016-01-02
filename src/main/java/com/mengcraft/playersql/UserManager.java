@@ -45,9 +45,11 @@ public final class UserManager {
      * Create and cache a new user.
      */
     public void cacheUser(UUID uuid) {
-        User user = this.main.getDatabase().createEntityBean(User.class)
-                .setUuid(uuid)
-                .setLocked(true);
+        User user = this.main.getDatabase().createEntityBean(User.class);
+        synchronized (user) {
+            user.setUuid(uuid);
+            user.setLocked(true);
+        }
         cacheUser(uuid, user);
     }
 
@@ -69,6 +71,16 @@ public final class UserManager {
     }
 
     /**
+     *
+     */
+    public void syncUser(Player player) {
+        User user = this.userMap.get(player.getUniqueId());
+        synchronized (user) {
+            // TODO
+        }
+    }
+
+    /**
      * Process fetched users.
      */
     public void pendFetched() {
@@ -78,6 +90,7 @@ public final class UserManager {
     }
 
     private void pend(User polled) {
+        // May need synchronized on polled.
         Player player = this.main.getPlayer(polled.getUuid());
         if (player != null && player.isOnline()) {
             if (Config.SYN_INVENTORY) {
@@ -103,7 +116,9 @@ public final class UserManager {
             if (Config.SYN_CHEST) {
                 player.getEnderChest().setContents(toStack(polled.getChest()));
             }
+            EventExecutor.LOCKED.remove(player.getUniqueId());
         } else {
+            // TODO
             throw new RuntimeException();
         }
     }
@@ -183,6 +198,7 @@ public final class UserManager {
         this.main = main;
     }
 
-    private static final ItemStack AIR = new ItemStack(Material.AIR);
+    public static final ItemStack AIR = new ItemStack(Material.AIR);
+
 
 }

@@ -1,6 +1,6 @@
 package com.mengcraft.playersql;
 
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
@@ -10,35 +10,40 @@ import java.util.UUID;
 public class FetchUserTask implements Runnable {
 
     private EventExecutor executor;
-    private BukkitTask task;
     private UUID uuid;
 
+    private int taskId;
     private int retryCount;
+    private Player handle;
 
     @Override
     public synchronized void run() {
-        // TODO
+        User user = this.executor.getUserManager().fetchUser(this.uuid);
+        if (user == null) {
+            this.executor.getUserManager().cacheUser(this.uuid);
+            this.executor.unlock(this.uuid);
+            this.executor.cancelTask(this.taskId);
+        } else if (user.isLocked() && this.retryCount++ < 5) {
+            if (Config.DEBUG) {
+                this.executor.getMain().logException(new PluginException("Fetch " + this.uuid + " retry " + this.retryCount + '.'));
+            }
+        } else {
+            this.executor.getUserManager().cacheUser(this.uuid, user);
+            this.executor.getUserManager().addFetched(user);
+            this.executor.cancelTask(this.taskId);
+        }
     }
 
-    public FetchUserTask setExecutor(EventExecutor executor) {
-        synchronized (this) {
-            this.executor = executor;
-        }
-        return this;
+    public void setExecutor(EventExecutor executor) {
+        this.executor = executor;
     }
 
-    public FetchUserTask setUuid(UUID uuid) {
-        synchronized (this) {
-            this.uuid = uuid;
-        }
-        return this;
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
-    public FetchUserTask setTask(BukkitTask task) {
-        synchronized (this) {
-            this.task = task;
-        }
-        return this;
+    public void setTaskId(int taskId) {
+        this.taskId = taskId;
     }
 
 }

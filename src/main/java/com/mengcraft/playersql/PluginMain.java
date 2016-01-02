@@ -43,13 +43,13 @@ public class PluginMain extends JavaPlugin {
         userManager.setItemUtil(itemUtil);
         userManager.setExpUtil(expUtil);
 
-        getServer().getScheduler().runTaskTimer(this, () -> {
-            userManager.pendFetched();
-        }, 1, 1);
-
         EventExecutor eventExecutor = new EventExecutor();
         eventExecutor.setMain(this);
         eventExecutor.setUserManager(userManager);
+
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            userManager.pendFetched();
+        }, 1, 1);
 
         getServer().getPluginManager().registerEvents(eventExecutor, this);
     }

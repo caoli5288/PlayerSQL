@@ -4,11 +4,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.UUID;
 
 /**
@@ -16,21 +14,26 @@ import java.util.UUID;
  */
 public class EventExecutor implements Listener {
 
-    private final List<UUID> locked = new ArrayList<>();
-    private PluginMain main;
     private UserManager userManager;
+    private PluginMain main;
 
     @EventHandler
     public void handle(PlayerLoginEvent event) {
-        this.locked.add(event.getPlayer().getUniqueId());
+        LOCKED.add(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void handle(PlayerJoinEvent event) {
         FetchUserTask task = new FetchUserTask();
-        task.setUuid(event.getPlayer().getUniqueId());
-        task.setExecutor(this);
-        task.setTask(this.main.runTaskTimerAsynchronously(task, Config.SYN_DELAY));
+        synchronized (task) {
+            task.setUuid(event.getPlayer().getUniqueId());
+            task.setExecutor(this);
+            task.setTaskId(this.main.runTaskTimerAsynchronously(task, Config.SYN_DELAY).getTaskId());
+        }
+    }
+
+    public void cancelTask(int i) {
+        this.main.getServer().getScheduler().cancelTask(i);
     }
 
     public void setUserManager(UserManager userManager) {
@@ -48,5 +51,13 @@ public class EventExecutor implements Listener {
     public PluginMain getMain() {
         return this.main;
     }
+
+    public void unlock(UUID uuid) {
+        synchronized (LOCKED) {
+            LOCKED.remove(uuid);
+        }
+    }
+
+    public final static List<UUID> LOCKED = new ArrayList<>();
 
 }
