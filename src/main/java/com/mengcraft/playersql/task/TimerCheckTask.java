@@ -11,7 +11,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.mengcraft.playersql.Config;
 import com.mengcraft.playersql.DataCompound;
 import com.mengcraft.playersql.Main;
-import com.mengcraft.playersql.SyncManager;
 import com.mengcraft.playersql.SyncManager.State;
 
 public class TimerCheckTask implements Runnable {

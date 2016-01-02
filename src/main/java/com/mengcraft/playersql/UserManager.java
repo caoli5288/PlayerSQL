@@ -23,9 +23,54 @@ public final class UserManager {
     private final Queue<User> fetched = new ConcurrentLinkedQueue<>();
 
     private PluginMain main;
-
     private ItemUtil itemUtil;
     private ExpUtil expUtil;
+
+    public User getUser(UUID uuid) {
+        return this.userMap.get(uuid);
+    }
+
+    public void addFetched(User user) {
+        this.fetched.offer(user);
+    }
+
+    /**
+     * @return The user, or <code>null</code> if not exists.
+     */
+    public User fetchUser(UUID uuid) {
+        return this.main.getDatabase().find(User.class, uuid);
+    }
+
+    /**
+     * Create and cache a new user.
+     */
+    public void cacheUser(UUID uuid) {
+        User user = this.main.getDatabase().createEntityBean(User.class)
+                .setUuid(uuid)
+                .setLocked(true);
+        cacheUser(uuid, user);
+    }
+
+    public void cacheUser(UUID uuid, User user) {
+        this.userMap.put(uuid, user);
+    }
+
+    public void saveUser(UUID uuid) {
+        User user = getUser(uuid);
+        if (user != null) {
+            saveUser(user);
+        } else if (Config.DEBUG) {
+            this.main.logException(new PluginException("User " + uuid + " not cached!"));
+        }
+    }
+
+    public void saveUser(User user) {
+        this.main.getDatabase().save(user);
+    }
+
+    /**
+     * Process fetched users.
+     */
     public void pendFetched() {
         while (!this.fetched.isEmpty()) {
             pend(this.fetched.poll());
@@ -34,28 +79,32 @@ public final class UserManager {
 
     private void pend(User polled) {
         Player player = this.main.getPlayer(polled.getUuid());
-        if (Config.SYN_HEALTH && player.getMaxHealth() >= polled.getHealth()) {
-            player.setHealth(polled.getHealth());
-        }
-        if (Config.SYN_EXP) {
-            this.expUtil.setExp(player, polled.getExp());
-        }
-        if (Config.SYN_FOOD) {
-            player.setFoodLevel(polled.getFood());
-        }
-        if (Config.SYN_INVENTORY) {
-            player.closeInventory();
-            player.getInventory().setContents(toStack(polled.getInventory()));
-            player.getInventory().setArmorContents(toStack(polled.getArmor()));
-            player.getInventory().setHeldItemSlot(polled.getHand());
-        }
-        if (Config.SYN_CHEST) {
-            player.getEnderChest().setContents(toStack(polled.getChest()));
-        }
-        if (Config.SYN_EFFECT) {
-            for (PotionEffect effect : toEffect(polled.getEffect())) {
-                player.addPotionEffect(effect, true);
+        if (player != null && player.isOnline()) {
+            if (Config.SYN_INVENTORY) {
+                player.closeInventory();
+                player.getInventory().setContents(toStack(polled.getInventory()));
+                player.getInventory().setArmorContents(toStack(polled.getArmor()));
+                player.getInventory().setHeldItemSlot(polled.getHand());
             }
+            if (Config.SYN_HEALTH && player.getMaxHealth() >= polled.getHealth()) {
+                player.setHealth(polled.getHealth());
+            }
+            if (Config.SYN_EXP) {
+                this.expUtil.setExp(player, polled.getExp());
+            }
+            if (Config.SYN_FOOD) {
+                player.setFoodLevel(polled.getFood());
+            }
+            if (Config.SYN_EFFECT) {
+                for (PotionEffect effect : toEffect(polled.getEffect())) {
+                    player.addPotionEffect(effect, true);
+                }
+            }
+            if (Config.SYN_CHEST) {
+                player.getEnderChest().setContents(toStack(polled.getChest()));
+            }
+        } else {
+            throw new RuntimeException();
         }
     }
 

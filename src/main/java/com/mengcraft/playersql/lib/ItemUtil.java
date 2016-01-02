@@ -15,11 +15,11 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 public interface ItemUtil {
 
-    public String convert(ItemStack in) throws Exception;
+    String convert(ItemStack in) throws Exception;
 
-    public ItemStack convert(String in) throws Exception;
+    ItemStack convert(String in) throws Exception;
 
-    public static class WarpedItemUtil implements ItemUtil {
+    class WarpedItemUtil implements ItemUtil {
         
         private final String path = "com.comphenix.protocol.utility.StreamSerializer";
         

@@ -48,8 +48,11 @@ public class User {
         return uuid;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public User setUuid(UUID uuid) {
+        synchronized (this) {
+            this.uuid = uuid;
+        }
+        return this;
     }
 
     public double getHealth() {
@@ -120,8 +123,11 @@ public class User {
         return locked;
     }
 
-    public void setLocked(boolean locked) {
-        this.locked = locked;
+    public User setLocked(boolean locked) {
+        synchronized (this) {
+            this.locked = locked;
+        }
+        return this;
     }
 
     public Timestamp getDate() {

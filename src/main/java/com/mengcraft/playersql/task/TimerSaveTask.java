@@ -6,7 +6,6 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
 import com.mengcraft.playersql.Main;
-import com.mengcraft.playersql.SyncManager;
 
 public class TimerSaveTask implements Runnable {
 
