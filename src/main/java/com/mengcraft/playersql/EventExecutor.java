@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.bukkit.event.EventPriority.LOWEST;
+
 /**
  * Created on 16-1-2.
  */
@@ -51,7 +53,7 @@ public class EventExecutor implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = LOWEST)
     public void handle(PlayerMoveEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             Location from = event.getFrom();
@@ -62,42 +64,42 @@ public class EventExecutor implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = LOWEST)
     public void handle(EntityDamageEvent event) {
         if (event.getEntityType() == EntityType.PLAYER && this.userManager.isUserLocked(event.getEntity().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = LOWEST)
     public void handle(PlayerPickupItemEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = LOWEST)
     public void handle(PlayerDropItemEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = LOWEST)
     public void handle(PlayerInteractEntityEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = LOWEST)
     public void handle(PlayerInteractEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = LOWEST)
     public void handle(PlayerCommandPreprocessEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
