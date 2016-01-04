@@ -1,9 +1,6 @@
 plugin:
-  database: jdbc:mysql://127.0.0.1:3306/database
-  username: username
-  password: password
   debug: false
-  messages: false
+  delay: 10
 
 sync:
   health: true
@@ -12,10 +9,3 @@ sync:
   inventory: true
   chest: true
   potion: true
-  # The delay in ticks before reading database. If players are often kicked because
-  # of locked data, try increasing this value.
-  delay: 30
-
-messages:
-  dataLoading: "&aPlease wait while your data is being loaded :)"
-  dataSynchronized: "&aEnjoy! All your data has been synchronized."

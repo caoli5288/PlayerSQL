@@ -4,11 +4,11 @@ import org.bukkit.entity.Player;
 
 public interface ExpUtil {
 
-    public void setExp(Player player, int exp);
+    void setExp(Player player, int exp);
 
-    public int getExp(Player player);
+    int getExp(Player player);
 
-    public static class OlderExpUtil implements ExpUtil {
+    class OlderExpUtil implements ExpUtil {
 
         public int getExp(Player player) {
             int exp = Math.round(getExpAtLevel(player) * player.getExp());
@@ -79,7 +79,7 @@ public interface ExpUtil {
 
     }
 
-    public static class NewerExpUtil implements ExpUtil {
+    class NewerExpUtil implements ExpUtil {
 
         public void setExp(Player player, int exp) {
             if (exp < 0) { throw new IllegalArgumentException(

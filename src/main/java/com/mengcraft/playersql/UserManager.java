@@ -19,13 +19,26 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public final class UserManager {
 
-    private final Map<UUID, User> userMap = new ConcurrentHashMap<>();
-    private final Queue<User> fetched = new ConcurrentLinkedQueue<>();
+    public static final UserManager INSTANCE = new UserManager();
+    public static final ItemStack AIR = new ItemStack(Material.AIR);
+
+    private final List<UUID> locked;
+    private final Map<UUID, User> userMap;
+    private final Queue<User> fetched;
 
     private PluginMain main;
     private ItemUtil itemUtil;
     private ExpUtil expUtil;
 
+    private UserManager() {
+        this.locked = new ArrayList<>();
+        this.userMap = new ConcurrentHashMap<>();
+        this.fetched = new ConcurrentLinkedQueue<>();
+    }
+
+    /**
+     * @return The user, or <code>null</code> if not exists.
+     */
     public User getUser(UUID uuid) {
         return this.userMap.get(uuid);
     }
@@ -57,21 +70,33 @@ public final class UserManager {
         this.userMap.put(uuid, user);
     }
 
-    public void saveUser(UUID uuid) {
-        User user = getUser(uuid);
-        if (user != null) {
-            saveUser(user);
-        } else if (Config.DEBUG) {
-            this.main.logException(new PluginException("User " + uuid + " not cached!"));
+    public void saveUser(UUID uuid, boolean lock) {
+        User user = this.userMap.get(uuid);
+        if (user == null) {
+            if (Config.DEBUG) {
+                this.main.logException(new PluginException("User " + uuid + " not found!"));
+            }
+        } else {
+            saveUser(user, lock);
         }
     }
 
-    public void saveUser(User user) {
-        this.main.getDatabase().save(user);
+    public void saveUser(User user, boolean lock) {
+        synchronized (user) {
+            if (lock) {
+                user.setLocked(true);
+            } else if (user.isLocked()) {
+                user.setLocked(false);
+            }
+            this.main.getDatabase().save(user);
+        }
+        if (Config.DEBUG) {
+            this.main.logMessage("Save user " + user.getUuid() + " done!");
+        }
     }
 
-    public void syncUser(Player player) {
-        User user = this.userMap.get(player.getUniqueId());
+    public void syncUser(User user) {
+        Player player = this.main.getPlayer(user.getUuid());
         synchronized (user) {
             if (Config.SYN_HEALTH) {
                 user.setHealth(player.getHealth());
@@ -80,6 +105,7 @@ public final class UserManager {
                 user.setFood(player.getFoodLevel());
             }
             if (Config.SYN_INVENTORY) {
+                player.closeInventory();
                 user.setInventory(toString(player.getInventory().getContents()));
                 user.setArmor(toString(player.getInventory().getArmorContents()));
                 user.setHand(player.getInventory().getHeldItemSlot());
@@ -96,6 +122,25 @@ public final class UserManager {
         }
     }
 
+    public boolean isUserLocked(UUID uuid) {
+        return this.locked.indexOf(uuid) != -1;
+    }
+
+    public void lockUser(UUID uuid) {
+        this.locked.add(uuid);
+    }
+
+    public void unlockUser(UUID uuid, boolean b) {
+        if (b) {
+            this.main.runTask(() -> unlockUser(uuid, false));
+        } else {
+            if (Config.DEBUG) {
+                this.main.logMessage("Unlock user " + uuid + '!');
+            }
+            this.locked.remove(uuid);
+        }
+    }
+
     /**
      * Process fetched users.
      */
@@ -105,12 +150,15 @@ public final class UserManager {
         }
     }
 
-    private void pend(User polled) {
-        Player player = this.main.getPlayer(polled.getUuid());
+    private void pend(User user) {
+        Player player = this.main.getPlayer(user.getUuid());
         if (player != null && player.isOnline()) {
-            pend(polled, player);
+            pend(user, player);
         } else this.main.runTaskAsynchronously(() -> {
-            saveUser(polled.setLocked(false));
+            if (Config.DEBUG) {
+                this.main.logException(new PluginException("User " + user.getUuid() + " not found!"));
+            }
+            saveUser(user, true);
         });
     }
 
@@ -140,7 +188,7 @@ public final class UserManager {
                 player.getEnderChest().setContents(toStack(polled.getChest()));
             }
         }
-        EventExecutor.LOCKED.remove(player.getUniqueId());
+        unlockUser(player.getUniqueId(), true);
     }
 
     @SuppressWarnings("unchecked")
@@ -194,31 +242,16 @@ public final class UserManager {
         return array.toString();
     }
 
-    public ItemUtil getItemUtil() {
-        return itemUtil;
-    }
-
     public void setItemUtil(ItemUtil itemUtil) {
         this.itemUtil = itemUtil;
-    }
-
-    public ExpUtil getExpUtil() {
-        return expUtil;
     }
 
     public void setExpUtil(ExpUtil expUtil) {
         this.expUtil = expUtil;
     }
 
-    public PluginMain getMain() {
-        return main;
-    }
-
     public void setMain(PluginMain main) {
         this.main = main;
     }
-
-    public static final ItemStack AIR = new ItemStack(Material.AIR);
-
 
 }

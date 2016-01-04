@@ -2,10 +2,7 @@ package com.mengcraft.playersql;
 
 import com.avaje.ebean.annotation.UpdatedTimestamp;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -13,7 +10,7 @@ import java.util.UUID;
  * Created on 16-1-2.
  */
 @Entity
-@Table(name = "PLAYERSQL_USER")
+@Table(name = "PLAYERSQL")
 public class User {
 
     @Id
@@ -42,7 +39,7 @@ public class User {
     private boolean locked;
 
     @UpdatedTimestamp
-    private Timestamp date;
+    private Timestamp lastUpdate;
 
     public UUID getUuid() {
         return uuid;
@@ -120,19 +117,18 @@ public class User {
         return locked;
     }
 
-    public User setLocked(boolean locked) {
+    public void setLocked(boolean locked) {
         synchronized (this) {
             this.locked = locked;
         }
-        return this;
     }
 
-    public Timestamp getDate() {
-        return date;
+    public Timestamp getLastUpdate() {
+        return lastUpdate;
     }
 
-    public void setDate(Timestamp date) {
-        this.date = date;
+    public void setLastUpdate(Timestamp lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 
 }

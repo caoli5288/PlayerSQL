@@ -1,15 +1,13 @@
 package com.mengcraft.playersql;
 
-import com.mengcraft.playersql.lib.ExpUtil;
-import com.mengcraft.playersql.lib.ExpUtilHandler;
-import com.mengcraft.playersql.lib.ItemUtil;
-import com.mengcraft.playersql.lib.ItemUtilHandler;
+import com.mengcraft.playersql.lib.*;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.io.IOException;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -38,7 +36,7 @@ public class PluginMain extends JavaPlugin {
         db.install();
         db.reflect();
 
-        UserManager userManager = new UserManager();
+        UserManager userManager = UserManager.INSTANCE;
         userManager.setMain(this);
         userManager.setItemUtil(itemUtil);
         userManager.setExpUtil(expUtil);
@@ -52,6 +50,19 @@ public class PluginMain extends JavaPlugin {
         }, 1, 1);
 
         getServer().getPluginManager().registerEvents(eventExecutor, this);
+
+        try {
+            new Metrics(this).start();
+        } catch (IOException e) {
+            logException(e);
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        for (Player p : getServer().getOnlinePlayers()) {
+            UserManager.INSTANCE.saveUser(p.getUniqueId(), false);
+        }
     }
 
     public Player getPlayer(UUID uuid) {
@@ -62,6 +73,10 @@ public class PluginMain extends JavaPlugin {
         getLogger().log(Level.WARNING, e.getMessage(), e);
     }
 
+    public void logMessage(String s) {
+        getLogger().log(Level.INFO, s);
+    }
+
     public BukkitTask runTaskTimerAsynchronously(Runnable r, int i) {
         return getServer().getScheduler().runTaskTimerAsynchronously(this, r, i, i);
     }
@@ -69,4 +84,13 @@ public class PluginMain extends JavaPlugin {
     public BukkitTask runTaskAsynchronously(Runnable r) {
         return getServer().getScheduler().runTaskAsynchronously(this, r);
     }
+
+    public BukkitTask runTask(Runnable r) {
+        return getServer().getScheduler().runTask(this, r);
+    }
+
+    public BukkitTask runTaskTimer(Runnable r, int i) {
+        return getServer().getScheduler().runTaskTimer(this, r, i, i);
+    }
+
 }
