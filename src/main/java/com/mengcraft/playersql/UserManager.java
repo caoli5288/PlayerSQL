@@ -2,11 +2,13 @@ package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ItemUtil;
+import com.mengcraft.playersql.task.DailySaveTask;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
 
@@ -22,6 +24,7 @@ public final class UserManager {
     public static final UserManager INSTANCE = new UserManager();
     public static final ItemStack AIR = new ItemStack(Material.AIR);
 
+    private final Map<UUID, BukkitTask> taskMap;
     private final List<UUID> locked;
     private final Map<UUID, User> userMap;
     private final Queue<User> fetched;
@@ -31,6 +34,7 @@ public final class UserManager {
     private ExpUtil expUtil;
 
     private UserManager() {
+        this.taskMap = new ConcurrentHashMap<>();
         this.locked = new ArrayList<>();
         this.userMap = new ConcurrentHashMap<>();
         this.fetched = new ConcurrentLinkedQueue<>();
@@ -67,7 +71,11 @@ public final class UserManager {
     }
 
     public void cacheUser(UUID uuid, User user) {
-        this.userMap.put(uuid, user);
+        if (user == null) {
+            userMap.remove(uuid);
+        } else {
+            userMap.put(uuid, user);
+        }
     }
 
     public void saveUser(UUID uuid, boolean lock) {
@@ -96,7 +104,7 @@ public final class UserManager {
     }
 
     public void syncUser(User user) {
-        Player player = this.main.getPlayer(user.getUuid());
+        Player player = main.getPlayer(user.getUuid());
         synchronized (user) {
             if (Config.SYN_HEALTH) {
                 user.setHealth(player.getHealth());
@@ -131,6 +139,9 @@ public final class UserManager {
     }
 
     public void unlockUser(UUID uuid, boolean b) {
+        if (Config.DEBUG) {
+            main.logMessage("Unlock user task on thread " + Thread.currentThread().getName() + '.');
+        }
         if (b) {
             this.main.runTask(() -> unlockUser(uuid, false));
         } else {
@@ -188,7 +199,8 @@ public final class UserManager {
                 player.getEnderChest().setContents(toStack(polled.getChest()));
             }
         }
-        unlockUser(player.getUniqueId(), true);
+        createTask(player.getUniqueId());
+        unlockUser(player.getUniqueId(), false);
     }
 
     @SuppressWarnings("unchecked")
@@ -242,6 +254,39 @@ public final class UserManager {
         return array.toString();
     }
 
+    public void cancelTask(int i) {
+        this.main.getServer().getScheduler().cancelTask(i);
+    }
+
+    public void cancelTask(UUID uuid) {
+        BukkitTask task = taskMap.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        } else if (Config.DEBUG) {
+            this.main.logMessage("No task can be canceled for " + uuid + '!');
+        }
+    }
+
+    public void createTask(UUID uuid) {
+        if (Config.DEBUG) {
+            this.main.logMessage("Scheduling daily save task for user " + uuid + '.');
+        }
+        DailySaveTask saveTask = new DailySaveTask();
+        BukkitTask task = this.main.runTaskTimer(saveTask, 6000);
+        synchronized (saveTask) {
+            saveTask.setUuid(uuid);
+            saveTask.setUserManager(this);
+            saveTask.setTaskId(task.getTaskId());
+        }
+        BukkitTask old = this.taskMap.put(uuid, task);
+        if (old != null) {
+            if (Config.DEBUG) {
+                this.main.logMessage("Already schedule task for user " + uuid + '!');
+            }
+            old.cancel();
+        }
+    }
+
     public void setItemUtil(ItemUtil itemUtil) {
         this.itemUtil = itemUtil;
     }
@@ -252,6 +297,10 @@ public final class UserManager {
 
     public void setMain(PluginMain main) {
         this.main = main;
+    }
+
+    public PluginMain getMain() {
+        return main;
     }
 
 }

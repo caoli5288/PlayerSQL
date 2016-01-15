@@ -1,9 +1,9 @@
 package com.mengcraft.playersql.task;
 
 import com.mengcraft.playersql.Config;
-import com.mengcraft.playersql.EventExecutor;
 import com.mengcraft.playersql.PluginException;
 import com.mengcraft.playersql.User;
+import com.mengcraft.playersql.UserManager;
 
 import java.util.UUID;
 
@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 public class DailySaveTask implements Runnable {
 
-    private EventExecutor executor;
+    private UserManager userManager;
     private UUID uuid;
 
     private int taskId;
@@ -20,19 +20,19 @@ public class DailySaveTask implements Runnable {
 
     @Override
     public synchronized void run() {
-        User user = this.executor.getUserManager().getUser(this.uuid);
+        User user = userManager.getUser(this.uuid);
         if (user == null) {
             if (Config.DEBUG) {
-                this.executor.getMain().logException(new PluginException("User " + this.uuid + " not cached!"));
+                userManager.getMain().logException(new PluginException("User " + this.uuid + " not cached!"));
             }
-            this.executor.cancelTask(this.taskId);
+            userManager.cancelTask(this.taskId);
         } else {
             this.saveCount++;
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Save user " + this.uuid + " count " + this.saveCount + '.');
+                userManager.getMain().logMessage("Save user " + this.uuid + " count " + this.saveCount + '.');
             }
-            this.executor.getUserManager().syncUser(user);
-            this.executor.getMain().runTaskAsynchronously(() -> this.executor.getUserManager().saveUser(user, true));
+            userManager.syncUser(user);
+            userManager.getMain().runTaskAsynchronously(() -> userManager.saveUser(user, true));
         }
     }
 
@@ -40,12 +40,12 @@ public class DailySaveTask implements Runnable {
         this.taskId = taskId;
     }
 
-    public void setExecutor(EventExecutor executor) {
-        this.executor = executor;
-    }
-
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    public void setUserManager(UserManager userManager) {
+        this.userManager = userManager;
     }
 
 }

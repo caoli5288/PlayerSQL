@@ -28,7 +28,6 @@ public class FetchUserTask implements Runnable {
             }
             this.executor.getUserManager().cacheUser(this.uuid);
             this.executor.cancelTask(this.taskId);
-            this.executor.createTask(this.uuid);
             this.executor.getUserManager().unlockUser(this.uuid, true);
         } else if (user.isLocked() && this.retryCount++ < 8) {
             if (Config.DEBUG) {
@@ -41,7 +40,6 @@ public class FetchUserTask implements Runnable {
             this.executor.getUserManager().cacheUser(this.uuid, user);
             this.executor.getUserManager().addFetched(user);
             this.executor.cancelTask(this.taskId);
-            this.executor.createTask(this.uuid);
             this.executor.getUserManager().saveUser(user, true);
             if (Config.DEBUG) {
                 this.executor.getMain().logMessage("Lock user " + this.uuid + " on database done.");

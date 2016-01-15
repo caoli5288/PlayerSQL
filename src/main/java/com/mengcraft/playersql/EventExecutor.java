@@ -21,8 +21,6 @@ import static org.bukkit.event.EventPriority.HIGHEST;
  */
 public class EventExecutor implements Listener {
 
-    private final Map<UUID, BukkitTask> taskMap = new ConcurrentHashMap<>();
-
     private UserManager userManager;
     private PluginMain main;
 
@@ -43,10 +41,12 @@ public class EventExecutor implements Listener {
 
     @EventHandler
     public void handle(PlayerQuitEvent event) {
-        if (!this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
-            User user = this.userManager.getUser(event.getPlayer().getUniqueId());
-            this.taskMap.remove(event.getPlayer().getUniqueId()).cancel();
+        UUID uuid = event.getPlayer().getUniqueId();
+        if (!this.userManager.isUserLocked(uuid)) {
+            User user = this.userManager.getUser(uuid);
+            this.userManager.cancelTask(uuid);
             this.userManager.syncUser(user);
+            this.userManager.cacheUser(uuid);
             this.main.runTaskAsynchronously(() -> {
                 this.userManager.saveUser(user, false);
             });
@@ -106,10 +106,6 @@ public class EventExecutor implements Listener {
         }
     }
 
-    public void cancelTask(int i) {
-        this.main.getServer().getScheduler().cancelTask(i);
-    }
-
     public void setUserManager(UserManager userManager) {
         this.userManager = userManager;
     }
@@ -126,24 +122,8 @@ public class EventExecutor implements Listener {
         return this.main;
     }
 
-    public void createTask(UUID uuid) {
-        if (Config.DEBUG) {
-            this.main.logMessage("Scheduling daily save task for user " + uuid + '.');
-        }
-        DailySaveTask saveTask = new DailySaveTask();
-        BukkitTask task = this.main.runTaskTimer(saveTask, 6000);
-        synchronized (saveTask) {
-            saveTask.setUuid(uuid);
-            saveTask.setExecutor(this);
-            saveTask.setTaskId(task.getTaskId());
-        }
-        BukkitTask old = this.taskMap.put(uuid, task);
-        if (old != null) {
-            if (Config.DEBUG) {
-                this.main.logException(new PluginException("Already schedule task for user " + uuid + '!'));
-            }
-            old.cancel();
-        }
+    public void cancelTask(int taskId) {
+        userManager.cancelTask(taskId);
     }
 
 }
