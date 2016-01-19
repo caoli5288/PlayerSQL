@@ -2,6 +2,7 @@ package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ItemUtil;
+import com.mengcraft.playersql.lib.JSONUtil;
 import com.mengcraft.playersql.task.DailySaveTask;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -10,9 +11,13 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -167,7 +172,11 @@ public final class UserManager {
      */
     public void pendFetched() {
         while (!this.fetched.isEmpty()) {
-            pend(this.fetched.poll());
+            try {
+                pend(this.fetched.poll());
+            } catch (Exception e) {
+                main.logException(e);
+            }
         }
     }
 
@@ -215,7 +224,7 @@ public final class UserManager {
 
     @SuppressWarnings("unchecked")
     private List<PotionEffect> toEffect(String data) {
-        List<List> parsed = (List) JSONValue.parse(data);
+        List<List> parsed = JSONUtil.parseArray(data, JSONUtil.EMPTY_ARRAY);
         List<PotionEffect> output = new ArrayList<>(parsed.size());
         for (List<Number> entry : parsed) {
             output.add(new PotionEffect(PotionEffectType.getById(entry.get(0).intValue()), entry.get(1).intValue(), entry.get(2).intValue()));
@@ -225,7 +234,7 @@ public final class UserManager {
 
     @SuppressWarnings("unchecked")
     private ItemStack[] toStack(String data) {
-        List<String> parsed = (List) JSONValue.parse(data);
+        List<String> parsed = JSONUtil.parseArray(data, JSONUtil.EMPTY_ARRAY);
         List<ItemStack> output = new ArrayList<>(parsed.size());
         for (String s : parsed)
             if (s == null) {

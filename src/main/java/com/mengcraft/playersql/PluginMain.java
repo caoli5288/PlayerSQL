@@ -70,7 +70,7 @@ public class PluginMain extends JavaPlugin {
     }
 
     public void logException(Exception e) {
-        getLogger().log(Level.WARNING, e.getMessage(), e);
+        getLogger().log(Level.WARNING, e.toString(), e);
     }
 
     public void logMessage(String s) {
