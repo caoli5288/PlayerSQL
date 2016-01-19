@@ -104,6 +104,10 @@ public final class UserManager {
     }
 
     public void syncUser(User user) {
+        syncUser(user, false);
+    }
+
+    public void syncUser(User user, boolean closedInventory) {
         Player player = main.getPlayer(user.getUuid());
         synchronized (user) {
             if (Config.SYN_HEALTH) {
@@ -113,7 +117,9 @@ public final class UserManager {
                 user.setFood(player.getFoodLevel());
             }
             if (Config.SYN_INVENTORY) {
-                player.closeInventory();
+                if (closedInventory) {
+                    player.closeInventory();
+                }
                 user.setInventory(toString(player.getInventory().getContents()));
                 user.setArmor(toString(player.getInventory().getArmorContents()));
                 user.setHand(player.getInventory().getHeldItemSlot());
@@ -134,15 +140,19 @@ public final class UserManager {
         return this.locked.indexOf(uuid) != -1;
     }
 
+    public boolean isUserNotLocked(UUID uuid) {
+        return this.locked.indexOf(uuid) == -1;
+    }
+
     public void lockUser(UUID uuid) {
         this.locked.add(uuid);
     }
 
-    public void unlockUser(UUID uuid, boolean b) {
+    public void unlockUser(UUID uuid, boolean scheduled) {
         if (Config.DEBUG) {
             main.logMessage("Unlock user task on thread " + Thread.currentThread().getName() + '.');
         }
-        if (b) {
+        if (scheduled) {
             this.main.runTask(() -> unlockUser(uuid, false));
         } else {
             if (Config.DEBUG) {
