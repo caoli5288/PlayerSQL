@@ -118,9 +118,7 @@ public class User {
     }
 
     public void setLocked(boolean locked) {
-        synchronized (this) {
-            this.locked = locked;
-        }
+        this.locked = locked;
     }
 
     public Timestamp getLastUpdate() {

@@ -21,28 +21,27 @@ public class FetchUserTask implements Runnable {
     public synchronized void run() {
         User user = this.executor.getUserManager().fetchUser(this.uuid);
         if (user == null) {
-            if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Fresh user " + this.uuid + '.');
-            }
             this.executor.getUserManager().cacheUser(this.uuid);
             this.executor.getUserManager().saveUser(this.uuid, true);
-            this.executor.cancelTask(this.taskId);
+            this.executor.getUserManager().createTask(this.uuid);
             this.executor.getUserManager().unlockUser(this.uuid, true);
+            if (Config.DEBUG) {
+                this.executor.getMain().logMessage("User data " + this.uuid + " not found!");
+            }
+            this.executor.cancelTask(this.taskId);
         } else if (user.isLocked() && this.retryCount++ < 8) {
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Load user " + uuid + " retry at " + retryCount + '.');
+                this.executor.getMain().logMessage("Load user data " + uuid + " fail " + retryCount + '.');
             }
         } else {
-            if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Load user " + uuid + " done. Scheduling store data.");
-            }
             this.executor.getUserManager().cacheUser(this.uuid, user);
             this.executor.getUserManager().addFetched(user);
-            this.executor.cancelTask(this.taskId);
             this.executor.getUserManager().saveUser(user, true);
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Lock user " + uuid + " done.");
+                this.executor.getMain().logMessage("Load user data " + uuid + " done.");
+                this.executor.getMain().logMessage("Lock user data " + uuid + " done.");
             }
+            this.executor.cancelTask(this.taskId);
         }
     }
 

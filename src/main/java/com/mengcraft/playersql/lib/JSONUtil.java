@@ -9,18 +9,12 @@ import org.json.simple.JSONValue;
  */
 public final class JSONUtil {
 
-    public static JSONObject parseObject(String in, JSONObject normal) {
-        Object parsed = JSONValue.parse(in);
-        if (parsed instanceof JSONObject) {
-            return (JSONObject) parsed;
-        }
-        return normal;
-    }
-
     public static JSONArray parseArray(String in, JSONArray normal) {
-        Object parsed = JSONValue.parse(in);
-        if (parsed instanceof JSONArray) {
-            return ((JSONArray) parsed);
+        if (in != null) {
+            Object parsed = JSONValue.parse(in);
+            if (parsed instanceof JSONArray) {
+                return ((JSONArray) parsed);
+            }
         }
         return normal;
     }

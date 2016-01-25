@@ -104,7 +104,7 @@ public final class UserManager {
             this.main.getDatabase().save(user);
         }
         if (Config.DEBUG) {
-            this.main.logMessage("Save user " + user.getUuid() + " done!");
+            this.main.logMessage("Save user data " + user.getUuid() + " done!");
         }
     }
 
@@ -141,6 +141,10 @@ public final class UserManager {
         }
     }
 
+    public void syncUser(UUID uuid, boolean closedInventory) {
+        syncUser(userMap.get(uuid), closedInventory);
+    }
+
     public boolean isUserLocked(UUID uuid) {
         return this.locked.indexOf(uuid) != -1;
     }
@@ -155,7 +159,7 @@ public final class UserManager {
 
     public void unlockUser(UUID uuid, boolean scheduled) {
         if (Config.DEBUG) {
-            main.logMessage("Unlock user task on thread " + Thread.currentThread().getName() + '.');
+            main.logMessage("Unlock user task on " + Thread.currentThread().getName() + '.');
         }
         if (scheduled) {
             this.main.runTask(() -> unlockUser(uuid, false));
@@ -300,7 +304,7 @@ public final class UserManager {
         BukkitTask old = this.taskMap.put(uuid, task);
         if (old != null) {
             if (Config.DEBUG) {
-                this.main.logMessage("Already schedule task for user " + uuid + '!');
+                this.main.logMessage("Already scheduled task for user " + uuid + '!');
             }
             old.cancel();
         }

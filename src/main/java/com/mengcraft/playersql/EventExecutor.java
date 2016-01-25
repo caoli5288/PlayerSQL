@@ -26,7 +26,11 @@ public class EventExecutor implements Listener {
 
     @EventHandler
     public void handle(PlayerLoginEvent event) {
-        this.userManager.lockUser(event.getPlayer().getUniqueId());
+        UUID uuid = event.getPlayer().getUniqueId();
+        if (Config.DEBUG) {
+            main.logMessage("Lock user " + uuid + " done!");
+        }
+        this.userManager.lockUser(uuid);
     }
 
     @EventHandler
@@ -44,12 +48,10 @@ public class EventExecutor implements Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         if (userManager.isUserNotLocked(uuid)) {
             userManager.cancelTask(uuid);
-            userManager.cacheUser(uuid);
-
-            User user = userManager.getUser(uuid);
-            userManager.syncUser(user, true);
+            userManager.syncUser(uuid, true);
             main.runTaskAsynchronously(() -> {
-                userManager.saveUser(user, false);
+                userManager.saveUser(uuid, false);
+                userManager.cacheUser(uuid, null);
             });
         }
     }
