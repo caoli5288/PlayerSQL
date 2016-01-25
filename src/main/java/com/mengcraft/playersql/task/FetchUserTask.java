@@ -21,11 +21,11 @@ public class FetchUserTask implements Runnable {
     public synchronized void run() {
         User user = this.executor.getUserManager().fetchUser(this.uuid);
         if (user == null) {
-            // Not lock in database. Not needed for fresh man.
             if (Config.DEBUG) {
                 this.executor.getMain().logMessage("Fresh user " + this.uuid + '.');
             }
             this.executor.getUserManager().cacheUser(this.uuid);
+            this.executor.getUserManager().saveUser(this.uuid, true);
             this.executor.cancelTask(this.taskId);
             this.executor.getUserManager().unlockUser(this.uuid, true);
         } else if (user.isLocked() && this.retryCount++ < 8) {
