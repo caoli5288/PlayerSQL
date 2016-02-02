@@ -96,10 +96,8 @@ public final class UserManager {
 
     public void saveUser(User user, boolean lock) {
         synchronized (user) {
-            if (lock) {
-                user.setLocked(true);
-            } else if (user.isLocked()) {
-                user.setLocked(false);
+            if (user.isLocked() != lock) {
+                user.setLocked(lock);
             }
             this.main.getDatabase().save(user);
         }

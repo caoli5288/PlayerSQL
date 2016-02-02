@@ -34,13 +34,18 @@ public class FetchUserTask implements Runnable {
                 this.executor.getMain().logMessage("Load user data " + uuid + " fail " + retryCount + '.');
             }
         } else {
-            this.executor.getUserManager().cacheUser(this.uuid, user);
-            this.executor.getUserManager().addFetched(user);
             this.executor.getUserManager().saveUser(user, true);
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Load user data " + uuid + " done.");
                 this.executor.getMain().logMessage("Lock user data " + uuid + " done.");
             }
+
+            this.executor.getUserManager().cacheUser(this.uuid, user);
+            this.executor.getUserManager().addFetched(user);
+
+            if (Config.DEBUG) {
+                this.executor.getMain().logMessage("Load user data " + uuid + " done.");
+            }
+
             this.executor.cancelTask(this.taskId);
         }
     }
