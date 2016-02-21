@@ -1,6 +1,7 @@
 plugin:
   debug: false
   delay: 10
+  max-db-connection: 8
 
 sync:
   health: true

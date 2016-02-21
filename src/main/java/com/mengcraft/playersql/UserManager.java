@@ -110,32 +110,38 @@ public final class UserManager {
         syncUser(user, false);
     }
 
-    public void syncUser(User user, boolean closedInventory) {
-        Player player = main.getPlayer(user.getUuid());
+    public void syncUser(User user, Player p, boolean closedInventory) {
         synchronized (user) {
             if (Config.SYN_HEALTH) {
-                user.setHealth(player.getHealth());
+                user.setHealth(p.getHealth());
             }
             if (Config.SYN_FOOD) {
-                user.setFood(player.getFoodLevel());
+                user.setFood(p.getFoodLevel());
             }
             if (Config.SYN_INVENTORY) {
                 if (closedInventory) {
-                    player.closeInventory();
+                    p.closeInventory();
                 }
-                user.setInventory(toString(player.getInventory().getContents()));
-                user.setArmor(toString(player.getInventory().getArmorContents()));
-                user.setHand(player.getInventory().getHeldItemSlot());
+                user.setInventory(toString(p.getInventory().getContents()));
+                user.setArmor(toString(p.getInventory().getArmorContents()));
+                user.setHand(p.getInventory().getHeldItemSlot());
             }
             if (Config.SYN_CHEST) {
-                user.setChest(toString(player.getEnderChest().getContents()));
+                user.setChest(toString(p.getEnderChest().getContents()));
             }
             if (Config.SYN_EFFECT) {
-                user.setEffect(toString(player.getActivePotionEffects()));
+                user.setEffect(toString(p.getActivePotionEffects()));
             }
             if (Config.SYN_EXP) {
-                user.setExp(this.expUtil.getExp(player));
+                user.setExp(this.expUtil.getExp(p));
             }
+        }
+    }
+
+    public void syncUser(User user, boolean closedInventory) {
+        Player p = main.getPlayer(user.getUuid());
+        if (p.isOnline()) {
+            syncUser(user, p, closedInventory);
         }
     }
 
