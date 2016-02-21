@@ -1,9 +1,11 @@
 package com.mengcraft.playersql;
 
 import com.avaje.ebean.annotation.UpdatedTimestamp;
-import org.bukkit.entity.Player;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.UUID;
 
