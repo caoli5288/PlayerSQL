@@ -1,15 +1,5 @@
-main: com.mengcraft.playersql.Main
+main: com.mengcraft.playersql.PluginMain
 name: PlayerSQL
 version: ${project.version}
 website: http://www.spigotmc.org/resources/playersql.552/
-
-commands:
-  playersql:
-    aliases: [psql]
-    description: None.
-    permission: playersql.admin
-    
-permissions:
-  playersql.admin:
-    description: None.
-    default: op
+author: caoli5288@gmail.com

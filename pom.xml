@@ -3,7 +3,7 @@
 
     <groupId>com.mengcraft</groupId>
     <artifactId>playersql</artifactId>
-    <version>1.18</version>
+    <version>2.0</version>
     <name>PlayerSQL</name>
 
     <properties>
@@ -13,7 +13,7 @@
 
     <repositories>
         <repository>
-            <id>ci.mengcraft.com</id>
+            <id>ci-mengcraft</id>
             <url>http://ci.mengcraft.com:8080/plugin/repository/everything/</url>
         </repository>
         <repository>
@@ -27,11 +27,12 @@
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
             <version>1.7.10-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.3.1</version>
+            <groupId>com.mengcraft</groupId>
+            <artifactId>simpleorm</artifactId>
+            <version>0.1.13</version>
         </dependency>
     </dependencies>
 
@@ -56,18 +57,11 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <minimizeJar>true</minimizeJar>
                     <artifactSet>
                         <includes>
-                            <include>com.google.code.gson:gson</include>
+                            <include>com.mengcraft:simpleorm</include>
                         </includes>
                     </artifactSet>
-                    <relocations>
-                        <relocation>
-                            <pattern>com.google.gson</pattern>
-                            <shadedPattern>com.mengcraft.playersql.lib.gson</shadedPattern>
-                        </relocation>
-                    </relocations>
                 </configuration>
             </plugin>
         </plugins>
