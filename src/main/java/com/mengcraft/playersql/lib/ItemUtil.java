@@ -21,7 +21,7 @@ public interface ItemUtil {
 
     class WarpedItemUtil implements ItemUtil {
         
-        private final String path = "com.comphenix.protocol.utility.StreamSerializer";
+        private static final String path = "com.comphenix.protocol.utility.StreamSerializer";
         
         private Object handle;
         
