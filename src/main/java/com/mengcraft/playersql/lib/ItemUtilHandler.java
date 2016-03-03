@@ -20,7 +20,6 @@ public class ItemUtilHandler {
     private ItemUtil util;
     private String version;
     private ItemStack item;
-    private ItemMeta meta;
 
     public ItemUtilHandler(Plugin in) {
         if (in == null) {
@@ -81,7 +80,7 @@ public class ItemUtilHandler {
         if (item == null) {
             item = new ItemStack(Material.DIAMOND_SWORD);
 
-            meta = item.getItemMeta();
+            ItemMeta meta = item.getItemMeta();
             meta.setDisplayName("test");
             meta.setLore(Arrays.asList("a", "b", "c"));
 

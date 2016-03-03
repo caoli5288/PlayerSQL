@@ -68,10 +68,8 @@ public final class UserManager {
      */
     public void cacheUser(UUID uuid) {
         User user = this.main.getDatabase().createEntityBean(User.class);
-        synchronized (user) {
-            user.setUuid(uuid);
-            user.setLocked(true);
-        }
+        user.setUuid(uuid);
+        user.setLocked(true);
         cacheUser(uuid, user);
     }
 
@@ -300,11 +298,9 @@ public final class UserManager {
         }
         DailySaveTask saveTask = new DailySaveTask();
         BukkitTask task = this.main.runTaskTimer(saveTask, 6000);
-        synchronized (saveTask) {
-            saveTask.setUuid(uuid);
-            saveTask.setUserManager(this);
-            saveTask.setTaskId(task.getTaskId());
-        }
+        saveTask.setUuid(uuid);
+        saveTask.setUserManager(this);
+        saveTask.setTaskId(task.getTaskId());
         BukkitTask old = this.taskMap.put(uuid, task);
         if (old != null) {
             if (Config.DEBUG) {
