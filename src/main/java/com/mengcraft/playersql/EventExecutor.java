@@ -47,6 +47,8 @@ public class EventExecutor implements Listener {
                 userManager.saveUser(uuid, false);
                 userManager.cacheUser(uuid, null);
             });
+        } else {
+            userManager.unlockUser(uuid, false);
         }
     }
 

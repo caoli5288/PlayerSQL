@@ -22,7 +22,6 @@ public class FetchUserTask implements Runnable {
         User user = this.executor.getUserManager().fetchUser(this.uuid);
         if (user == null) {
             this.executor.getUserManager().cacheUser(this.uuid);
-            this.executor.getUserManager().syncUser(this.uuid, true);
             this.executor.getUserManager().createTask(this.uuid);
             this.executor.getUserManager().unlockUser(this.uuid, true);
             if (Config.DEBUG) {
