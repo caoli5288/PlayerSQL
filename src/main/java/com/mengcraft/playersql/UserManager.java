@@ -138,7 +138,7 @@ public final class UserManager {
 
     public void syncUser(User user, boolean closedInventory) {
         Player p = main.getPlayer(user.getUuid());
-        if (p.isOnline()) {
+        if (p != null && p.isOnline()) {
             syncUser(user, p, closedInventory);
         }
     }
