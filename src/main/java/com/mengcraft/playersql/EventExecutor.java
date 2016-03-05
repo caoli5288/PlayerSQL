@@ -99,6 +99,13 @@ public class EventExecutor implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
+    public void handle(AsyncPlayerChatEvent event) {
+        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerCommandPreprocessEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
