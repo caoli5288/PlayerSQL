@@ -2,15 +2,17 @@ package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.task.FetchUserTask;
 import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 
 import java.util.UUID;
 
+import static org.bukkit.entity.EntityType.PLAYER;
 import static org.bukkit.event.EventPriority.HIGHEST;
+import static org.bukkit.event.EventPriority.LOWEST;
 
 /**
  * Created on 16-1-2.
@@ -19,6 +21,73 @@ public class EventExecutor implements Listener {
 
     private UserManager userManager;
     private PluginMain main;
+
+    @EventHandler(priority = LOWEST)
+    public void pre(AsyncPlayerChatEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(EntityDamageEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(InventoryClickEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(PlayerPickupItemEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(PlayerDropItemEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(PlayerInteractEntityEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(PlayerInteractEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(PlayerCommandPreprocessEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(priority = LOWEST)
+    public void pre(PlayerToggleSneakEvent event) {
+        handle(event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
+    public void handle(AsyncPlayerChatEvent event) {
+        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
+    public void handle(EntityDamageEvent event) {
+        if (event.getEntityType() == PLAYER && this.userManager.isUserLocked(event.getEntity().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
+    public void handle(InventoryClickEvent event) {
+        if (event.getWhoClicked().getType() == PLAYER && this.userManager.isUserLocked(event.getWhoClicked().getUniqueId())) {
+            event.setCancelled(true);
+            event.getWhoClicked().closeInventory();
+        }
+    }
 
     @EventHandler
     public void handle(PlayerLoginEvent event) {
@@ -52,7 +121,7 @@ public class EventExecutor implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
+    @EventHandler
     public void handle(PlayerMoveEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             Location from = event.getFrom();
@@ -60,13 +129,6 @@ public class EventExecutor implements Listener {
             from.setYaw(to.getYaw());
             from.setPitch(to.getPitch());
             event.setTo(from);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
-    public void handle(EntityDamageEvent event) {
-        if (event.getEntityType() == EntityType.PLAYER && this.userManager.isUserLocked(event.getEntity().getUniqueId())) {
-            event.setCancelled(true);
         }
     }
 
@@ -93,13 +155,6 @@ public class EventExecutor implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerInteractEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
-    public void handle(AsyncPlayerChatEvent event) {
         if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
