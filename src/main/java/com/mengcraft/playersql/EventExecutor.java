@@ -112,6 +112,13 @@ public class EventExecutor implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
+    public void handle(PlayerToggleSneakEvent event) {
+        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
     public void setUserManager(UserManager userManager) {
         this.userManager = userManager;
     }
