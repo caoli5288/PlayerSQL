@@ -22,7 +22,7 @@ public class ExpUtilHandler {
     }
     
     private boolean test(String version) {
-        return Integer.parseInt(String.valueOf(version.charAt(3))) > 8;
+        return Integer.parseInt(String.valueOf(version.charAt(3))) >= 8;
     }
 
     private String version() {
