@@ -36,12 +36,13 @@ public class PluginMain extends JavaPlugin {
             }
         }
         db.install();
-        db.reflect();
+//        db.reflect();
 
         UserManager userManager = UserManager.INSTANCE;
         userManager.setMain(this);
         userManager.setItemUtil(itemUtil);
         userManager.setExpUtil(expUtil);
+        userManager.setDb(db);
 
         EventExecutor eventExecutor = new EventExecutor();
         eventExecutor.setMain(this);

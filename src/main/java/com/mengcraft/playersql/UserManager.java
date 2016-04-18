@@ -4,6 +4,7 @@ import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.JSONUtil;
 import com.mengcraft.playersql.task.DailySaveTask;
+import com.mengcraft.simpleorm.EbeanHandler;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -37,6 +38,7 @@ public final class UserManager {
     private PluginMain main;
     private ItemUtil itemUtil;
     private ExpUtil expUtil;
+    private EbeanHandler db;
 
     private UserManager() {
         this.taskMap = new ConcurrentHashMap<>();
@@ -60,14 +62,14 @@ public final class UserManager {
      * @return The user, or <code>null</code> if not exists.
      */
     public User fetchUser(UUID uuid) {
-        return this.main.getDatabase().find(User.class, uuid);
+        return db.find(User.class, uuid);
     }
 
     /**
      * Create and cache a new user.
      */
     public void cacheUser(UUID uuid) {
-        User user = this.main.getDatabase().createEntityBean(User.class);
+        User user = db.bean(User.class);
         user.setUuid(uuid);
         user.setLocked(true);
         cacheUser(uuid, user);
@@ -97,10 +99,10 @@ public final class UserManager {
             if (user.isLocked() != lock) {
                 user.setLocked(lock);
             }
-            this.main.getDatabase().save(user);
+            db.save(user);
         }
         if (Config.DEBUG) {
-            this.main.logMessage("Save user data " + user.getUuid() + " done!");
+            main.logMessage("Save user data " + user.getUuid() + " done!");
         }
     }
 
@@ -326,4 +328,7 @@ public final class UserManager {
         return main;
     }
 
+    public void setDb(EbeanHandler db) {
+        this.db = db;
+    }
 }
