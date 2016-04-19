@@ -207,6 +207,7 @@ public final class UserManager {
                 player.getInventory().setContents(toStack(polled.getInventory()));
                 player.getInventory().setArmorContents(toStack(polled.getArmor()));
                 player.getInventory().setHeldItemSlot(polled.getHand());
+                player.updateInventory();
             }
             if (Config.SYN_HEALTH && player.getMaxHealth() >= polled.getHealth()) {
                 player.setHealth(polled.getHealth());
