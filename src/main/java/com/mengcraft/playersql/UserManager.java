@@ -110,7 +110,7 @@ public final class UserManager {
         syncUser(user, false);
     }
 
-    public void syncUser(User user, Player p, boolean closedInventory) {
+    public void syncUser(User user, Player p, boolean closeInventory) {
         synchronized (user) {
             if (Config.SYN_HEALTH) {
                 user.setHealth(p.getHealth());
@@ -119,7 +119,7 @@ public final class UserManager {
                 user.setFood(p.getFoodLevel());
             }
             if (Config.SYN_INVENTORY) {
-                if (closedInventory) {
+                if (closeInventory) {
                     p.closeInventory();
                 }
                 user.setInventory(toString(p.getInventory().getContents()));
@@ -138,15 +138,15 @@ public final class UserManager {
         }
     }
 
-    public void syncUser(User user, boolean closedInventory) {
+    public void syncUser(User user, boolean closeInventory) {
         Player p = main.getPlayer(user.getUuid());
         if (p != null && p.isOnline()) {
-            syncUser(user, p, closedInventory);
+            syncUser(user, p, closeInventory);
         }
     }
 
-    public void syncUser(UUID uuid, boolean closedInventory) {
-        syncUser(userMap.get(uuid), closedInventory);
+    public void syncUser(UUID uuid, boolean closeInventory) {
+        syncUser(userMap.get(uuid), closeInventory);
     }
 
     public boolean isUserLocked(UUID uuid) {
