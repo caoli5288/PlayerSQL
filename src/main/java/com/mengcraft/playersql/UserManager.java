@@ -99,8 +99,8 @@ public final class UserManager {
             if (user.isLocked() != lock) {
                 user.setLocked(lock);
             }
-            db.save(user);
         }
+        db.save(user);
         if (Config.DEBUG) {
             main.logMessage("Save user data " + user.getUuid() + " done!");
         }
