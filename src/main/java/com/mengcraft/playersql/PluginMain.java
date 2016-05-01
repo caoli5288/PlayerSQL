@@ -38,24 +38,25 @@ public class PluginMain extends JavaPlugin {
         db.install();
 //        db.reflect();
 
-        UserManager userManager = UserManager.INSTANCE;
-        userManager.setMain(this);
-        userManager.setItemUtil(itemUtil);
-        userManager.setExpUtil(expUtil);
-        userManager.setDb(db);
+        UserManager manager = UserManager.INSTANCE;
+        manager.setMain(this);
+        manager.setItemUtil(itemUtil);
+        manager.setExpUtil(expUtil);
+        manager.setDb(db);
 
-        EventExecutor eventExecutor = new EventExecutor();
-        eventExecutor.setMain(this);
-        eventExecutor.setUserManager(userManager);
+        EventExecutor executor = new EventExecutor();
+        executor.setMain(this);
+        executor.setManager(manager);
 
-        getServer().getScheduler().runTaskTimer(this, userManager::pendFetched, 1, 1);
-
-        getServer().getPluginManager().registerEvents(eventExecutor, this);
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            manager.pendFetched();
+        }, 1, 1);
+        getServer().getPluginManager().registerEvents(executor, this);
 
         try {
             new Metrics(this).start();
         } catch (IOException e) {
-            logException(e);
+            info(e);
         }
     }
 
@@ -71,12 +72,12 @@ public class PluginMain extends JavaPlugin {
         return getServer().getPlayer(uuid);
     }
 
-    public void logException(Exception e) {
+    public void info(Exception e) {
         getLogger().log(Level.WARNING, e.toString(), e);
     }
 
-    public void logMessage(String s) {
-        getLogger().log(Level.INFO, s);
+    public void info(String info) {
+        getLogger().info(info);
     }
 
     public BukkitTask runTaskTimerAsynchronously(Runnable r, int i) {

@@ -173,7 +173,7 @@ public final class UserManager {
             try {
                 pend(this.fetched.poll());
             } catch (Exception e) {
-                main.logException(e);
+                main.info(e);
             }
         }
     }
@@ -184,7 +184,7 @@ public final class UserManager {
             pend(user, player);
         } else this.main.runTaskAsynchronously(() -> {
             if (Config.DEBUG) {
-                this.main.logException(new PluginException("User " + user.getUuid() + " not found!"));
+                this.main.info(new PluginException("User " + user.getUuid() + " not found!"));
             }
             saveUser(user, false);
         });
@@ -241,7 +241,7 @@ public final class UserManager {
             } else try {
                 output.add(this.itemUtil.convert(s));
             } catch (Exception e) {
-                this.main.logException(e);
+                this.main.info(e);
             }
         return output.toArray(new ItemStack[parsed.size()]);
     }
@@ -255,7 +255,7 @@ public final class UserManager {
             } else try {
                 array.add(this.itemUtil.convert(stack));
             } catch (Exception e) {
-                this.main.logException(e);
+                this.main.info(e);
             }
         return array.toString();
     }

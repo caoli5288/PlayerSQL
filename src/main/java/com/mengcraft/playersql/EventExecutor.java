@@ -6,7 +6,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import java.util.UUID;
 
@@ -19,7 +29,7 @@ import static org.bukkit.event.EventPriority.LOWEST;
  */
 public class EventExecutor implements Listener {
 
-    private UserManager userManager;
+    private UserManager manager;
     private PluginMain main;
 
     @EventHandler(priority = LOWEST)
@@ -69,21 +79,21 @@ public class EventExecutor implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(AsyncPlayerChatEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(EntityDamageEvent event) {
-        if (event.getEntityType() == PLAYER && this.userManager.isUserLocked(event.getEntity().getUniqueId())) {
+        if (event.getEntityType() == PLAYER && isLocked(event.getEntity().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(InventoryClickEvent event) {
-        if (event.getWhoClicked().getType() == PLAYER && this.userManager.isUserLocked(event.getWhoClicked().getUniqueId())) {
+        if (event.getWhoClicked().getType() == PLAYER && isLocked(event.getWhoClicked().getUniqueId())) {
             event.setCancelled(true);
             event.getWhoClicked().closeInventory();
         }
@@ -93,9 +103,9 @@ public class EventExecutor implements Listener {
     public void handle(PlayerLoginEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         if (Config.DEBUG) {
-            main.logMessage("Lock user " + uuid + " done!");
+            main.info("Lock user " + uuid + " done!");
         }
-        this.userManager.lockUser(uuid);
+        this.manager.lockUser(uuid);
     }
 
     @EventHandler
@@ -109,21 +119,21 @@ public class EventExecutor implements Listener {
     @EventHandler
     public void handle(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        if (userManager.isUserNotLocked(uuid)) {
-            userManager.cancelTask(uuid);
-            userManager.syncUser(uuid, true);
+        if (manager.isUserNotLocked(uuid)) {
+            manager.cancelTask(uuid);
+            manager.syncUser(uuid, true);
             main.runTaskAsynchronously(() -> {
-                userManager.saveUser(uuid, false);
-                userManager.cacheUser(uuid, null);
+                manager.saveUser(uuid, false);
+                manager.cache(uuid, null);
             });
         } else {
-            userManager.unlockUser(uuid, false);
+            manager.unlockUser(uuid, false);
         }
     }
 
     @EventHandler
     public void handle(PlayerMoveEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             Location from = event.getFrom();
             Location to = event.getTo();
             from.setYaw(to.getYaw());
@@ -134,52 +144,56 @@ public class EventExecutor implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerPickupItemEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerDropItemEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerInteractEntityEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerInteractEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerCommandPreprocessEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerToggleSneakEvent event) {
-        if (this.userManager.isUserLocked(event.getPlayer().getUniqueId())) {
+        if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    public void setUserManager(UserManager userManager) {
-        this.userManager = userManager;
+    private boolean isLocked(UUID uuid) {
+        return manager.isLocked(uuid);
     }
 
-    public UserManager getUserManager() {
-        return this.userManager;
+    public void setManager(UserManager manager) {
+        this.manager = manager;
+    }
+
+    public UserManager getManager() {
+        return this.manager;
     }
 
     public void setMain(PluginMain main) {
@@ -191,7 +205,7 @@ public class EventExecutor implements Listener {
     }
 
     public void cancelTask(int taskId) {
-        userManager.cancelTask(taskId);
+        manager.cancelTask(taskId);
     }
 
 }
