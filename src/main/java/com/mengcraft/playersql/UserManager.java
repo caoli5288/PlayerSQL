@@ -146,6 +146,10 @@ public final class UserManager {
         return this.locked.indexOf(uuid) != -1;
     }
 
+    public boolean isNotLocked(UUID uuid) {
+        return locked.indexOf(uuid) == -1;
+    }
+
     public void lockUser(UUID uuid) {
         this.locked.add(uuid);
     }
