@@ -146,22 +146,21 @@ public final class UserManager {
         return this.locked.indexOf(uuid) != -1;
     }
 
-    public boolean isUserNotLocked(UUID uuid) {
-        return this.locked.indexOf(uuid) == -1;
-    }
-
     public void lockUser(UUID uuid) {
         this.locked.add(uuid);
     }
 
     public void unlockUser(UUID uuid, boolean scheduled) {
-        if (Config.DEBUG) {
-            main.info("Unlock user task on " + Thread.currentThread().getName() + '.');
-        }
         if (scheduled) {
-            this.main.runTask(() -> this.locked.remove(uuid));
+            main.runTask(() -> unlockUser(uuid));
         } else {
-            this.locked.remove(uuid);
+            unlockUser(uuid);
+        }
+    }
+
+    private void unlockUser(UUID uuid) {
+        while (isLocked(uuid)) {
+            locked.remove(uuid);
         }
     }
 

@@ -119,7 +119,7 @@ public class EventExecutor implements Listener {
     @EventHandler
     public void handle(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        if (manager.isUserNotLocked(uuid)) {
+        if (manager.isNotLocked(uuid)) {
             manager.cancelTask(uuid);
             manager.syncUser(uuid, true);
             main.runTaskAsynchronously(() -> {
