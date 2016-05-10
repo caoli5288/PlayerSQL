@@ -3,7 +3,7 @@
 
     <groupId>com.mengcraft</groupId>
     <artifactId>playersql</artifactId>
-    <version>2.2-SNAPSHOT</version>
+    <version>2.2</version>
     <name>PlayerSQL</name>
 
     <properties>
