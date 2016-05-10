@@ -32,7 +32,7 @@ public final class UserManager {
 
     private final Map<UUID, BukkitTask> taskMap;
     private final List<UUID> locked;
-    private final Map<UUID, User> userMap;
+    private final Map<UUID, User> cached;
     private final Queue<User> fetched;
 
     private PluginMain main;
@@ -43,7 +43,7 @@ public final class UserManager {
     private UserManager() {
         this.taskMap = new ConcurrentHashMap<>();
         this.locked = new ArrayList<>();
-        this.userMap = new ConcurrentHashMap<>();
+        this.cached = new ConcurrentHashMap<>();
         this.fetched = new ConcurrentLinkedQueue<>();
     }
 
@@ -51,7 +51,7 @@ public final class UserManager {
      * @return The user, or <code>null</code> if not exists.
      */
     public User getUser(UUID uuid) {
-        return this.userMap.get(uuid);
+        return this.cached.get(uuid);
     }
 
     public void addFetched(User user) {
@@ -68,29 +68,24 @@ public final class UserManager {
     /**
      * Create and cache a new user.
      */
-    public void cacheUser(UUID uuid) {
+    public void create(UUID uuid) {
         User user = db.bean(User.class);
         user.setUuid(uuid);
         user.setLocked(true);
-        cacheUser(uuid, user);
+        cache(uuid, user);
     }
 
-    public void cacheUser(UUID uuid, User user) {
+    public void cache(UUID uuid, User user) {
         if (user == null) {
-            userMap.remove(uuid);
+            cached.remove(uuid);
         } else {
-            userMap.put(uuid, user);
+            cached.put(uuid, user);
         }
     }
 
     public void saveUser(UUID uuid, boolean lock) {
-        User user = this.userMap.get(uuid);
-        if (user == null) {
-            if (Config.DEBUG) {
-                this.main.logException(new PluginException("User " + uuid + " not found!"));
-            }
-        } else {
-            saveUser(user, lock);
+        if (cached.containsKey(uuid)) {
+            saveUser(cached.get(uuid), lock);
         }
     }
 
@@ -101,9 +96,7 @@ public final class UserManager {
             }
         }
         db.save(user);
-        if (Config.DEBUG) {
-            main.logMessage("Save user data " + user.getUuid() + " done!");
-        }
+        main.info("Save user data " + user.getUuid() + " done!");
     }
 
     public void syncUser(User user) {
@@ -146,15 +139,15 @@ public final class UserManager {
     }
 
     public void syncUser(UUID uuid, boolean closeInventory) {
-        syncUser(userMap.get(uuid), closeInventory);
+        syncUser(cached.get(uuid), closeInventory);
     }
 
-    public boolean isUserLocked(UUID uuid) {
+    public boolean isLocked(UUID uuid) {
         return this.locked.indexOf(uuid) != -1;
     }
 
-    public boolean isUserNotLocked(UUID uuid) {
-        return this.locked.indexOf(uuid) == -1;
+    public boolean isNotLocked(UUID uuid) {
+        return locked.indexOf(uuid) == -1;
     }
 
     public void lockUser(UUID uuid) {
@@ -162,16 +155,16 @@ public final class UserManager {
     }
 
     public void unlockUser(UUID uuid, boolean scheduled) {
-        if (Config.DEBUG) {
-            main.logMessage("Unlock user task on " + Thread.currentThread().getName() + '.');
-        }
         if (scheduled) {
-            this.main.runTask(() -> unlockUser(uuid, false));
+            main.runTask(() -> unlockUser(uuid));
         } else {
-            if (Config.DEBUG) {
-                this.main.logMessage("Unlock user " + uuid + '!');
-            }
-            this.locked.remove(uuid);
+            unlockUser(uuid);
+        }
+    }
+
+    private void unlockUser(UUID uuid) {
+        while (isLocked(uuid)) {
+            locked.remove(uuid);
         }
     }
 
@@ -183,7 +176,7 @@ public final class UserManager {
             try {
                 pend(this.fetched.poll());
             } catch (Exception e) {
-                main.logException(e);
+                main.info(e);
             }
         }
     }
@@ -194,9 +187,9 @@ public final class UserManager {
             pend(user, player);
         } else this.main.runTaskAsynchronously(() -> {
             if (Config.DEBUG) {
-                this.main.logException(new PluginException("User " + user.getUuid() + " not found!"));
+                this.main.info(new PluginException("User " + user.getUuid() + " not found!"));
             }
-            saveUser(user, true);
+            saveUser(user, false);
         });
     }
 
@@ -251,7 +244,7 @@ public final class UserManager {
             } else try {
                 output.add(this.itemUtil.convert(s));
             } catch (Exception e) {
-                this.main.logException(e);
+                this.main.info(e);
             }
         return output.toArray(new ItemStack[parsed.size()]);
     }
@@ -265,7 +258,7 @@ public final class UserManager {
             } else try {
                 array.add(this.itemUtil.convert(stack));
             } catch (Exception e) {
-                this.main.logException(e);
+                this.main.info(e);
             }
         return array.toString();
     }
@@ -291,13 +284,13 @@ public final class UserManager {
         if (task != null) {
             task.cancel();
         } else if (Config.DEBUG) {
-            this.main.logMessage("No task can be canceled for " + uuid + '!');
+            this.main.info("No task can be canceled for " + uuid + '!');
         }
     }
 
     public void createTask(UUID uuid) {
         if (Config.DEBUG) {
-            this.main.logMessage("Scheduling daily save task for user " + uuid + '.');
+            this.main.info("Scheduling daily save task for user " + uuid + '.');
         }
         DailySaveTask saveTask = new DailySaveTask();
         BukkitTask task = this.main.runTaskTimer(saveTask, 6000);
@@ -307,7 +300,7 @@ public final class UserManager {
         BukkitTask old = this.taskMap.put(uuid, task);
         if (old != null) {
             if (Config.DEBUG) {
-                this.main.logMessage("Already scheduled task for user " + uuid + '!');
+                this.main.info("Already scheduled task for user " + uuid + '!');
             }
             old.cancel();
         }

@@ -23,13 +23,13 @@ public class DailySaveTask implements Runnable {
         User user = userManager.getUser(this.uuid);
         if (user == null) {
             if (Config.DEBUG) {
-                userManager.getMain().logException(new PluginException("User " + this.uuid + " not cached!"));
+                userManager.getMain().info(new PluginException("User " + this.uuid + " not cached!"));
             }
             userManager.cancelTask(this.taskId);
         } else {
             this.saveCount++;
             if (Config.DEBUG) {
-                userManager.getMain().logMessage("Save user " + this.uuid + " count " + this.saveCount + '.');
+                userManager.getMain().info("Save user " + this.uuid + " count " + this.saveCount + '.');
             }
             userManager.syncUser(user);
             userManager.getMain().runTaskAsynchronously(() -> userManager.saveUser(user, true));

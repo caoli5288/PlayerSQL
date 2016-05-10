@@ -15,38 +15,36 @@ public class FetchUserTask implements Runnable {
     private UUID uuid;
 
     private int taskId;
-    private int retryCount;
+    private int retry;
 
     @Override
     public synchronized void run() {
-        User user = this.executor.getUserManager().fetchUser(this.uuid);
+        User user = this.executor.getManager().fetchUser(this.uuid);
         if (user == null) {
-            this.executor.getUserManager().cacheUser(this.uuid);
-            this.executor.getUserManager().createTask(this.uuid);
-            this.executor.getUserManager().unlockUser(this.uuid, true);
-
+            this.executor.cancelTask(this.taskId);
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("User data " + this.uuid + " not found!");
+                this.executor.getMain().info("User data " + uuid + " not found!");
             }
 
-            this.executor.cancelTask(this.taskId);
-        } else if (user.isLocked() && this.retryCount++ < 8) {
+            this.executor.getManager().create(this.uuid);
+            this.executor.getManager().createTask(this.uuid);
+            this.executor.getManager().unlockUser(this.uuid, true);
+        } else if (user.isLocked() && this.retry++ < 8) {
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Load user data " + uuid + " fail " + retryCount + '.');
+                this.executor.getMain().info("Load user data " + uuid + " fail " + retry + '.');
             }
         } else {
-            this.executor.cancelTask(this.taskId);
-            this.executor.getUserManager().saveUser(user, true);
-
+            this.executor.getManager().cache(this.uuid, user);
+            this.executor.getManager().addFetched(user);
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Lock user data " + uuid + " done.");
+                this.executor.getMain().info("Load user data " + uuid + " done.");
             }
 
-            this.executor.getUserManager().cacheUser(this.uuid, user);
-            this.executor.getUserManager().addFetched(user);
+            this.executor.cancelTask(this.taskId);
+            this.executor.getManager().saveUser(user, true);
 
             if (Config.DEBUG) {
-                this.executor.getMain().logMessage("Load user data " + uuid + " done.");
+                this.executor.getMain().info("Lock user data " + uuid + " done.");
             }
         }
     }
