@@ -189,7 +189,6 @@ public final class UserManager {
             if (Config.DEBUG) {
                 this.main.info(new PluginException("User " + user.getUuid() + " not found!"));
             }
-            saveUser(user, false);
         });
     }
 
