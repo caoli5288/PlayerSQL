@@ -32,7 +32,6 @@ public final class UserManager {
 
     private final Map<UUID, BukkitTask> taskMap;
     private final List<UUID> locked;
-    private final Map<UUID, User> cached;
     private final Queue<User> fetched;
 
     private PluginMain main;
@@ -43,15 +42,7 @@ public final class UserManager {
     private UserManager() {
         this.taskMap = new ConcurrentHashMap<>();
         this.locked = new ArrayList<>();
-        this.cached = new ConcurrentHashMap<>();
         this.fetched = new ConcurrentLinkedQueue<>();
-    }
-
-    /**
-     * @return The user, or <code>null</code> if not exists.
-     */
-    public User getUser(UUID uuid) {
-        return this.cached.get(uuid);
     }
 
     public void addFetched(User user) {
@@ -65,81 +56,58 @@ public final class UserManager {
         return db.find(User.class, uuid);
     }
 
-    /**
-     * Create and cache a new user.
-     */
-    public void create(UUID uuid) {
-        User user = db.bean(User.class);
-        user.setUuid(uuid);
-        user.setLocked(true);
-        cache(uuid, user);
-    }
-
-    public void cache(UUID uuid, User user) {
-        if (user == null) {
-            cached.remove(uuid);
-        } else {
-            cached.put(uuid, user);
-        }
-    }
-
-    public void saveUser(UUID uuid, boolean lock) {
-        if (cached.containsKey(uuid)) {
-            saveUser(cached.get(uuid), lock);
-        }
+    public void saveUser(Player p, boolean lock) {
+        saveUser(getUserData(p, lock), lock);
     }
 
     public void saveUser(User user, boolean lock) {
-        synchronized (user) {
-            if (user.isLocked() != lock) {
-                user.setLocked(lock);
-            }
-        }
-        db.save(user);
-        main.info("Save user data " + user.getUuid() + " done!");
-    }
-
-    public void syncUser(User user) {
-        syncUser(user, false);
-    }
-
-    public void syncUser(User user, Player p, boolean closeInventory) {
-        synchronized (user) {
-            if (Config.SYN_HEALTH) {
-                user.setHealth(p.getHealth());
-            }
-            if (Config.SYN_FOOD) {
-                user.setFood(p.getFoodLevel());
-            }
-            if (Config.SYN_INVENTORY) {
-                if (closeInventory) {
-                    p.closeInventory();
-                }
-                user.setInventory(toString(p.getInventory().getContents()));
-                user.setArmor(toString(p.getInventory().getArmorContents()));
-                user.setHand(p.getInventory().getHeldItemSlot());
-            }
-            if (Config.SYN_CHEST) {
-                user.setChest(toString(p.getEnderChest().getContents()));
-            }
-            if (Config.SYN_EFFECT) {
-                user.setEffect(toString(p.getActivePotionEffects()));
-            }
-            if (Config.SYN_EXP) {
-                user.setExp(this.expUtil.getExp(p));
-            }
+        user.setLocked(lock);
+        db.update(user);
+        if (Config.DEBUG) {
+            main.info("Save user data " + user.getUuid() + " done!");
         }
     }
 
-    public void syncUser(User user, boolean closeInventory) {
-        Player p = main.getPlayer(user.getUuid());
-        if (p != null && p.isOnline()) {
-            syncUser(user, p, closeInventory);
+    public void lockUserData(UUID uuid) {
+        User user = new User();
+        user.setUuid(uuid);
+        saveUser(user, true);
+        if (Config.DEBUG) {
+            main.info("Lock user data " + uuid + " done.");
         }
     }
 
-    public void syncUser(UUID uuid, boolean closeInventory) {
-        syncUser(cached.get(uuid), closeInventory);
+    public User getUserData(UUID id, boolean b) {
+        return getUserData(main.getServer().getPlayer(id), b);
+    }
+
+    public User getUserData(Player p, boolean closeInventory) {
+        User user = new User();
+        user.setUuid(p.getUniqueId());
+        if (Config.SYN_HEALTH) {
+            user.setHealth(p.getHealth());
+        }
+        if (Config.SYN_FOOD) {
+            user.setFood(p.getFoodLevel());
+        }
+        if (Config.SYN_INVENTORY) {
+            if (closeInventory) {
+                p.closeInventory();
+            }
+            user.setInventory(toString(p.getInventory().getContents()));
+            user.setArmor(toString(p.getInventory().getArmorContents()));
+            user.setHand(p.getInventory().getHeldItemSlot());
+        }
+        if (Config.SYN_CHEST) {
+            user.setChest(toString(p.getEnderChest().getContents()));
+        }
+        if (Config.SYN_EFFECT) {
+            user.setEffect(toString(p.getActivePotionEffects()));
+        }
+        if (Config.SYN_EXP) {
+            user.setExp(this.expUtil.getExp(p));
+        }
+        return user;
     }
 
     public boolean isLocked(UUID uuid) {
@@ -323,5 +291,12 @@ public final class UserManager {
 
     public void setDb(EbeanHandler db) {
         this.db = db;
+    }
+
+    public void newUser(UUID uuid) {
+        User user = new User();
+        user.setUuid(uuid);
+        user.setLocked(true);
+        db.save(user);
     }
 }

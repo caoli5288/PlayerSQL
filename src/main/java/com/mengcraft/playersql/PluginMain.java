@@ -63,8 +63,7 @@ public class PluginMain extends JavaPlugin {
     @Override
     public void onDisable() {
         for (Player p : getServer().getOnlinePlayers()) {
-            UserManager.INSTANCE.syncUser(p.getUniqueId(), true);
-            UserManager.INSTANCE.saveUser(p.getUniqueId(), false);
+            UserManager.INSTANCE.saveUser(p, false);
         }
     }
 

@@ -121,10 +121,9 @@ public class EventExecutor implements Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         if (manager.isNotLocked(uuid)) {
             manager.cancelTask(uuid);
-            manager.syncUser(uuid, true);
+            User user = manager.getUserData(event.getPlayer(), true);
             main.runTaskAsynchronously(() -> {
-                manager.saveUser(uuid, false);
-                manager.cache(uuid, null);
+                manager.saveUser(user, false);
             });
         } else {
             manager.unlockUser(uuid, false);
