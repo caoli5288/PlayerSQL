@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import com.avaje.ebean.Update;
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.JSONUtil;
@@ -69,11 +70,16 @@ public final class UserManager {
     }
 
     public void lockUserData(UUID uuid) {
-        User user = new User();
-        user.setUuid(uuid);
-        saveUser(user, true);
+        Update<User> update = db.getServer().createUpdate(User.class, "update playersql set locked = :locked where uuid = :uuid");
+        update.set("locked", true);
+        update.set("uuid", uuid.toString());
+        int result = update.execute();
         if (Config.DEBUG) {
-            main.info("Lock user data " + uuid + " done.");
+            if (result == 1) {
+                main.info("Lock user data " + uuid + " done.");
+            } else {
+                main.info("Lock user data " + uuid + " faid!");
+            }
         }
     }
 
