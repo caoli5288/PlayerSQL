@@ -4,12 +4,12 @@ import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 
 public class ExpUtilHandler {
-    
+
     private final Server server;
 
     private ExpUtil handle;
     private String version;
-    
+
     public ExpUtil handle() {
         if (handle == null) {
             if (test(version())) {
@@ -20,9 +20,9 @@ public class ExpUtilHandler {
         }
         return handle;
     }
-    
+
     private boolean test(String version) {
-        return Integer.parseInt(String.valueOf(version.charAt(3))) >= 8;
+        return Integer.parseInt(version.split("_")[1]) > 7;
     }
 
     private String version() {
