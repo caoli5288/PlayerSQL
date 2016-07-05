@@ -70,7 +70,7 @@ public final class UserManager {
     }
 
     public void lockUserData(UUID uuid) {
-        Update<User> update = db.getServer().createUpdate(User.class, "update playersql set locked = :locked where uuid = :uuid");
+        Update<User> update = db.getServer().createUpdate(User.class, "update PLAYERSQL set locked = :locked where uuid = :uuid");
         update.set("locked", true);
         update.set("uuid", uuid.toString());
         int result = update.execute();
