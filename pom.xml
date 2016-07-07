@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.mengcraft</groupId>
             <artifactId>simpleorm</artifactId>
-            <version>0.3.1</version>
+            <version>0.3.2</version>
         </dependency>
     </dependencies>
 
@@ -57,13 +57,6 @@
                         <phase>package</phase>
                     </execution>
                 </executions>
-                <configuration>
-                    <artifactSet>
-                        <includes>
-                            <include>com.mengcraft:simpleorm</include>
-                        </includes>
-                    </artifactSet>
-                </configuration>
             </plugin>
         </plugins>
     </build>
