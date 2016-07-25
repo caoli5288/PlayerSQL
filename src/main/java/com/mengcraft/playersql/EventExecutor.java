@@ -9,7 +9,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -60,11 +59,6 @@ public class EventExecutor implements Listener {
 
     @EventHandler(priority = LOWEST)
     public void pre(PlayerInteractEntityEvent event) {
-        handle(event);
-    }
-
-    @EventHandler(priority = LOWEST)
-    public void pre(PlayerInteractAtEntityEvent event) {
         handle(event);
     }
 
@@ -163,13 +157,6 @@ public class EventExecutor implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)
     public void handle(PlayerInteractEntityEvent event) {
-        if (isLocked(event.getPlayer().getUniqueId())) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = HIGHEST)
-    public void handle(PlayerInteractAtEntityEvent event) {
         if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }

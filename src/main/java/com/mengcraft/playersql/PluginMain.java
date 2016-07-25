@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import com.mengcraft.playersql.ext.ExtendEventExecutor;
 import com.mengcraft.playersql.lib.*;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
@@ -51,7 +52,12 @@ public class PluginMain extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, () -> {
             manager.pendFetched();
         }, 1, 1);
+
         getServer().getPluginManager().registerEvents(executor, this);
+        try {
+            getServer().getPluginManager().registerEvents(new ExtendEventExecutor(manager, this), this);
+        } catch (Exception ignore) {
+        }// There is some event since 1.8.
 
         try {
             new Metrics(this).start();
