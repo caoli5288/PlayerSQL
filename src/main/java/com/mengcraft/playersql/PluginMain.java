@@ -1,7 +1,11 @@
 package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.ext.ExtendEventExecutor;
-import com.mengcraft.playersql.lib.*;
+import com.mengcraft.playersql.lib.ExpUtil;
+import com.mengcraft.playersql.lib.ExpUtilHandler;
+import com.mengcraft.playersql.lib.ItemUtil;
+import com.mengcraft.playersql.lib.ItemUtilHandler;
+import com.mengcraft.playersql.lib.Metrics;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import org.bukkit.entity.Player;
@@ -48,10 +52,6 @@ public class PluginMain extends JavaPlugin {
         EventExecutor executor = new EventExecutor();
         executor.setMain(this);
         executor.setManager(manager);
-
-        getServer().getScheduler().runTaskTimer(this, () -> {
-            manager.pendFetched();
-        }, 1, 1);
 
         getServer().getPluginManager().registerEvents(executor, this);
         try {

@@ -18,10 +18,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created on 16-1-2.
@@ -33,7 +31,6 @@ public final class UserManager {
 
     private final Map<UUID, BukkitTask> taskMap;
     private final List<UUID> locked;
-    private final Queue<User> fetched;
 
     private PluginMain main;
     private ItemUtil itemUtil;
@@ -43,11 +40,10 @@ public final class UserManager {
     private UserManager() {
         this.taskMap = new ConcurrentHashMap<>();
         this.locked = new ArrayList<>();
-        this.fetched = new ConcurrentLinkedQueue<>();
     }
 
     public void addFetched(User user) {
-        this.fetched.offer(user);
+        main.runTask(() -> pend(user));
     }
 
     /**
@@ -139,19 +135,6 @@ public final class UserManager {
     private void unlockUser(UUID uuid) {
         while (isLocked(uuid)) {
             locked.remove(uuid);
-        }
-    }
-
-    /**
-     * Process fetched users.
-     */
-    public void pendFetched() {
-        while (!this.fetched.isEmpty()) {
-            try {
-                pend(this.fetched.poll());
-            } catch (Exception e) {
-                main.info(e);
-            }
         }
     }
 
