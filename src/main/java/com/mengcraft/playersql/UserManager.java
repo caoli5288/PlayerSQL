@@ -159,11 +159,9 @@ public final class UserManager {
         Player player = this.main.getPlayer(user.getUuid());
         if (player != null && player.isOnline()) {
             pend(user, player);
-        } else this.main.runTaskAsynchronously(() -> {
-            if (Config.DEBUG) {
-                this.main.info(new PluginException("User " + user.getUuid() + " not found!"));
-            }
-        });
+        } else if (Config.DEBUG) {
+            this.main.info(new PluginException("User " + user.getUuid() + " not found!"));
+        }
     }
 
     private void pend(User polled, Player player) {
