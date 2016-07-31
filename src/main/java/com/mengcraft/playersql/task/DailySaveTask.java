@@ -3,6 +3,7 @@ package com.mengcraft.playersql.task;
 import com.mengcraft.playersql.Config;
 import com.mengcraft.playersql.User;
 import com.mengcraft.playersql.UserManager;
+import org.bukkit.Bukkit;
 
 import java.util.UUID;
 
@@ -20,11 +21,18 @@ public class DailySaveTask implements Runnable {
     @Override
     public synchronized void run() {
         User user = userManager.getUserData(this.uuid, false);
-        this.saveCount++;
-        if (Config.DEBUG) {
-            userManager.getMain().info("Save user " + this.uuid + " count " + this.saveCount + '.');
+        if (user == null) {
+            if (Config.DEBUG) {
+                userManager.getMain().info("Cancel task for " + uuid + " offline!");
+            }
+            Bukkit.getScheduler().cancelTask(taskId);
+        } else {
+            this.saveCount++;
+            if (Config.DEBUG) {
+                userManager.getMain().info("Save user " + this.uuid + " count " + this.saveCount + '.');
+            }
+            userManager.getMain().runTaskAsynchronously(() -> userManager.saveUser(user, true));
         }
-        userManager.getMain().runTaskAsynchronously(() -> userManager.saveUser(user, true));
     }
 
     public void setTaskId(int taskId) {

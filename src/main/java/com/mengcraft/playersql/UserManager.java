@@ -80,7 +80,11 @@ public final class UserManager {
     }
 
     public User getUserData(UUID id, boolean b) {
-        return getUserData(main.getServer().getPlayer(id), b);
+        Player player = main.getServer().getPlayer(id);
+        if (player != null) {
+            return getUserData(player, b);
+        }
+        return null;
     }
 
     public User getUserData(Player p, boolean closeInventory) {
