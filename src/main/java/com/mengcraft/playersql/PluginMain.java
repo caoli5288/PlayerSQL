@@ -1,6 +1,5 @@
 package com.mengcraft.playersql;
 
-import com.mengcraft.playersql.ext.ExtendEventExecutor;
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ExpUtilHandler;
 import com.mengcraft.playersql.lib.ItemUtil;
@@ -55,7 +54,7 @@ public class PluginMain extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(executor, this);
         try {
-            getServer().getPluginManager().registerEvents(new ExtendEventExecutor(manager, this), this);
+            getServer().getPluginManager().registerEvents(new ExtendEventExecutor(manager), this);
         } catch (Exception ignore) {
         }// There is some event since 1.8.
 

@@ -1,4 +1,4 @@
-package com.mengcraft.playersql.ext;
+package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.PluginMain;
 import com.mengcraft.playersql.UserManager;
@@ -15,11 +15,9 @@ import static org.bukkit.event.EventPriority.LOWEST;
 public class ExtendEventExecutor implements Listener {
 
     private final UserManager manager;
-    private final PluginMain main;
 
-    public ExtendEventExecutor(UserManager manager, PluginMain main) {
+    public ExtendEventExecutor(UserManager manager) {
         this.manager = manager;
-        this.main = main;
     }
 
     @EventHandler(ignoreCancelled = true, priority = HIGHEST)

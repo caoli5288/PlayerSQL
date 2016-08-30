@@ -6,16 +6,20 @@ import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.JSONUtil;
 import com.mengcraft.playersql.task.DailySaveTask;
 import com.mengcraft.simpleorm.EbeanHandler;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONArray;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -152,31 +156,43 @@ public final class UserManager {
     }
 
     private void pend(User polled, Player player) {
-        synchronized (polled) {
-            if (Config.SYN_INVENTORY) {
-                player.closeInventory();
-                player.getInventory().setContents(toStack(polled.getInventory()));
-                player.getInventory().setArmorContents(toStack(polled.getArmor()));
-                player.getInventory().setHeldItemSlot(polled.getHand());
-                player.updateInventory();
+        if (Config.SYN_INVENTORY) {
+            ItemStack[] fetched = toStack(polled.getInventory());
+            player.closeInventory();
+            PlayerInventory pack = player.getInventory();
+            if (fetched.length > pack.getSize()) {// Fixed #36
+                int j = pack.getSize();
+                pack.setContents(Arrays.copyOf(fetched, j));
+                HashMap<?, ItemStack> out = pack.addItem(Arrays.copyOfRange(fetched, j, fetched.length));
+                if (out.size() != 0) {
+                    Location location = player.getLocation();
+                    out.forEach((o, item) -> {
+                        player.getWorld().dropItem(location, item);
+                    });
+                }// Drop if no space
+            } else {
+                pack.setContents(fetched);
             }
-            if (Config.SYN_HEALTH && player.getMaxHealth() >= polled.getHealth()) {
-                player.setHealth(polled.getHealth());
+            pack.setArmorContents(toStack(polled.getArmor()));
+            pack.setHeldItemSlot(polled.getHand());
+            player.updateInventory();// force update
+        }
+        if (Config.SYN_HEALTH && player.getMaxHealth() >= polled.getHealth()) {
+            player.setHealth(polled.getHealth());
+        }
+        if (Config.SYN_EXP) {
+            this.expUtil.setExp(player, polled.getExp());
+        }
+        if (Config.SYN_FOOD) {
+            player.setFoodLevel(polled.getFood());
+        }
+        if (Config.SYN_EFFECT) {
+            for (PotionEffect effect : toEffect(polled.getEffect())) {
+                player.addPotionEffect(effect, true);
             }
-            if (Config.SYN_EXP) {
-                this.expUtil.setExp(player, polled.getExp());
-            }
-            if (Config.SYN_FOOD) {
-                player.setFoodLevel(polled.getFood());
-            }
-            if (Config.SYN_EFFECT) {
-                for (PotionEffect effect : toEffect(polled.getEffect())) {
-                    player.addPotionEffect(effect, true);
-                }
-            }
-            if (Config.SYN_CHEST) {
-                player.getEnderChest().setContents(toStack(polled.getChest()));
-            }
+        }
+        if (Config.SYN_CHEST) {
+            player.getEnderChest().setContents(toStack(polled.getChest()));
         }
         createTask(player.getUniqueId());
         unlockUser(player.getUniqueId(), false);
