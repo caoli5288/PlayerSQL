@@ -1,7 +1,6 @@
 package com.mengcraft.playersql.lib;
 
-import java.util.Arrays;
-
+import com.mengcraft.playersql.lib.ItemUtil.Simple;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
@@ -9,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
-import com.mengcraft.playersql.lib.ItemUtil.SimpleItemUtil;
+import java.util.Arrays;
 
 
 public class ItemUtilHandler {
@@ -31,12 +30,15 @@ public class ItemUtilHandler {
 
     public ItemUtil handle() {
         if (util == null) {
-            if (test(version())) {
-                util = new SimpleItemUtil(version());
+            Plugin plugin = proxy.getServer().getPluginManager().getPlugin("ProtocolLib");
+            if (plugin == null) {
+                if (test(version())) {
+                    util = new Simple(version());
+                } else {
+                    throw new RuntimeException("Hasn't compatible util! Update ProtocolLib");
+                }
             } else if (test()) {
-                util = new ItemUtil.WarpedItemUtil();
-            } else {
-                throw new RuntimeException("Hasn't compatible util!");
+                util = new ItemUtil.PLib();
             }
         }
         return util;
@@ -44,7 +46,7 @@ public class ItemUtilHandler {
 
     private boolean test() {
         try {
-            ItemUtil util = new ItemUtil.WarpedItemUtil();
+            ItemUtil util = new ItemUtil.PLib();
 
             if (item().equals(util.convert(util.convert(item())))) {
                 proxy.getLogger().info("Server version: " + version + '.');
@@ -61,7 +63,7 @@ public class ItemUtilHandler {
 
     private boolean test(String version) {
         try {
-            ItemUtil util = new ItemUtil.SimpleItemUtil(version);
+            ItemUtil util = new Simple(version);
 
             if (item().equals(util.convert(util.convert(item())))) {
                 proxy.getLogger().info("Server version: " + version + '.');

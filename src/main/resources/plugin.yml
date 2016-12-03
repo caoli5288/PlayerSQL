@@ -3,3 +3,5 @@ name: PlayerSQL
 version: ${project.version}
 website: http://www.spigotmc.org/resources/playersql.552/
 author: caoli5288@gmail.com
+
+softdepend: ["ProtocolLib"]

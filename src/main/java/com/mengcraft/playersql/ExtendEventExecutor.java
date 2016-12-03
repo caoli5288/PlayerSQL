@@ -1,7 +1,5 @@
 package com.mengcraft.playersql;
 
-import com.mengcraft.playersql.PluginMain;
-import com.mengcraft.playersql.UserManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;

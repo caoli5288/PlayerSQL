@@ -13,7 +13,7 @@ public interface ExpUtil {
         public int getExp(Player player) {
             int exp = Math.round(getExpAtLevel(player) * player.getExp());
             int currentLevel = player.getLevel();
-        
+
             while (currentLevel > 0) {
                 currentLevel--;
                 exp += getExpAtLevel(currentLevel);
@@ -25,8 +25,10 @@ public interface ExpUtil {
         }
 
         public void setExp(Player player, int exp) {
-            if (exp < 0) { throw new IllegalArgumentException(
-                    "Experience is negative!"); }
+            if (exp < 0) {
+                throw new IllegalArgumentException(
+                        "Experience is negative!");
+            }
             player.setExp(0.0F);
             player.setLevel(0);
             player.setTotalExperience(0);
@@ -52,8 +54,12 @@ public interface ExpUtil {
         }
 
         public int getExpAtLevel(int level) {
-            if (level > 29) { return 62 + (level - 30) * 7; }
-            if (level > 15) { return 17 + (level - 15) * 3; }
+            if (level > 29) {
+                return 62 + (level - 30) * 7;
+            }
+            if (level > 15) {
+                return 17 + (level - 15) * 3;
+            }
             return 17;
         }
 
@@ -82,8 +88,10 @@ public interface ExpUtil {
     class NewerExpUtil implements ExpUtil {
 
         public void setExp(Player player, int exp) {
-            if (exp < 0) { throw new IllegalArgumentException(
-                    "Experience is negative!"); }
+            if (exp < 0) {
+                throw new IllegalArgumentException(
+                        "Experience is negative!");
+            }
             player.setExp(0.0F);
             player.setLevel(0);
             player.setTotalExperience(0);
@@ -120,8 +128,12 @@ public interface ExpUtil {
         }
 
         public int getExpAtLevel(int level) {
-            if (level <= 15) { return 2 * level + 7; }
-            if ((level >= 16) && (level <= 30)) { return 5 * level - 38; }
+            if (level <= 15) {
+                return 2 * level + 7;
+            }
+            if ((level >= 16) && (level <= 30)) {
+                return 5 * level - 38;
+            }
             return 9 * level - 158;
         }
 
