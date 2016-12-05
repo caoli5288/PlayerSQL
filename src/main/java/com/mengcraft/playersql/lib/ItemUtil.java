@@ -14,6 +14,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import static com.mengcraft.playersql.PluginMain.nil;
+
 public interface ItemUtil {
 
     String convert(ItemStack in) throws Exception;
@@ -118,7 +120,7 @@ public interface ItemUtil {
                     e.printStackTrace();
                 }
             }
-            if (item == null) return item.newInstance(tag);
+            if (!nil(item)) return item.newInstance(tag);
             return create.invoke(itemStack, tag);
         }
 

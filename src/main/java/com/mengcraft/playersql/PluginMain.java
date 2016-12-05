@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import com.bugsnag.Bugsnag;
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.ExpUtilHandler;
 import com.mengcraft.playersql.lib.ItemUtil;
@@ -20,8 +21,12 @@ import java.util.logging.Level;
  */
 public class PluginMain extends JavaPlugin {
 
+    public static Bugsnag bug;
+
     @Override
     public void onEnable() {
+        bug = new Bugsnag("f433bca266beb2d4324855e4fdb80cd9", false);
+
         getConfig().options().copyDefaults(true);
         saveConfig();
 
@@ -98,6 +103,10 @@ public class PluginMain extends JavaPlugin {
 
     public BukkitTask runTaskTimer(Runnable r, int i) {
         return getServer().getScheduler().runTaskTimer(this, r, i, i);
+    }
+
+    public static boolean nil(Object i) {
+        return i == null;
     }
 
 }

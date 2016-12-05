@@ -1,5 +1,6 @@
 package com.mengcraft.playersql.lib;
 
+import com.mengcraft.playersql.PluginMain;
 import com.mengcraft.playersql.lib.ItemUtil.Simple;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -57,6 +58,7 @@ public class ItemUtilHandler {
             return true;
         } catch (Exception e) {
             proxy.getLogger().warning(e.toString());
+            PluginMain.bug.notify(e);
         }
         return false;
     }
@@ -74,6 +76,7 @@ public class ItemUtilHandler {
             return true;
         } catch (Exception e) {
             proxy.getLogger().warning(e.toString());
+            PluginMain.bug.notify(e);
         }
         return false;
     }
