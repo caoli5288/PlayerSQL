@@ -32,6 +32,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.BufferedReader;
@@ -611,6 +612,14 @@ public class Metrics {
      */
     private static String urlEncode(final String text) throws UnsupportedEncodingException {
         return URLEncoder.encode(text, "UTF-8");
+    }
+
+    public static void start(JavaPlugin plugin) {
+        try {
+            new Metrics(plugin).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

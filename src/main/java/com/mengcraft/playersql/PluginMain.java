@@ -12,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.IOException;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -41,9 +40,10 @@ public class PluginMain extends JavaPlugin {
             try {
                 db.initialize();
             } catch (Exception e) {
-                throw new PluginException("Can't connect to database!", e);
+                throw new PluginException("Failed connect to database");
             }
         }
+
         db.install();
 //        db.reflect();
 
@@ -63,11 +63,7 @@ public class PluginMain extends JavaPlugin {
         } catch (Exception ignore) {
         }// There is some event since 1.8.
 
-        try {
-            new Metrics(this).start();
-        } catch (IOException e) {
-            info(e);
-        }
+        Metrics.start(this);
     }
 
     @Override

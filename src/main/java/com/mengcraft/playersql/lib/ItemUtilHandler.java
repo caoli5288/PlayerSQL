@@ -11,6 +11,8 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.Arrays;
 
+import static com.mengcraft.playersql.PluginMain.nil;
+
 
 public class ItemUtilHandler {
 
@@ -32,30 +34,29 @@ public class ItemUtilHandler {
     public ItemUtil handle() {
         if (util == null) {
             Plugin plugin = proxy.getServer().getPluginManager().getPlugin("ProtocolLib");
-            if (plugin == null) {
-                if (test(version())) {
+            if (!nil(plugin) && testPLib()) {
+                util = new ItemUtil.PLib();
+            }
+            if (nil(util)) {
+                if (testBuildIn(version())) {
                     util = new Simple(version());
                 } else {
-                    throw new RuntimeException("Hasn't compatible util! Update ProtocolLib");
+                    throw new RuntimeException("Hasn't compatible util! Update plugin or use compatible ProtocolLib");
                 }
-            } else if (test()) {
-                util = new ItemUtil.PLib();
             }
         }
         return util;
     }
 
-    private boolean test() {
+    private boolean testPLib() {
         try {
             ItemUtil util = new ItemUtil.PLib();
 
             if (item().equals(util.convert(util.convert(item())))) {
                 proxy.getLogger().info("Server version: " + version + '.');
-                proxy.getLogger().info("Warped util work well!");
-            } else {
-                throw new RuntimeException("Warped util not work!");
+                proxy.getLogger().info("ProtocolLib item util work well!");
+                return true;
             }
-            return true;
         } catch (Exception e) {
             proxy.getLogger().warning(e.toString());
             PluginMain.bug.notify(e);
@@ -63,17 +64,16 @@ public class ItemUtilHandler {
         return false;
     }
 
-    private boolean test(String version) {
+    private boolean testBuildIn(String version) {
         try {
             ItemUtil util = new Simple(version);
 
             if (item().equals(util.convert(util.convert(item())))) {
                 proxy.getLogger().info("Server version: " + version + '.');
-                proxy.getLogger().info("Build-in util work well!");
-            } else {
-                throw new RuntimeException("Build-in util not work!");
+                proxy.getLogger().info("Build-in item util work well!");
+
+                return true;
             }
-            return true;
         } catch (Exception e) {
             proxy.getLogger().warning(e.toString());
             PluginMain.bug.notify(e);
