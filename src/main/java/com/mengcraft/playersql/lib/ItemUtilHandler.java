@@ -1,6 +1,5 @@
 package com.mengcraft.playersql.lib;
 
-import com.mengcraft.playersql.PluginMain;
 import com.mengcraft.playersql.lib.ItemUtil.Simple;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -33,13 +32,12 @@ public class ItemUtilHandler {
 
     public ItemUtil handle() {
         if (util == null) {
-            Plugin plugin = proxy.getServer().getPluginManager().getPlugin("ProtocolLib");
-            if (!nil(plugin) && testPLib()) {
-                util = new ItemUtil.PLib();
-            }
-            if (nil(util)) {
-                if (testBuildIn(version())) {
-                    util = new Simple(version());
+            if (testBuildIn(version())) {
+                util = new Simple(version());
+            } else {
+                Plugin plugin = proxy.getServer().getPluginManager().getPlugin("ProtocolLib");
+                if (!nil(plugin) && testPLib()) {
+                    util = new ItemUtil.PLib();
                 } else {
                     throw new RuntimeException("Hasn't compatible util! Update plugin or use compatible ProtocolLib");
                 }
@@ -59,7 +57,6 @@ public class ItemUtilHandler {
             }
         } catch (Exception e) {
             proxy.getLogger().warning(e.toString());
-            PluginMain.bug.notify(e);
         }
         return false;
     }
@@ -76,7 +73,6 @@ public class ItemUtilHandler {
             }
         } catch (Exception e) {
             proxy.getLogger().warning(e.toString());
-            PluginMain.bug.notify(e);
         }
         return false;
     }

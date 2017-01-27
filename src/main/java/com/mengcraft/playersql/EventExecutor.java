@@ -23,6 +23,7 @@ import java.util.UUID;
 import static org.bukkit.entity.EntityType.PLAYER;
 import static org.bukkit.event.EventPriority.HIGHEST;
 import static org.bukkit.event.EventPriority.LOWEST;
+import static org.bukkit.event.EventPriority.MONITOR;
 
 /**
  * Created on 16-1-2.
@@ -116,7 +117,7 @@ public class EventExecutor implements Listener {
         task.setTaskId(this.main.runTaskTimerAsynchronously(task, Config.SYN_DELAY).getTaskId());
     }
 
-    @EventHandler
+    @EventHandler(priority = MONITOR)
     public void handle(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         if (manager.isNotLocked(uuid)) {

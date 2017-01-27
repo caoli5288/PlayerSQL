@@ -8,14 +8,14 @@ import org.json.simple.JSONValue;
  */
 public final class JSONUtil {
 
-    public static JSONArray parseArray(String in, JSONArray normal) {
+    public static JSONArray parseArray(String in, JSONArray def) {
         if (in != null) {
             Object parsed = JSONValue.parse(in);
             if (parsed instanceof JSONArray) {
                 return ((JSONArray) parsed);
             }
         }
-        return normal;
+        return def;
     }
 
     public static final JSONArray EMPTY_ARRAY = new JSONArray();
