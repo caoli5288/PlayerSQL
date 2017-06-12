@@ -23,7 +23,7 @@ public class FetchUserTask implements Runnable {
         if (user == null) {
             this.executor.cancelTask(this.taskId);
             if (Config.DEBUG) {
-                this.executor.getMain().info("User data " + uuid + " not found!");
+                this.executor.getMain().log("User data " + uuid + " not found!");
             }
 
             this.executor.getManager().unlockUser(this.uuid, true);
@@ -31,16 +31,16 @@ public class FetchUserTask implements Runnable {
             this.executor.getManager().createTask(this.uuid);
 
             if (Config.DEBUG) {
-                this.executor.getMain().info("New user data for" + uuid + '.');
+                this.executor.getMain().log("New user data for" + uuid + '.');
             }
         } else if (user.isLocked() && this.retry++ < 8) {
             if (Config.DEBUG) {
-                this.executor.getMain().info("Load user data " + uuid + " fail " + retry + '.');
+                this.executor.getMain().log("Load user data " + uuid + " fail " + retry + '.');
             }
         } else {
             this.executor.getManager().addFetched(user);
             if (Config.DEBUG) {
-                this.executor.getMain().info("Load user data " + uuid + " done.");
+                this.executor.getMain().log("Load user data " + uuid + " done.");
             }
 
             this.executor.cancelTask(this.taskId);

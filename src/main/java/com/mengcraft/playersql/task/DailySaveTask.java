@@ -23,15 +23,15 @@ public class DailySaveTask implements Runnable {
         User user = userManager.getUserData(this.uuid, false);
         if (user == null) {
             if (Config.DEBUG) {
-                userManager.getMain().info("Cancel task for " + uuid + " offline!");
+                userManager.getMain().log("Cancel task for " + uuid + " offline!");
             }
             Bukkit.getScheduler().cancelTask(taskId);
         } else {
             this.saveCount++;
             if (Config.DEBUG) {
-                userManager.getMain().info("Save user " + this.uuid + " count " + this.saveCount + '.');
+                userManager.getMain().log("Save user " + this.uuid + " count " + this.saveCount + '.');
             }
-            userManager.getMain().runTaskAsynchronously(() -> userManager.saveUser(user, true));
+            userManager.getMain().runAsync(() -> userManager.saveUser(user, true));
         }
     }
 

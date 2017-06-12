@@ -47,7 +47,7 @@ public final class UserManager {
     }
 
     public void addFetched(User user) {
-        main.runTask(() -> pend(user));
+        main.run(() -> pend(user));
     }
 
     /**
@@ -65,7 +65,7 @@ public final class UserManager {
         user.setLocked(lock);
         db.update(user);
         if (Config.DEBUG) {
-            main.info("Save user data " + user.getUuid() + " done!");
+            main.log("Save user data " + user.getUuid() + " done!");
         }
     }
 
@@ -76,9 +76,9 @@ public final class UserManager {
         int result = update.execute();
         if (Config.DEBUG) {
             if (result == 1) {
-                main.info("Lock user data " + uuid + " done.");
+                main.log("Lock user data " + uuid + " done.");
             } else {
-                main.info("Lock user data " + uuid + " faid!");
+                main.log("Lock user data " + uuid + " faid!");
             }
         }
     }
@@ -134,7 +134,7 @@ public final class UserManager {
 
     public void unlockUser(UUID uuid, boolean scheduled) {
         if (scheduled) {
-            main.runTask(() -> unlockUser(uuid));
+            main.run(() -> unlockUser(uuid));
         } else {
             unlockUser(uuid);
         }
@@ -151,7 +151,7 @@ public final class UserManager {
         if (player != null && player.isOnline()) {
             pend(user, player);
         } else if (Config.DEBUG) {
-            this.main.info(new PluginException("User " + user.getUuid() + " not found!"));
+            this.main.log(new PluginException("User " + user.getUuid() + " not found!"));
         }
     }
 
@@ -218,7 +218,7 @@ public final class UserManager {
             } else try {
                 output.add(this.itemUtil.convert(s));
             } catch (Exception e) {
-                this.main.info(e);
+                this.main.log(e);
             }
         return output.toArray(new ItemStack[parsed.size()]);
     }
@@ -232,7 +232,7 @@ public final class UserManager {
             } else try {
                 array.add(this.itemUtil.convert(stack));
             } catch (Exception e) {
-                this.main.info(e);
+                this.main.log(e);
             }
         return array.toString();
     }
@@ -258,23 +258,23 @@ public final class UserManager {
         if (task != null) {
             task.cancel();
         } else if (Config.DEBUG) {
-            this.main.info("No task can be canceled for " + uuid + '!');
+            this.main.log("No task can be canceled for " + uuid + '!');
         }
     }
 
     public void createTask(UUID uuid) {
         if (Config.DEBUG) {
-            this.main.info("Scheduling daily save task for user " + uuid + '.');
+            this.main.log("Scheduling daily save task for user " + uuid + '.');
         }
         DailySaveTask saveTask = new DailySaveTask();
-        BukkitTask task = this.main.runTaskTimer(saveTask, 6000);
+        BukkitTask task = this.main.runTimer(saveTask, 6000);
         saveTask.setUuid(uuid);
         saveTask.setUserManager(this);
         saveTask.setTaskId(task.getTaskId());
         BukkitTask old = this.taskMap.put(uuid, task);
         if (old != null) {
             if (Config.DEBUG) {
-                this.main.info("Already scheduled task for user " + uuid + '!');
+                this.main.log("Already scheduled task for user " + uuid + '!');
             }
             old.cancel();
         }

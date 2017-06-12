@@ -104,7 +104,7 @@ public class EventExecutor implements Listener {
     public void handle(PlayerLoginEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         if (Config.DEBUG) {
-            main.info("Lock user " + uuid + " done!");
+            main.log("Lock user " + uuid + " done!");
         }
         this.manager.lockUser(uuid);
     }
@@ -114,7 +114,7 @@ public class EventExecutor implements Listener {
         FetchUserTask task = new FetchUserTask();
         task.setUuid(event.getPlayer().getUniqueId());
         task.setExecutor(this);
-        task.setTaskId(this.main.runTaskTimerAsynchronously(task, Config.SYN_DELAY).getTaskId());
+        task.setTaskId(this.main.runTimerAsync(task, Config.SYN_DELAY).getTaskId());
     }
 
     @EventHandler(priority = MONITOR)
@@ -123,7 +123,7 @@ public class EventExecutor implements Listener {
         if (manager.isNotLocked(uuid)) {
             manager.cancelTask(uuid);
             User user = manager.getUserData(event.getPlayer(), true);
-            main.runTaskAsynchronously(() -> {
+            main.runAsync(() -> {
                 manager.saveUser(user, false);
             });
         } else {

@@ -12,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 /**
@@ -72,27 +73,27 @@ public class PluginMain extends JavaPlugin {
         return getServer().getPlayer(uuid);
     }
 
-    public void info(Exception e) {
-        getLogger().log(Level.WARNING, e.toString(), e);
+    public void log(Exception e) {
+        getLogger().log(Level.SEVERE, e.toString(), e);
     }
 
-    public void info(String info) {
+    public void log(String info) {
         getLogger().info(info);
     }
 
-    public BukkitTask runTaskTimerAsynchronously(Runnable r, int i) {
+    public BukkitTask runTimerAsync(Runnable r, int i) {
         return getServer().getScheduler().runTaskTimerAsynchronously(this, r, i, i);
     }
 
-    public BukkitTask runTaskAsynchronously(Runnable r) {
-        return getServer().getScheduler().runTaskAsynchronously(this, r);
+    public void runAsync(Runnable r) {
+        CompletableFuture.runAsync(r);
     }
 
-    public BukkitTask runTask(Runnable r) {
-        return getServer().getScheduler().runTask(this, r);
+    public void run(Runnable r) {
+        getServer().getScheduler().runTask(this, r);
     }
 
-    public BukkitTask runTaskTimer(Runnable r, int i) {
+    public BukkitTask runTimer(Runnable r, int i) {
         return getServer().getScheduler().runTaskTimer(this, r, i, i);
     }
 
