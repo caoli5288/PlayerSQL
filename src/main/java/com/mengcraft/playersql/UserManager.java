@@ -87,12 +87,14 @@ public enum UserManager {
         val view = p.getOpenInventory();
         if (!nil(view)) {
             val cursor = view.getCursor();
-            view.setCursor(null);
-            val d = p.getInventory().addItem(cursor);
-            if (!d.isEmpty()) {
-                // Bypass to opened inventory
-                for (val item : d.values()) {
-                    view.getTopInventory().addItem(item);
+            if (!nil(cursor)) {
+                view.setCursor(null);
+                val d = p.getInventory().addItem(cursor);
+                if (!d.isEmpty()) {
+                    // Bypass to opened inventory
+                    for (val item : d.values()) {
+                        view.getTopInventory().addItem(item);
+                    }
                 }
             }
         }
