@@ -1,8 +1,8 @@
 package com.mengcraft.playersql.lib;
 
-import com.mengcraft.playersql.lib.ItemUtil.Simple;
+import com.mengcraft.playersql.lib.ItemUtil.NMS;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -11,70 +11,59 @@ import org.bukkit.plugin.Plugin;
 import java.util.Arrays;
 
 import static com.mengcraft.playersql.PluginMain.nil;
+import static com.mengcraft.playersql.PluginMain.thr;
 
 
 public class ItemUtilHandler {
 
-    private final Plugin proxy;
-    private final Server server;
+    private final Plugin plugin;
 
     private ItemUtil util;
     private String version;
     private ItemStack item;
 
-    public ItemUtilHandler(Plugin in) {
-        if (in == null) {
-            throw new NullPointerException();
-        }
-        this.proxy = in;
-        this.server = in.getServer();
+    public ItemUtilHandler(Plugin plugin) {
+        thr(nil(plugin), "null");
+        this.plugin = plugin;
     }
 
     public ItemUtil handle() {
-        if (util == null) {
-            if (testBuildIn(version())) {
-                util = new Simple(version());
-            } else {
-                Plugin plugin = proxy.getServer().getPluginManager().getPlugin("ProtocolLib");
-                if (!nil(plugin) && testPLib()) {
-                    util = new ItemUtil.PLib();
-                } else {
-                    throw new RuntimeException("Hasn't compatible util! Update plugin or use compatible ProtocolLib");
-                }
+        if (nil(util)) {
+            util = validNMS(version());
+            if (!nil(util)) return util;
+            Plugin plugin = this.plugin.getServer().getPluginManager().getPlugin("ProtocolLib");
+            if (!nil(plugin)) {
+                util = validPLib();
+                thr(nil(util), "Hasn't compatible util! Update plugin or use compatible ProtocolLib");
             }
         }
         return util;
     }
 
-    private boolean testPLib() {
+    private ItemUtil validPLib() {
+        ItemUtil util = new ItemUtil.PLib();
         try {
-            ItemUtil util = new ItemUtil.PLib();
-
             if (item().equals(util.convert(util.convert(item())))) {
-                proxy.getLogger().info("Server version: " + version + '.');
-                proxy.getLogger().info("ProtocolLib item util work well!");
-                return true;
+                plugin.getLogger().info("Server version: " + version + '.');
+                plugin.getLogger().info("ProtocolLib item util work well!");
             }
         } catch (Exception e) {
-            proxy.getLogger().warning(e.toString());
+            plugin.getLogger().warning(e.toString());
         }
-        return false;
+        return util;
     }
 
-    private boolean testBuildIn(String version) {
+    private ItemUtil validNMS(String version) {
+        ItemUtil util = new NMS(version);
         try {
-            ItemUtil util = new Simple(version);
-
             if (item().equals(util.convert(util.convert(item())))) {
-                proxy.getLogger().info("Server version: " + version + '.');
-                proxy.getLogger().info("Build-in item util work well!");
-
-                return true;
+                plugin.getLogger().info("Server version: " + version + '.');
+                plugin.getLogger().info("Build-in item util work well!");
             }
         } catch (Exception e) {
-            proxy.getLogger().warning(e.toString());
+            plugin.getLogger().warning(e.toString());
         }
-        return false;
+        return util;
     }
 
     private ItemStack item() {
@@ -82,7 +71,7 @@ public class ItemUtilHandler {
             item = new ItemStack(Material.DIAMOND_SWORD);
 
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("test");
+            meta.setDisplayName("valid");
             meta.setLore(Arrays.asList("a", "b", "c"));
 
             item.setItemMeta(meta);
@@ -92,8 +81,8 @@ public class ItemUtilHandler {
     }
 
     private String version() {
-        if (version == null) {
-            version = server.getClass().getName().split("\\.")[3];
+        if (nil(version)) {
+            version = Bukkit.getServer().getClass().getName().split("\\.")[3];
         }
         return version;
     }

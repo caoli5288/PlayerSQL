@@ -9,12 +9,16 @@ import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import static com.mengcraft.playersql.User.TABLE_NAME;
+
 /**
  * Created on 16-1-2.
  */
 @Entity
-@Table(name = "PLAYERSQL")
+@Table(name = TABLE_NAME)
 public class User {
+
+    public static final String TABLE_NAME = "PLAYERSQL";
 
     @Id
     private UUID uuid;

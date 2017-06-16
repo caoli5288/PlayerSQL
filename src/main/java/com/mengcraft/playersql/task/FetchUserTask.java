@@ -1,63 +1,63 @@
 package com.mengcraft.playersql.task;
 
 import com.mengcraft.playersql.Config;
-import com.mengcraft.playersql.EventExecutor;
+import com.mengcraft.playersql.PluginMain;
 import com.mengcraft.playersql.User;
+import com.mengcraft.playersql.UserManager;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
+
+import static com.mengcraft.playersql.PluginMain.nil;
 
 /**
  * Created on 16-1-2.
  */
-public class FetchUserTask implements Runnable {
+public class FetchUserTask extends BukkitRunnable {
 
-    private EventExecutor executor;
-    private UUID uuid;
-
-    private int taskId;
+    private final UserManager manager = UserManager.INSTANCE;
+    private final PluginMain main;
+    private final UUID who;
     private int retry;
+
+    public FetchUserTask(PluginMain main, UUID who) {
+        this.main = main;
+        this.who = who;
+    }
 
     @Override
     public synchronized void run() {
-        User user = this.executor.getManager().fetchUser(this.uuid);
-        if (user == null) {
-            this.executor.cancelTask(this.taskId);
+        User user = manager.fetchUser(who);
+        if (nil(user)) {
+            cancel();
+
             if (Config.DEBUG) {
-                this.executor.getMain().log("User data " + uuid + " not found!");
+                main.log("User data " + who + " not found!");
             }
 
-            this.executor.getManager().unlockUser(this.uuid, true);
-            this.executor.getManager().newUser(this.uuid);
-            this.executor.getManager().createTask(this.uuid);
+            manager.newUser(who);
+            main.run(() -> {
+                manager.unlockUser(who);
+                manager.createTask(who);
+            });
 
             if (Config.DEBUG) {
-                this.executor.getMain().log("New user data for" + uuid + '.');
+                main.log("New user data for" + who + '.');
             }
         } else if (user.isLocked() && this.retry++ < 8) {
             if (Config.DEBUG) {
-                this.executor.getMain().log("Load user data " + uuid + " fail " + retry + '.');
+                main.log("Load user data " + who + " fail " + retry + '.');
             }
         } else {
-            this.executor.getManager().addFetched(user);
+            cancel();
+
+            manager.addFetched(user);
             if (Config.DEBUG) {
-                this.executor.getMain().log("Load user data " + uuid + " done.");
+                main.log("Load user data " + who + " done.");
             }
 
-            this.executor.cancelTask(this.taskId);
-            this.executor.getManager().lockUserData(uuid);
+            manager.updateDataLock(who, true);
         }
-    }
-
-    public void setExecutor(EventExecutor executor) {
-        this.executor = executor;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    public void setTaskId(int taskId) {
-        this.taskId = taskId;
     }
 
 }

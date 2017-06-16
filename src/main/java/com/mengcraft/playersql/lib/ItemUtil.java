@@ -39,7 +39,7 @@ public interface ItemUtil {
     }
 
     @SuppressWarnings("all")
-    class Simple implements ItemUtil {
+    class NMS implements ItemUtil {
 
         private final String cb;
         private final String nms;
@@ -171,7 +171,7 @@ public interface ItemUtil {
             return getClass().getClassLoader().loadClass(path);
         }
 
-        Simple(String version) {
+        NMS(String version) {
             this.cb = "org.bukkit.craftbukkit." + version;
             this.nms = "net.minecraft.server." + version;
         }

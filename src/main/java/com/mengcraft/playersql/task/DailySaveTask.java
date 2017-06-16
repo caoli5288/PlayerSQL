@@ -3,48 +3,40 @@ package com.mengcraft.playersql.task;
 import com.mengcraft.playersql.Config;
 import com.mengcraft.playersql.User;
 import com.mengcraft.playersql.UserManager;
-import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
+
+import static com.mengcraft.playersql.PluginMain.nil;
 
 /**
  * Created on 16-1-4.
  */
-public class DailySaveTask implements Runnable {
+public class DailySaveTask extends BukkitRunnable {
 
-    private UserManager userManager;
-    private UUID uuid;
-
-    private int taskId;
-    private int saveCount;
+    private UserManager manager = UserManager.INSTANCE;
+    private UUID who;
+    private int count;
 
     @Override
-    public synchronized void run() {
-        User user = userManager.getUserData(this.uuid, false);
-        if (user == null) {
+    public void run() {
+        User user = manager.getUserData(this.who, false);
+        if (nil(user)) {
             if (Config.DEBUG) {
-                userManager.getMain().log("Cancel task for " + uuid + " offline!");
+                manager.getMain().log("Cancel task for " + who + " offline!");
             }
-            Bukkit.getScheduler().cancelTask(taskId);
+            cancel();
         } else {
-            this.saveCount++;
+            this.count++;
             if (Config.DEBUG) {
-                userManager.getMain().log("Save user " + this.uuid + " count " + this.saveCount + '.');
+                manager.getMain().log("Save user " + this.who + " count " + this.count + '.');
             }
-            userManager.getMain().runAsync(() -> userManager.saveUser(user, true));
+            manager.getMain().runAsync(() -> manager.saveUser(user, true));
         }
     }
 
-    public void setTaskId(int taskId) {
-        this.taskId = taskId;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    public void setUserManager(UserManager userManager) {
-        this.userManager = userManager;
+    public void setWho(UUID who) {
+        this.who = who;
     }
 
 }

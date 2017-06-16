@@ -97,6 +97,10 @@ public class PluginMain extends JavaPlugin {
         return getServer().getScheduler().runTaskTimer(this, r, i, i);
     }
 
+    public static void thr(boolean b, String message) {
+        if (b) throw new IllegalStateException(message);
+    }
+
     public static boolean nil(Object i) {
         return i == null;
     }

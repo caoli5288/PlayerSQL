@@ -1,19 +1,19 @@
 package com.mengcraft.playersql;
 
-import com.avaje.ebean.Update;
 import com.mengcraft.playersql.lib.ExpUtil;
+import com.mengcraft.playersql.lib.IOBlocking;
 import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.JSONUtil;
 import com.mengcraft.playersql.task.DailySaveTask;
 import com.mengcraft.simpleorm.EbeanHandler;
-import org.bukkit.Location;
+import lombok.SneakyThrows;
+import lombok.val;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONArray;
 
 import java.util.ArrayList;
@@ -23,28 +23,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+
+import static com.mengcraft.playersql.PluginMain.nil;
 
 /**
  * Created on 16-1-2.
  */
-public final class UserManager {
+public enum UserManager {
 
-    public static final UserManager INSTANCE = new UserManager();
+    INSTANCE;
+
     public static final ItemStack AIR = new ItemStack(Material.AIR);
 
-    private final Map<UUID, BukkitTask> taskMap;
-    private final List<UUID> locked;
+    private final Map<UUID, BukkitRunnable> scheduled = new HashMap<>();
+    private final List<UUID> locked = new ArrayList<>();
 
     private PluginMain main;
     private ItemUtil itemUtil;
     private ExpUtil expUtil;
     private EbeanHandler db;
-
-    private UserManager() {
-        this.taskMap = new ConcurrentHashMap<>();
-        this.locked = new ArrayList<>();
-    }
 
     public void addFetched(User user) {
         main.run(() -> pend(user));
@@ -58,7 +55,7 @@ public final class UserManager {
     }
 
     public void saveUser(Player p, boolean lock) {
-        saveUser(getUserData(p, lock), lock);
+        saveUser(getUserData(p, !lock), lock);
     }
 
     public void saveUser(User user, boolean lock) {
@@ -69,24 +66,42 @@ public final class UserManager {
         }
     }
 
-    public void lockUserData(UUID uuid) {
-        Update<User> update = db.getServer().createUpdate(User.class, "update PLAYERSQL set locked = :locked where uuid = :uuid");
-        update.set("locked", true);
-        update.set("uuid", uuid.toString());
+    @IOBlocking
+    public void updateDataLock(UUID who, boolean lock) {
+        val update = db.getServer().createUpdate(User.class, "update " + User.TABLE_NAME +
+                " set locked = :locked where uuid = :uuid");
+        update.set("locked", lock);
+        update.set("uuid", who.toString());
         int result = update.execute();
         if (Config.DEBUG) {
             if (result == 1) {
-                main.log("Lock user data " + uuid + " done.");
+                main.log("Update " + who + " lock to " + lock + " okay");
             } else {
-                main.log("Lock user data " + uuid + " faid!");
+                main.log(new PluginException("Update " + who + " lock to " + lock + " failed"));
             }
         }
     }
 
-    public User getUserData(UUID id, boolean b) {
-        Player player = main.getServer().getPlayer(id);
-        if (player != null) {
-            return getUserData(player, b);
+    private void closeInventory(Player p) {
+        // Try fix some duplicate item issue
+        val view = p.getOpenInventory();
+        if (!nil(view)) {
+            val cursor = view.getCursor();
+            view.setCursor(null);
+            val d = p.getInventory().addItem(cursor);
+            if (!d.isEmpty()) {
+                // Bypass to opened inventory
+                for (val item : d.values()) {
+                    view.getTopInventory().addItem(item);
+                }
+            }
+        }
+    }
+
+    public User getUserData(UUID id, boolean closeInventory) {
+        val p = main.getServer().getPlayer(id);
+        if (!nil(p)) {
+            return getUserData(p, closeInventory);
         }
         return null;
     }
@@ -102,7 +117,7 @@ public final class UserManager {
         }
         if (Config.SYN_INVENTORY) {
             if (closeInventory) {
-                p.closeInventory();
+                closeInventory(p);
             }
             user.setInventory(toString(p.getInventory().getContents()));
             user.setArmor(toString(p.getInventory().getArmorContents()));
@@ -132,50 +147,51 @@ public final class UserManager {
         this.locked.add(uuid);
     }
 
-    public void unlockUser(UUID uuid, boolean scheduled) {
-        if (scheduled) {
-            main.run(() -> unlockUser(uuid));
-        } else {
-            unlockUser(uuid);
-        }
-    }
-
-    private void unlockUser(UUID uuid) {
+    public void unlockUser(UUID uuid) {
         while (isLocked(uuid)) {
             locked.remove(uuid);
         }
     }
 
     private void pend(User user) {
-        Player player = this.main.getPlayer(user.getUuid());
-        if (player != null && player.isOnline()) {
-            pend(user, player);
+        val player = main.getPlayer(user.getUuid());
+        if (!nil(player) && player.isOnline()) {
+            try {
+                pend(user, player);
+            } catch (Exception e) {
+                if (Config.KICK_LOAD_FAILED) {
+                    player.kickPlayer(Config.KICK_LOAD_MESSAGE);
+                }
+                if (Config.DEBUG) {
+                    main.log(e);
+                } else {
+                    main.log(e.toString());
+                }
+            }
         } else if (Config.DEBUG) {
-            this.main.log(new PluginException("User " + user.getUuid() + " not found!"));
+            main.log(new PluginException("Player " + user.getUuid() + " not found"));
         }
     }
 
     private void pend(User polled, Player player) {
         if (Config.SYN_INVENTORY) {
-            ItemStack[] fetched = toStack(polled.getInventory());
+            val fetched = toStack(polled.getInventory());
             player.closeInventory();
-            PlayerInventory pack = player.getInventory();
+            val pack = player.getInventory();
             if (fetched.length > pack.getSize()) {// Fixed #36
-                int j = pack.getSize();
-                pack.setContents(Arrays.copyOf(fetched, j));
-                HashMap<?, ItemStack> out = pack.addItem(Arrays.copyOfRange(fetched, j, fetched.length));
-                if (out.size() != 0) {
-                    Location location = player.getLocation();
-                    out.forEach((o, item) -> {
-                        player.getWorld().dropItem(location, item);
-                    });
-                }// Drop if no space
+                int size = pack.getSize();
+                pack.setContents(Arrays.copyOf(fetched, size));
+                val out = pack.addItem(Arrays.copyOfRange(fetched, size, fetched.length));
+                if (!out.isEmpty()) {
+                    val location = player.getLocation();
+                    out.forEach((o, item) -> player.getWorld().dropItem(location, item));
+                }
             } else {
                 pack.setContents(fetched);
             }
             pack.setArmorContents(toStack(polled.getArmor()));
             pack.setHeldItemSlot(polled.getHand());
-            player.updateInventory();// force update
+            player.updateInventory();// Force update needed
         }
         if (Config.SYN_HEALTH && player.getMaxHealth() >= polled.getHealth()) {
             player.setHealth(polled.getHealth());
@@ -195,12 +211,12 @@ public final class UserManager {
             player.getEnderChest().setContents(toStack(polled.getChest()));
         }
         createTask(player.getUniqueId());
-        unlockUser(player.getUniqueId(), false);
+        unlockUser(player.getUniqueId());
     }
 
     @SuppressWarnings("unchecked")
-    private List<PotionEffect> toEffect(String data) {
-        List<List> parsed = JSONUtil.parseArray(data, JSONUtil.EMPTY_ARRAY);
+    private List<PotionEffect> toEffect(String input) {
+        List<List> parsed = JSONUtil.parseArray(input);
         List<PotionEffect> output = new ArrayList<>(parsed.size());
         for (List<Number> entry : parsed) {
             output.add(new PotionEffect(PotionEffectType.getById(entry.get(0).intValue()), entry.get(1).intValue(), entry.get(2).intValue()));
@@ -209,18 +225,18 @@ public final class UserManager {
     }
 
     @SuppressWarnings("unchecked")
-    private ItemStack[] toStack(String data) {
-        List<String> parsed = JSONUtil.parseArray(data, JSONUtil.EMPTY_ARRAY);
-        List<ItemStack> output = new ArrayList<>(parsed.size());
-        for (String s : parsed)
-            if (s == null) {
+    @SneakyThrows
+    private ItemStack[] toStack(String input) {
+        List<String> list = JSONUtil.parseArray(input);
+        List<ItemStack> output = new ArrayList<>(list.size());
+        for (String line : list) {
+            if (nil(line)) {
                 output.add(AIR);
-            } else try {
-                output.add(this.itemUtil.convert(s));
-            } catch (Exception e) {
-                this.main.log(e);
+            } else {
+                output.add(itemUtil.convert(line));
             }
-        return output.toArray(new ItemStack[parsed.size()]);
+        }
+        return output.toArray(new ItemStack[list.size()]);
     }
 
     @SuppressWarnings("unchecked")
@@ -239,14 +255,15 @@ public final class UserManager {
 
     @SuppressWarnings("unchecked")
     private String toString(Collection<PotionEffect> effects) {
-        JSONArray array = new JSONArray();
-        for (PotionEffect effect : effects)
-            array.add(new JSONArray() {{
-                add(effect.getType().getId());
-                add(effect.getDuration());
-                add(effect.getAmplifier());
-            }});
-        return array.toString();
+        val out = new JSONArray();
+        for (PotionEffect effect : effects) {
+            val sub = new JSONArray();
+            sub.add(effect.getType().getId());
+            sub.add(effect.getDuration());
+            sub.add(effect.getAmplifier());
+            out.add(sub);
+        }
+        return out.toString();
     }
 
     public void cancelTask(int i) {
@@ -254,7 +271,7 @@ public final class UserManager {
     }
 
     public void cancelTask(UUID uuid) {
-        BukkitTask task = taskMap.remove(uuid);
+        BukkitRunnable task = scheduled.remove(uuid);
         if (task != null) {
             task.cancel();
         } else if (Config.DEBUG) {
@@ -262,21 +279,19 @@ public final class UserManager {
         }
     }
 
-    public void createTask(UUID uuid) {
+    public void createTask(UUID who) {
         if (Config.DEBUG) {
-            this.main.log("Scheduling daily save task for user " + uuid + '.');
+            this.main.log("Scheduling daily save task for user " + who + '.');
         }
-        DailySaveTask saveTask = new DailySaveTask();
-        BukkitTask task = this.main.runTimer(saveTask, 6000);
-        saveTask.setUuid(uuid);
-        saveTask.setUserManager(this);
-        saveTask.setTaskId(task.getTaskId());
-        BukkitTask old = this.taskMap.put(uuid, task);
+        DailySaveTask task = new DailySaveTask();
+        task.setWho(who);
+        task.runTaskTimer(main, 6000, 6000);
+        BukkitRunnable old = scheduled.put(who, task);
         if (old != null) {
-            if (Config.DEBUG) {
-                this.main.log("Already scheduled task for user " + uuid + '!');
-            }
             old.cancel();
+            if (Config.DEBUG) {
+                this.main.log("Already scheduled task for user " + who + '!');
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.task.FetchUserTask;
+import lombok.val;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -111,23 +112,21 @@ public class EventExecutor implements Listener {
 
     @EventHandler
     public void handle(PlayerJoinEvent event) {
-        FetchUserTask task = new FetchUserTask();
-        task.setUuid(event.getPlayer().getUniqueId());
-        task.setExecutor(this);
-        task.setTaskId(this.main.runTimerAsync(task, Config.SYN_DELAY).getTaskId());
+        val task = new FetchUserTask(main, event.getPlayer().getUniqueId());
+        int delay = Config.SYN_DELAY;
+        task.runTaskTimerAsynchronously(main, delay, delay);
     }
 
     @EventHandler(priority = MONITOR)
     public void handle(PlayerQuitEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
-        if (manager.isNotLocked(uuid)) {
-            manager.cancelTask(uuid);
-            User user = manager.getUserData(event.getPlayer(), true);
-            main.runAsync(() -> {
-                manager.saveUser(user, false);
-            });
+        val p = event.getPlayer().getUniqueId();
+        if (manager.isNotLocked(p)) {
+            manager.cancelTask(p);
+            val i = manager.getUserData(p, true);
+            main.runAsync(() -> manager.saveUser(i, false));
         } else {
-            manager.unlockUser(uuid, false);
+            manager.unlockUser(p);
+            main.runAsync(() -> manager.updateDataLock(p, false));
         }
     }
 
