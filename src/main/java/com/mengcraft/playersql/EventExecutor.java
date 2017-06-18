@@ -191,20 +191,8 @@ public class EventExecutor implements Listener {
         this.manager = manager;
     }
 
-    public UserManager getManager() {
-        return this.manager;
-    }
-
     public void setMain(PluginMain main) {
         this.main = main;
-    }
-
-    public PluginMain getMain() {
-        return this.main;
-    }
-
-    public void cancelTask(int taskId) {
-        manager.cancelTask(taskId);
     }
 
 }

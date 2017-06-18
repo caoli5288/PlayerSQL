@@ -163,6 +163,8 @@ public enum UserManager {
             } catch (Exception e) {
                 if (Config.KICK_LOAD_FAILED) {
                     player.kickPlayer(Config.KICK_LOAD_MESSAGE);
+                } else {
+                    unlockUser(player.getUniqueId());
                 }
                 if (Config.DEBUG) {
                     main.log(e);
@@ -266,10 +268,6 @@ public enum UserManager {
             out.add(sub);
         }
         return out.toString();
-    }
-
-    public void cancelTask(int i) {
-        this.main.getServer().getScheduler().cancelTask(i);
     }
 
     public void cancelTask(UUID uuid) {
