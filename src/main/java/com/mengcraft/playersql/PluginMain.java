@@ -7,9 +7,9 @@ import com.mengcraft.playersql.lib.ItemUtilHandler;
 import com.mengcraft.playersql.lib.Metrics;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
+import com.mengcraft.simpleorm.ORM;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +28,8 @@ public class PluginMain extends JavaPlugin {
         ItemUtil itemUtil = new ItemUtilHandler(this).handle();
         ExpUtil expUtil = new ExpUtilHandler(this).handle();
 
+        ORM.loadLibrary(this);
+
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
         if (db.isNotInitialized()) {
             db.define(User.class);
@@ -41,7 +43,6 @@ public class PluginMain extends JavaPlugin {
         }
 
         db.install();
-//        db.reflect();
 
         UserManager manager = UserManager.INSTANCE;
         manager.setMain(this);
@@ -81,20 +82,12 @@ public class PluginMain extends JavaPlugin {
         getLogger().info(info);
     }
 
-    public BukkitTask runTimerAsync(Runnable r, int i) {
-        return getServer().getScheduler().runTaskTimerAsynchronously(this, r, i, i);
-    }
-
     public void runAsync(Runnable r) {
         CompletableFuture.runAsync(r);
     }
 
     public void run(Runnable r) {
         getServer().getScheduler().runTask(this, r);
-    }
-
-    public BukkitTask runTimer(Runnable r, int i) {
-        return getServer().getScheduler().runTaskTimer(this, r, i, i);
     }
 
     public static void thr(boolean b, String message) {
