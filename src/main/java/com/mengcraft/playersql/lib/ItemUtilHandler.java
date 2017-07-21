@@ -16,9 +16,8 @@ import static com.mengcraft.playersql.PluginMain.thr;
 
 public class ItemUtilHandler {
 
+    private static ItemUtil util;
     private final Plugin plugin;
-
-    private ItemUtil util;
     private String version;
     private ItemStack item;
 
@@ -30,12 +29,15 @@ public class ItemUtilHandler {
     public ItemUtil handle() {
         if (nil(util)) {
             util = validNMS(version());
-            if (!nil(util)) return util;
-            Plugin plugin = this.plugin.getServer().getPluginManager().getPlugin("ProtocolLib");
-            if (!nil(plugin)) {
-                util = validPLib();
-                thr(nil(util), "Hasn't compatible util! Update plugin or use compatible ProtocolLib");
+            if (nil(util)) {
+                Plugin plugin = this.plugin.getServer().getPluginManager().getPlugin("ProtocolLib");
+                if (!nil(plugin)) {
+                    util = validPLib();
+                }
             }
+            thr(nil(util), "Hasn't compatible util! Update PlayerSQL or ProtocolLib");
+            plugin.getLogger().info("Bukkit " + version());
+            plugin.getLogger().info("Item util " + util.id());
         }
         return util;
     }
@@ -44,26 +46,24 @@ public class ItemUtilHandler {
         ItemUtil util = new ItemUtil.PLib();
         try {
             if (item().equals(util.convert(util.convert(item())))) {
-                plugin.getLogger().info("Server version: " + version + '.');
-                plugin.getLogger().info("ProtocolLib item util work well!");
+                return util;
             }
         } catch (Exception e) {
             plugin.getLogger().warning(e.toString());
         }
-        return util;
+        return null;
     }
 
     private ItemUtil validNMS(String version) {
         ItemUtil util = new NMS(version);
         try {
             if (item().equals(util.convert(util.convert(item())))) {
-                plugin.getLogger().info("Server version: " + version + '.');
-                plugin.getLogger().info("Build-in item util work well!");
+                return util;
             }
         } catch (Exception e) {
             plugin.getLogger().warning(e.toString());
         }
-        return util;
+        return null;
     }
 
     private ItemStack item() {

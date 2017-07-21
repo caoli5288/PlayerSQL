@@ -22,20 +22,26 @@ public interface ItemUtil {
 
     ItemStack convert(String in) throws Exception;
 
+    String id();
+
     class PLib implements ItemUtil {
 
-        final StreamSerializer serializer = new StreamSerializer();
+        private final StreamSerializer i = new StreamSerializer();
+
+        @Override
+        public String id() {
+            return "protocollib";
+        }
 
         @Override
         public String convert(ItemStack in) throws Exception {
-            return serializer.serializeItemStack(in);
+            return i.serializeItemStack(in);
         }
 
         @Override
         public ItemStack convert(String in) throws Exception {
-            return serializer.deserializeItemStack(in);
+            return i.deserializeItemStack(in);
         }
-
     }
 
     @SuppressWarnings("all")
@@ -62,6 +68,11 @@ public interface ItemUtil {
         private Constructor item;
 
         private Field handle;
+
+        @Override
+        public String id() {
+            return "build-in";
+        }
 
         @Override
         public String convert(ItemStack in) throws Exception {
