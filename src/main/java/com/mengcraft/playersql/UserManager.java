@@ -207,8 +207,11 @@ public enum UserManager {
             player.setFoodLevel(polled.getFood());
         }
         if (Config.SYN_EFFECT) {
-            for (PotionEffect effect : toEffect(polled.getEffect())) {
-                player.addPotionEffect(effect, true);
+            for (val eff : player.getActivePotionEffects()) {
+                player.removePotionEffect(eff.getType());
+            }
+            for (val eff : toEffect(polled.getEffect())) {
+                player.addPotionEffect(eff, true);
             }
         }
         if (Config.SYN_CHEST) {
