@@ -14,9 +14,11 @@ import org.bukkit.event.player.PlayerEvent;
 public class PlayerDataProcessedEvent extends PlayerEvent {
 
     public static final HandlerList HANDLER_LIST = new HandlerList();
+    private final Exception exception;
 
-    private PlayerDataProcessedEvent(Player who) {
+    private PlayerDataProcessedEvent(Player who, Exception exception) {
         super(who);
+        this.exception = exception;
     }
 
     @Override
@@ -28,8 +30,8 @@ public class PlayerDataProcessedEvent extends PlayerEvent {
         return HANDLER_LIST;
     }
 
-    public static PlayerDataProcessedEvent call(Player who) {
-        val evt = new PlayerDataProcessedEvent(who);
+    public static PlayerDataProcessedEvent call(Player who, Exception exception) {
+        val evt = new PlayerDataProcessedEvent(who, exception);
         Bukkit.getPluginManager().callEvent(evt);
         return evt;
     }

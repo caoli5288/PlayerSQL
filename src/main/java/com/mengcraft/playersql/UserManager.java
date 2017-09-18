@@ -175,9 +175,11 @@ public enum UserManager {
             if (event.isCancelled()) {
                 onLoadFailed(who);
             } else {
+                Exception exception = null;
                 try {
                     pend(who, data);
                 } catch (Exception e) {
+                    exception = e;
                     onLoadFailed(who);
                     if (Config.DEBUG) {
                         main.log(e);
@@ -185,7 +187,7 @@ public enum UserManager {
                         main.log(e.toString());
                     }
                 }
-                PlayerDataProcessedEvent.call(who);
+                PlayerDataProcessedEvent.call(who, exception);
             }
         }
     }
