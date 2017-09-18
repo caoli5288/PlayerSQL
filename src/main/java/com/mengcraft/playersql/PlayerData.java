@@ -9,14 +9,14 @@ import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-import static com.mengcraft.playersql.User.TABLE_NAME;
+import static com.mengcraft.playersql.PlayerData.TABLE_NAME;
 
 /**
  * Created on 16-1-2.
  */
 @Entity
 @Table(name = TABLE_NAME)
-public class User {
+public class PlayerData {
 
     public static final String TABLE_NAME = "PLAYERSQL";
 

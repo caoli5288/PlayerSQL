@@ -32,7 +32,7 @@ public class PluginMain extends JavaPlugin {
 
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
         if (db.isNotInitialized()) {
-            db.define(User.class);
+            db.define(PlayerData.class);
 
             db.setMaxSize(getConfig().getInt("plugin.max-db-connection"));
             try {

@@ -1,8 +1,8 @@
 package com.mengcraft.playersql.task;
 
 import com.mengcraft.playersql.Config;
+import com.mengcraft.playersql.PlayerData;
 import com.mengcraft.playersql.PluginMain;
-import com.mengcraft.playersql.User;
 import com.mengcraft.playersql.UserManager;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -27,7 +27,7 @@ public class FetchUserTask extends BukkitRunnable {
 
     @Override
     public synchronized void run() {
-        User user = manager.fetchUser(who);
+        PlayerData user = manager.fetchUser(who);
         if (nil(user)) {
             cancel();
 

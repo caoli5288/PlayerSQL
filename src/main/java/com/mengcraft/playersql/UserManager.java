@@ -1,5 +1,7 @@
 package com.mengcraft.playersql;
 
+import com.mengcraft.playersql.event.PlayerDataFetchedEvent;
+import com.mengcraft.playersql.event.PlayerDataProcessedEvent;
 import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.IOBlocking;
 import com.mengcraft.playersql.lib.ItemUtil;
@@ -43,22 +45,22 @@ public enum UserManager {
     private ExpUtil expUtil;
     private EbeanHandler db;
 
-    public void addFetched(User user) {
+    public void addFetched(PlayerData user) {
         main.run(() -> pend(user));
     }
 
     /**
      * @return The user, or <code>null</code> if not exists.
      */
-    public User fetchUser(UUID uuid) {
-        return db.find(User.class, uuid);
+    public PlayerData fetchUser(UUID uuid) {
+        return db.find(PlayerData.class, uuid);
     }
 
     public void saveUser(Player p, boolean lock) {
         saveUser(getUserData(p, !lock), lock);
     }
 
-    public void saveUser(User user, boolean lock) {
+    public void saveUser(PlayerData user, boolean lock) {
         user.setLocked(lock);
         db.update(user);
         if (Config.DEBUG) {
@@ -68,7 +70,7 @@ public enum UserManager {
 
     @IOBlocking
     public void updateDataLock(UUID who, boolean lock) {
-        val update = db.getServer().createUpdate(User.class, "update " + User.TABLE_NAME +
+        val update = db.getServer().createUpdate(PlayerData.class, "update " + PlayerData.TABLE_NAME +
                 " set locked = :locked where uuid = :uuid");
         update.set("locked", lock);
         update.set("uuid", who.toString());
@@ -100,7 +102,7 @@ public enum UserManager {
         }
     }
 
-    public User getUserData(UUID id, boolean closeInventory) {
+    public PlayerData getUserData(UUID id, boolean closeInventory) {
         val p = main.getServer().getPlayer(id);
         if (!nil(p)) {
             return getUserData(p, closeInventory);
@@ -108,8 +110,8 @@ public enum UserManager {
         return null;
     }
 
-    public User getUserData(Player p, boolean closeInventory) {
-        User user = new User();
+    public PlayerData getUserData(Player p, boolean closeInventory) {
+        PlayerData user = new PlayerData();
         user.setUuid(p.getUniqueId());
         if (Config.SYN_HEALTH) {
             user.setHealth(p.getHealth());
@@ -155,70 +157,81 @@ public enum UserManager {
         }
     }
 
-    private void pend(User user) {
-        val player = main.getPlayer(user.getUuid());
-        if (!nil(player) && player.isOnline()) {
-            try {
-                pend(user, player);
-            } catch (Exception e) {
-                if (Config.KICK_LOAD_FAILED) {
-                    player.kickPlayer(Config.KICK_LOAD_MESSAGE);
-                } else {
-                    unlockUser(player.getUniqueId());
-                }
-                if (Config.DEBUG) {
-                    main.log(e);
-                } else {
-                    main.log(e.toString());
-                }
-            }
-        } else if (Config.DEBUG) {
-            main.log(new PluginException("Player " + user.getUuid() + " not found"));
+    void onLoadFailed(Player who) {
+        if (Config.KICK_LOAD_FAILED) {
+            who.kickPlayer(Config.KICK_LOAD_MESSAGE);
+        } else {
+            unlockUser(who.getUniqueId());
+            createTask(who.getUniqueId());
         }
     }
 
-    private void pend(User polled, Player player) {
+    void pend(PlayerData data) {
+        val who = main.getPlayer(data.getUuid());
+        if (nil(who) || !who.isOnline()) {
+            main.log(new PluginException("Player " + data.getUuid() + " not found"));
+        } else {
+            val event = PlayerDataFetchedEvent.call(who, data);
+            if (event.isCancelled()) {
+                onLoadFailed(who);
+            } else {
+                try {
+                    pend(who, data);
+                } catch (Exception e) {
+                    onLoadFailed(who);
+                    if (Config.DEBUG) {
+                        main.log(e);
+                    } else {
+                        main.log(e.toString());
+                    }
+                }
+                PlayerDataProcessedEvent.call(who);
+            }
+        }
+    }
+
+    void pend(Player who, PlayerData data) {
         if (Config.SYN_INVENTORY) {
-            val fetched = toStack(polled.getInventory());
-            player.closeInventory();
-            val pack = player.getInventory();
-            if (fetched.length > pack.getSize()) {// Fixed #36
-                int size = pack.getSize();
-                pack.setContents(Arrays.copyOf(fetched, size));
-                val out = pack.addItem(Arrays.copyOfRange(fetched, size, fetched.length));
+            val ctx = toStack(data.getInventory());
+            who.closeInventory();
+            val inv = who.getInventory();
+            if (ctx.length > inv.getSize()) {// Fixed #36
+                int size = inv.getSize();
+                inv.setContents(Arrays.copyOf(ctx, size));
+                val out = inv.addItem(Arrays.copyOfRange(ctx, size, ctx.length));
                 if (!out.isEmpty()) {
-                    val location = player.getLocation();
-                    out.forEach((o, item) -> player.getWorld().dropItem(location, item));
+                    val location = who.getLocation();
+                    out.forEach((o, item) -> who.getWorld().dropItem(location, item));
                 }
             } else {
-                pack.setContents(fetched);
+                inv.setContents(ctx);
             }
-            pack.setArmorContents(toStack(polled.getArmor()));
-            pack.setHeldItemSlot(polled.getHand());
-            player.updateInventory();// Force update needed
+            inv.setArmorContents(toStack(data.getArmor()));
+            inv.setHeldItemSlot(data.getHand());
+            who.updateInventory();// Force update needed
         }
-        if (Config.SYN_HEALTH && player.getMaxHealth() >= polled.getHealth()) {
-            player.setHealth(polled.getHealth());
+        if (Config.SYN_HEALTH && who.getMaxHealth() >= data.getHealth()) {
+            who.setHealth(data.getHealth());
         }
         if (Config.SYN_EXP) {
-            this.expUtil.setExp(player, polled.getExp());
+            this.expUtil.setExp(who, data.getExp());
         }
         if (Config.SYN_FOOD) {
-            player.setFoodLevel(polled.getFood());
+            who.setFoodLevel(data.getFood());
         }
         if (Config.SYN_EFFECT) {
-            for (val eff : player.getActivePotionEffects()) {
-                player.removePotionEffect(eff.getType());
+            for (val eff : who.getActivePotionEffects()) {
+                who.removePotionEffect(eff.getType());
             }
-            for (val eff : toEffect(polled.getEffect())) {
-                player.addPotionEffect(eff, true);
+            for (val eff : toEffect(data.getEffect())) {
+                who.addPotionEffect(eff, true);
             }
         }
         if (Config.SYN_CHEST) {
-            player.getEnderChest().setContents(toStack(polled.getChest()));
+            who.getEnderChest().setContents(toStack(data.getChest()));
         }
-        createTask(player.getUniqueId());
-        unlockUser(player.getUniqueId());
+        createTask(who.getUniqueId());
+        unlockUser(who.getUniqueId());
     }
 
     @SuppressWarnings("unchecked")
@@ -274,11 +287,11 @@ public enum UserManager {
     }
 
     public void cancelTask(UUID uuid) {
-        BukkitRunnable task = scheduled.remove(uuid);
-        if (task != null) {
-            task.cancel();
+        val i = scheduled.remove(uuid);
+        if (!nil(i)) {
+            i.cancel();
         } else if (Config.DEBUG) {
-            this.main.log("No task can be canceled for " + uuid + '!');
+            main.log("No task can be canceled for " + uuid + '!');
         }
     }
 
@@ -286,11 +299,10 @@ public enum UserManager {
         if (Config.DEBUG) {
             this.main.log("Scheduling daily save task for user " + who + '.');
         }
-        DailySaveTask task = new DailySaveTask();
-        task.setWho(who);
+        val task = new DailySaveTask(who);
         task.runTaskTimer(main, 6000, 6000);
-        BukkitRunnable old = scheduled.put(who, task);
-        if (old != null) {
+        val old = scheduled.put(who, task);
+        if (!nil(old)) {
             old.cancel();
             if (Config.DEBUG) {
                 this.main.log("Already scheduled task for user " + who + '!');
@@ -319,7 +331,7 @@ public enum UserManager {
     }
 
     public void newUser(UUID uuid) {
-        User user = new User();
+        PlayerData user = new PlayerData();
         user.setUuid(uuid);
         user.setLocked(true);
         db.save(user);
