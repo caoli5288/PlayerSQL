@@ -8,9 +8,14 @@ import com.mengcraft.playersql.lib.Metrics;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import com.mengcraft.simpleorm.ORM;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -20,10 +25,15 @@ import java.util.logging.Level;
  */
 public class PluginMain extends JavaPlugin {
 
-    @Override
+    @Getter
+    private static Messenger messenger;
+
+    @SneakyThrows
     public void onEnable() {
         getConfig().options().copyDefaults(true);
         saveConfig();
+
+        messenger = new Messenger(this);
 
         ItemUtil itemUtil = new ItemUtilHandler(this).handle();
         ExpUtil expUtil = new ExpUtilHandler(this).handle();
@@ -35,14 +45,28 @@ public class PluginMain extends JavaPlugin {
             db.define(PlayerData.class);
 
             db.setMaxSize(getConfig().getInt("plugin.max-db-connection"));
-            try {
-                db.initialize();
-            } catch (Exception e) {
-                throw new PluginException("Failed connect to database");
-            }
+            db.initialize();
         }
 
         db.install();
+
+        if (Config.TRANSFER_ORIGIN) {
+            EbeanHandler b = new EbeanHandler(this);
+            b.setUrl("jdbc:sqlite:" + new File(getDataFolder(), "local_transfer.sqlite"));
+            b.setMaxSize(1);
+            b.setUserName("i7mc");
+            b.setPassword("i7mc");
+
+            b.define(LocalData.class);
+            b.initialize();
+
+            b.install();
+
+            LocalDataMgr.INSTANCE.db = b;
+            LocalDataMgr.INSTANCE.itemUtil = itemUtil;
+
+            PluginHelper.addExecutor(this, "psqltrans", this::trans);
+        }
 
         UserManager manager = UserManager.INSTANCE;
         manager.setMain(this);
@@ -61,6 +85,10 @@ public class PluginMain extends JavaPlugin {
         }// There is some event since 1.8.
 
         Metrics.start(this);
+    }
+
+    public void trans(CommandSender sender, List<String> input) {
+        LocalDataMgr.pick((Player) sender);
     }
 
     @Override
@@ -82,7 +110,7 @@ public class PluginMain extends JavaPlugin {
         getLogger().info(info);
     }
 
-    public void runAsync(Runnable r) {
+    public static void runAsync(Runnable r) {
         CompletableFuture.runAsync(r);
     }
 

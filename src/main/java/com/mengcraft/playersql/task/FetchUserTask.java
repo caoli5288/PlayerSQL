@@ -1,9 +1,11 @@
 package com.mengcraft.playersql.task;
 
 import com.mengcraft.playersql.Config;
+import com.mengcraft.playersql.LocalDataMgr;
 import com.mengcraft.playersql.PlayerData;
 import com.mengcraft.playersql.PluginMain;
 import com.mengcraft.playersql.UserManager;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
@@ -17,46 +19,53 @@ public class FetchUserTask extends BukkitRunnable {
 
     private final UserManager manager = UserManager.INSTANCE;
     private final PluginMain main;
-    private final UUID who;
+    private final Player player;
+    private final UUID id;
     private int retry;
 
-    public FetchUserTask(PluginMain main, UUID who) {
+    public FetchUserTask(PluginMain main, Player player) {
         this.main = main;
-        this.who = who;
+        this.player = player;
+        id = player.getUniqueId();
     }
 
     @Override
     public synchronized void run() {
-        PlayerData user = manager.fetchUser(who);
+        PlayerData user = manager.fetchUser(id);
         if (nil(user)) {
             cancel();
 
+            LocalDataMgr.transfer(player, true);
+
             if (Config.DEBUG) {
-                main.log("User data " + who + " not found!");
+                main.log("User data " + player.getName() + " not found!");
             }
 
-            manager.newUser(who);
+            manager.newUser(id);
             main.run(() -> {
-                manager.unlockUser(who);
-                manager.createTask(who);
+                manager.unlockUser(id);
+                manager.createTask(id);
             });
 
             if (Config.DEBUG) {
-                main.log("New user data for" + who + '.');
+                main.log("New user data for" + player.getName() + '.');
             }
         } else if (user.isLocked() && this.retry++ < 8) {
             if (Config.DEBUG) {
-                main.log("Load user data " + who + " fail " + retry + '.');
+                main.log("Load user " + player.getName() + " fail " + retry + '.');
             }
         } else {
             cancel();
 
+            LocalDataMgr.transfer(player);// TODO move to server thread if any exception
+
             manager.addFetched(user);
+
             if (Config.DEBUG) {
-                main.log("Load user data " + who + " done.");
+                main.log("Load user " + player.getName() + " done.");
             }
 
-            manager.updateDataLock(who, true);
+            manager.updateDataLock(id, true);
         }
     }
 

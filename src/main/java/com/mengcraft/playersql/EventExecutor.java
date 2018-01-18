@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import java.util.UUID;
 
+import static com.mengcraft.playersql.PluginMain.nil;
 import static org.bukkit.entity.EntityType.PLAYER;
 import static org.bukkit.event.EventPriority.HIGHEST;
 import static org.bukkit.event.EventPriority.LOWEST;
@@ -112,22 +113,26 @@ public class EventExecutor implements Listener {
 
     @EventHandler
     public void handle(PlayerJoinEvent event) {
-        val task = new FetchUserTask(main, event.getPlayer().getUniqueId());
+        val task = new FetchUserTask(main, event.getPlayer());
         int delay = Config.SYN_DELAY;
         task.runTaskTimerAsynchronously(main, delay, delay);
     }
 
     @EventHandler(priority = MONITOR)
     public void handle(PlayerQuitEvent event) {
-        val p = event.getPlayer().getUniqueId();
-        if (manager.isNotLocked(p)) {
-            manager.cancelTask(p);
-            val i = manager.getUserData(p, true);
+        val id = event.getPlayer().getUniqueId();
+        if (manager.isNotLocked(id)) {
+            manager.cancelTask(id);
+            val i = manager.getUserData(id, true);
+            if (nil(i)) return;
+
             main.runAsync(() -> manager.saveUser(i, false));
         } else {
-            manager.unlockUser(p);
-            main.runAsync(() -> manager.updateDataLock(p, false));
+            manager.unlockUser(id);
+            main.runAsync(() -> manager.updateDataLock(id, false));
         }
+
+        LocalDataMgr.quit(event.getPlayer());
     }
 
     @EventHandler

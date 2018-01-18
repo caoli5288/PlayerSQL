@@ -252,7 +252,7 @@ public enum UserManager {
         List<String> list = JSONUtil.parseArray(input);
         List<ItemStack> output = new ArrayList<>(list.size());
         for (String line : list) {
-            if (nil(line)) {
+            if (nil(line) || line.isEmpty()) {
                 output.add(AIR);
             } else {
                 output.add(itemUtil.convert(line));
@@ -265,12 +265,12 @@ public enum UserManager {
     private String toString(ItemStack[] stacks) {
         JSONArray array = new JSONArray();
         for (ItemStack stack : stacks)
-            if (stack == null || stack.getTypeId() == 0) {
-                array.add(null);
+            if (stack == null || stack.getType() == Material.AIR) {
+                array.add("");
             } else try {
-                array.add(this.itemUtil.convert(stack));
+                array.add(itemUtil.convert(stack));
             } catch (Exception e) {
-                this.main.log(e);
+                main.log(e);
             }
         return array.toString();
     }
