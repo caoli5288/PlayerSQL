@@ -10,6 +10,7 @@ import com.mengcraft.simpleorm.EbeanManager;
 import com.mengcraft.simpleorm.ORM;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -111,7 +112,10 @@ public class PluginMain extends JavaPlugin {
     }
 
     public static void runAsync(Runnable r) {
-        CompletableFuture.runAsync(r);
+        CompletableFuture.runAsync(r).exceptionally(thr -> {
+            Bukkit.getLogger().log(Level.SEVERE, "" + thr, thr);
+            return null;
+        });
     }
 
     public void run(Runnable r) {

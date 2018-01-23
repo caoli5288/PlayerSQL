@@ -31,13 +31,13 @@ public class PlayerData {
 
     private int exp;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String inventory;
 
     @Column(columnDefinition = "TEXT")
     private String armor;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String chest;
 
     @Column(columnDefinition = "TEXT")
