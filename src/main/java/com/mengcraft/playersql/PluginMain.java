@@ -28,9 +28,13 @@ public class PluginMain extends JavaPlugin {
 
     @Getter
     private static Messenger messenger;
+    @Getter
+    private static PluginMain plugin;
 
     @SneakyThrows
     public void onEnable() {
+        plugin = this;
+
         getConfig().options().copyDefaults(true);
         saveConfig();
 

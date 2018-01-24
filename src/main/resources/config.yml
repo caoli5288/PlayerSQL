@@ -12,6 +12,11 @@ sync:
   potion: true
 
 transfer-origin: false
+transfer:
+  # Execute while transfer done, by console. %player_name% supported here, multi command split by '\n'
+  extra-notify-command: ''
 
 kick-load-failed: true
-kick-load-message: Your game data loading error, please contact the operator
+
+message:
+  kick_load: Your game data loading error, please contact the operator

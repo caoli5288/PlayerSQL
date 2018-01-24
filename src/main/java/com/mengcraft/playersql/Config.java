@@ -16,8 +16,6 @@ public class Config {
     public static final boolean KICK_LOAD_FAILED;
     public static final boolean TRANSFER_ORIGIN;
 
-    public static final String KICK_LOAD_MESSAGE;
-
     public static final boolean DEBUG;
     public static final int SYN_DELAY;
 
@@ -32,7 +30,6 @@ public class Config {
         SYN_DELAY = CONF.getInt("plugin.delay", 30);
         DEBUG = CONF.getBoolean("plugin.debug", false);
         KICK_LOAD_FAILED = CONF.getBoolean("kick-load-failed", true);
-        KICK_LOAD_MESSAGE = CONF.getString("kick-load-message", "Your game data loading error, please contact the operator");
         TRANSFER_ORIGIN = CONF.getBoolean("transfer-origin", false);
     }
 

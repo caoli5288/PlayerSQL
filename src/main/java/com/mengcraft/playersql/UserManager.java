@@ -159,7 +159,7 @@ public enum UserManager {
 
     void onLoadFailed(Player who) {
         if (Config.KICK_LOAD_FAILED) {
-            who.kickPlayer(Config.KICK_LOAD_MESSAGE);
+            who.kickPlayer(PluginMain.getMessenger().find("kick_load", "Your game data loading error, please contact the operator"));
         } else {
             unlockUser(who.getUniqueId());
             createTask(who.getUniqueId());
