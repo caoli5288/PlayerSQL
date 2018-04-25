@@ -5,6 +5,7 @@ import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.simpleorm.EbeanHandler;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -39,7 +41,7 @@ public enum LocalDataMgr {
         ItemStack[] all = list.stream().map(l -> conv(l)).toArray(ItemStack[]::new);
         val out = p.getInventory().addItem(all).values();
 
-        d.setInventory(JSONArray.toJSONString(out.stream().map(item -> conv(item)).collect(toList())));
+        d.setInventory(out.isEmpty() ? "[]" : JSONArray.toJSONString(out.stream().map(item -> conv(item)).collect(toList())));
 
         PluginMain.runAsync(() -> INSTANCE.db.save(d));
 
@@ -56,7 +58,6 @@ public enum LocalDataMgr {
 
         LocalData d = load(p);
         if (!(d.getInventory() == null)) {
-            INSTANCE.pool.put(p.getUniqueId(), d);
             return;
         }
 
@@ -71,38 +72,26 @@ public enum LocalDataMgr {
             d.setInventory(JSONArray.toJSONString(list));
             if (!list.isEmpty()) {
                 PluginMain.getMessenger().send(p, "transfer_okay", "transfer_okay");
+                String notice = PluginMain.getPlugin().getConfig().getString("transfer.extra-notify-command", "");
+                if (!notice.isEmpty()) {
+                    Arrays.stream(notice.split("\n")).forEach(origin -> {
+                        if (origin.isEmpty()) {
+                            return;
+                        }
+
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), origin.replace("%player_name%", p.getName()));
+                    });
+                }
             }
+
+            p.getInventory().clear();
         }
 
         INSTANCE.db.save(d);
-
-        INSTANCE.pool.put(p.getUniqueId(), d);
     }
 
     public static void transfer(Player p) {
-        if (!ready()) {
-            return;
-        }
-
-        LocalData d = load(p);
-        if (!(d.getInventory() == null)) {
-            INSTANCE.pool.put(p.getUniqueId(), d);
-            return;
-        }
-
-        List<String> list = StreamSupport.stream(p.getInventory().spliterator(), false)
-                .filter(item -> !(item == null) && !(item.getType() == Material.AIR))
-                .map(item -> conv(item))
-                .collect(toList());
-
-        d.setInventory(JSONArray.toJSONString(list));
-        if (!list.isEmpty()) {
-            PluginMain.getMessenger().send(p, "transfer_okay", "transfer_okay");
-        }
-
-        INSTANCE.db.save(d);
-
-        INSTANCE.pool.put(p.getUniqueId(), d);
+        transfer(p, false);
     }
 
     public static boolean ready() {
