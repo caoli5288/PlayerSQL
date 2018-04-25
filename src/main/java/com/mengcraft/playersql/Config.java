@@ -15,6 +15,7 @@ public class Config {
     public static final boolean SYN_INVENTORY;
     public static final boolean KICK_LOAD_FAILED;
     public static final boolean TRANSFER_ORIGIN;
+    public static final boolean OMIT_PLAYER_DEATH;
 
     public static final String KICK_LOAD_MESSAGE;
 
@@ -31,6 +32,7 @@ public class Config {
         SYN_FOOD = CONF.getBoolean("sync.food", true);
         SYN_DELAY = CONF.getInt("plugin.delay", 30);
         DEBUG = CONF.getBoolean("plugin.debug", false);
+        OMIT_PLAYER_DEATH = CONF.getBoolean("plugin.omit-player-death", false);
         KICK_LOAD_FAILED = CONF.getBoolean("kick-load-failed", true);
         KICK_LOAD_MESSAGE = CONF.getString("kick-load-message", "Your game data loading error, please contact the operator");
         TRANSFER_ORIGIN = CONF.getBoolean("transfer-origin", false);

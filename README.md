@@ -43,3 +43,7 @@ PlayerSQL
 路径图
 ----
 ![](image/mindmap.png)
+
+增强模式
+------
+将插件同时安装至bungeecord以启用增强模式，可提高跨服速度以及稳定性。[投食链接](https://www.paypal.me/2732000916/5)

@@ -1,16 +1,14 @@
 package com.mengcraft.playersql;
 
-import com.mengcraft.playersql.lib.ExpUtil;
-import com.mengcraft.playersql.lib.ExpUtilHandler;
-import com.mengcraft.playersql.lib.ItemUtil;
-import com.mengcraft.playersql.lib.ItemUtilHandler;
-import com.mengcraft.playersql.lib.Metrics;
+import com.mengcraft.playersql.lib.*;
+import com.mengcraft.playersql.peer.IPacket;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import com.mengcraft.simpleorm.ORM;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -86,6 +84,10 @@ public class PluginMain extends JavaPlugin {
         }// There is some event since 1.8.
 
         Metrics.start(this);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, IPacket.Protocol.TAG);
+        getServer().getMessenger().registerIncomingPluginChannel(this, IPacket.Protocol.TAG, executor);
+
+        getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "PlayerSQL enabled! Donate me plz. https://www.paypal.me/2732000916/5");
     }
 
     public void trans(CommandSender sender, List<String> input) {
@@ -111,8 +113,14 @@ public class PluginMain extends JavaPlugin {
         getLogger().info(info);
     }
 
-    public static void runAsync(Runnable r) {
-        CompletableFuture.runAsync(r).exceptionally(thr -> {
+    public void debug(String line) {
+        if (Config.DEBUG) {
+            log(line);
+        }
+    }
+
+    public static CompletableFuture<Void> runAsync(Runnable r) {
+        return CompletableFuture.runAsync(r).exceptionally(thr -> {
             Bukkit.getLogger().log(Level.SEVERE, "" + thr, thr);
             return null;
         });

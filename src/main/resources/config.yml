@@ -2,6 +2,7 @@ plugin:
   debug: false
   delay: 10
   max-db-connection: 8
+  omit-player-death: false
 
 sync:
   health: true

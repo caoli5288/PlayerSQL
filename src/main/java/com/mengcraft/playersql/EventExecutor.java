@@ -1,36 +1,32 @@
 package com.mengcraft.playersql;
 
+import com.mengcraft.playersql.peer.DataBuf;
+import com.mengcraft.playersql.peer.DataRequest;
+import com.mengcraft.playersql.peer.IPacket;
+import com.mengcraft.playersql.peer.PeerReady;
 import com.mengcraft.playersql.task.FetchUserTask;
-import lombok.val;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
-import static com.mengcraft.playersql.PluginMain.nil;
 import static org.bukkit.entity.EntityType.PLAYER;
-import static org.bukkit.event.EventPriority.HIGHEST;
-import static org.bukkit.event.EventPriority.LOWEST;
-import static org.bukkit.event.EventPriority.MONITOR;
+import static org.bukkit.event.EventPriority.*;
 
 /**
  * Created on 16-1-2.
  */
-public class EventExecutor implements Listener {
+public class EventExecutor implements Listener, PluginMessageListener {
 
     private UserManager manager;
     private PluginMain main;
@@ -111,27 +107,50 @@ public class EventExecutor implements Listener {
         this.manager.lockUser(uuid);
     }
 
+    private final Map<UUID, Object> pending = new HashMap<>();
+
     @EventHandler
     public void handle(PlayerJoinEvent event) {
-        val task = new FetchUserTask(main, event.getPlayer());
-        int delay = Config.SYN_DELAY;
-        task.runTaskTimerAsynchronously(main, delay, delay);
+        UUID id = event.getPlayer().getUniqueId();
+        handled.put(id, Lifecycle.INIT);
+
+        Object pend = this.pending.remove(id);
+        if (pend == null) {
+            FetchUserTask task = new FetchUserTask(main, event.getPlayer());
+            pending.put(id, task);
+
+            task.runTaskTimerAsynchronously(main, Config.SYN_DELAY, Config.SYN_DELAY);
+        } else {
+            main.debug("### process pending data_buf on join event");
+            main.run(() -> {
+                manager.pend((PlayerData) pend);
+                PluginMain.runAsync(() -> manager.updateDataLock(id, true));
+            });
+
+        }
     }
+
+    private final Map<UUID, Lifecycle> handled = new HashMap<>();
 
     @EventHandler(priority = MONITOR)
     public void handle(PlayerQuitEvent event) {
-        val id = event.getPlayer().getUniqueId();
-        if (manager.isNotLocked(id)) {
+        UUID id = event.getPlayer().getUniqueId();
+        Lifecycle lifecycle = handled.remove(id);
+        if (lifecycle == Lifecycle.DATA_SENT || manager.isNotLocked(id)) {
             manager.cancelTask(id);
-            val i = manager.getUserData(id, true);
-            if (nil(i)) return;
+            PlayerData dat = manager.getUserData(id, true);
+            if (dat == null) {
+                throw new IllegalStateException("error persist player's data while someone quit from server");
+            }
 
-            main.runAsync(() -> manager.saveUser(i, false));
+            manager.lockUser(id);// maybe fix some issue
+            main.runAsync(() -> manager.saveUser(dat, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
         } else {
             manager.unlockUser(id);
             main.runAsync(() -> manager.updateDataLock(id, false));
         }
 
+        pending.remove(id);
         LocalDataMgr.quit(event.getPlayer());
     }
 
@@ -186,6 +205,70 @@ public class EventExecutor implements Listener {
         if (isLocked(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
+    }
+
+    private final BiFunctionRegistry<Player, IPacket, Void> registry = new BiFunctionRegistry<>();
+
+    {
+        registry.register(IPacket.Protocol.PEER_READY, (p, ipk) -> {
+            main.debug("### recv peer_ready");
+            PeerReady pk = (PeerReady) ipk;// redirect it to enabled peer in bungeecord
+            p.sendPluginMessage(main, IPacket.Protocol.TAG, pk.encode());
+            return null;
+        });
+        registry.register(IPacket.Protocol.DATA_REQUEST, (p, ipk) -> {
+            main.debug("### recv data_request");
+            DataRequest pk = (DataRequest) ipk;
+            Player request = Bukkit.getPlayer(pk.getId());
+            if (request == null) {
+                return null;
+            }
+            DataBuf out = new DataBuf();
+            out.setId(request.getUniqueId());
+            if (manager.isLocked(request.getUniqueId())) {
+                out.setBuf(new byte[0]);
+            } else {
+                manager.lockUser(request.getUniqueId());
+                PlayerData dat = manager.getUserData(request, true);
+                handled.put(request.getUniqueId(), Lifecycle.DATA_SENT);
+                out.setBuf(PlayerDataHelper.encode(dat));
+            }
+            request.sendPluginMessage(main, IPacket.Protocol.TAG, out.encode());// send data_buf by target player
+            return null;
+        });
+        registry.register(IPacket.Protocol.DATA_BUF, (p, ipk) -> {
+            main.debug("### recv data_buf");
+            DataBuf pk = (DataBuf) ipk;
+            PlayerData dat = PlayerDataHelper.decode(pk.getBuf());
+            BukkitRunnable pend = (BukkitRunnable) pending.remove(pk.getId());
+            if (pend == null) {
+                main.debug("### pending received data_buf");
+                pending.put(pk.getId(), dat);
+            } else {
+                main.debug("### process received data_buf");
+                pend.cancel();
+                main.run(() -> {
+                    manager.pend(dat);
+                    PluginMain.runAsync(() -> manager.updateDataLock(pk.getId(), true));
+                });
+            }
+            return null;
+        });
+    }
+
+    enum Lifecycle {
+
+        INIT,
+        DATA_SENT;
+    }
+
+    public void onPluginMessageReceived(String tag, Player p, byte[] input) {
+        if (!tag.equals(IPacket.Protocol.TAG)) {
+            return;
+        }
+
+        IPacket ipk = IPacket.decode(input);
+        registry.handle(ipk.getProtocol(), p, ipk);
     }
 
     private boolean isLocked(UUID uuid) {

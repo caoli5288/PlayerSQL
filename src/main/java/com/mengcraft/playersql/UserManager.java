@@ -18,13 +18,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONArray;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.mengcraft.playersql.PluginMain.nil;
 
@@ -38,7 +32,7 @@ public enum UserManager {
     public static final ItemStack AIR = new ItemStack(Material.AIR);
 
     private final Map<UUID, BukkitRunnable> scheduled = new HashMap<>();
-    private final List<UUID> locked = new ArrayList<>();
+    private final Set<UUID> locked = new HashSet<>();
 
     private PluginMain main;
     private ItemUtil itemUtil;
@@ -140,11 +134,11 @@ public enum UserManager {
     }
 
     public boolean isLocked(UUID uuid) {
-        return this.locked.indexOf(uuid) != -1;
+        return locked.contains(uuid);
     }
 
     public boolean isNotLocked(UUID uuid) {
-        return locked.indexOf(uuid) == -1;
+        return !isLocked(uuid);
     }
 
     public void lockUser(UUID uuid) {
@@ -213,7 +207,7 @@ public enum UserManager {
             who.updateInventory();// Force update needed
         }
         if (Config.SYN_HEALTH && who.getMaxHealth() >= data.getHealth()) {
-            who.setHealth(data.getHealth());
+            who.setHealth(data.getHealth() <= 0 && Config.OMIT_PLAYER_DEATH ? who.getMaxHealth() : data.getHealth());
         }
         if (Config.SYN_EXP) {
             this.expUtil.setExp(who, data.getExp());
