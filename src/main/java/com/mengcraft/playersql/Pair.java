@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @Data
 @RequiredArgsConstructor
-public class Tuple<K, V> {
+public class Pair<K, V> {
 
     private final K key;
     private V value;

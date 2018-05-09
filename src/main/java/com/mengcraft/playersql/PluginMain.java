@@ -1,6 +1,9 @@
 package com.mengcraft.playersql;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import com.mengcraft.playersql.lib.*;
+import com.mengcraft.playersql.locker.EventLocker;
+import com.mengcraft.playersql.locker.ProtocolBasedLocker;
 import com.mengcraft.playersql.peer.IPacket;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
@@ -77,15 +80,19 @@ public class PluginMain extends JavaPlugin {
         manager.setExpUtil(expUtil);
         manager.setDb(db);
 
-        EventExecutor executor = new EventExecutor();
-        executor.setMain(this);
-        executor.setManager(manager);
+        EventExecutor executor = new EventExecutor(this);
 
         getServer().getPluginManager().registerEvents(executor, this);
         try {
             getServer().getPluginManager().registerEvents(new ExtendEventExecutor(manager), this);
         } catch (Exception ignore) {
         }// There is some event since 1.8.
+
+//        if (getConfig().getBoolean("plugin.use-protocol-locker", true) && Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
+//            ProtocolLibrary.getProtocolManager().addPacketListener(new ProtocolBasedLocker(this));
+//        } else {
+            Bukkit.getPluginManager().registerEvents(new EventLocker(), this);
+//        }
 
         Metrics.start(this);
         getServer().getMessenger().registerOutgoingPluginChannel(this, IPacket.Protocol.TAG);

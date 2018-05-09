@@ -133,8 +133,8 @@ public enum UserManager {
         return user;
     }
 
-    public boolean isLocked(UUID uuid) {
-        return locked.contains(uuid);
+    public static boolean isLocked(UUID uuid) {
+        return INSTANCE.locked.contains(uuid);
     }
 
     public boolean isNotLocked(UUID uuid) {
