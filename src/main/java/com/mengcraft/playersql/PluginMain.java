@@ -92,8 +92,8 @@ public class PluginMain extends JavaPlugin {
         } catch (Exception ignore) {
         }// There is some event since 1.8.
 
-        if (getConfig().getBoolean("plugin.use-protocol-locker", true) && getPluginManager().isPluginEnabled("ProtocolLib")) {
-            ProtocolLibrary.getProtocolManager().addPacketListener(new ProtocolBasedLocker(this));
+        if (getConfig().getBoolean("plugin.use-protocol-locker", false) && getPluginManager().isPluginEnabled("ProtocolLib")) {
+            ProtocolLibrary.getProtocolManager().addPacketListener(ProtocolBasedLocker.b(this));
         } else {
             getPluginManager().registerEvents(new EventLocker(), this);
         }
