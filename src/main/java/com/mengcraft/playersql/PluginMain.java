@@ -22,6 +22,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
+import static org.bukkit.Bukkit.getPluginManager;
+
 /**
  * Created on 16-1-2.
  */
@@ -31,10 +33,12 @@ public class PluginMain extends JavaPlugin {
     private static Messenger messenger;
     @Getter
     private static PluginMain plugin;
+    private MetricsLite metric;
 
     @SneakyThrows
     public void onEnable() {
         plugin = this;
+        metric = new MetricsLite(this);
 
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -88,13 +92,12 @@ public class PluginMain extends JavaPlugin {
         } catch (Exception ignore) {
         }// There is some event since 1.8.
 
-//        if (getConfig().getBoolean("plugin.use-protocol-locker", true) && Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-//            ProtocolLibrary.getProtocolManager().addPacketListener(new ProtocolBasedLocker(this));
-//        } else {
-            Bukkit.getPluginManager().registerEvents(new EventLocker(), this);
-//        }
+        if (getConfig().getBoolean("plugin.use-protocol-locker", true) && getPluginManager().isPluginEnabled("ProtocolLib")) {
+            ProtocolLibrary.getProtocolManager().addPacketListener(new ProtocolBasedLocker(this));
+        } else {
+            getPluginManager().registerEvents(new EventLocker(), this);
+        }
 
-        Metrics.start(this);
         getServer().getMessenger().registerOutgoingPluginChannel(this, IPacket.Protocol.TAG);
         getServer().getMessenger().registerIncomingPluginChannel(this, IPacket.Protocol.TAG, executor);
 

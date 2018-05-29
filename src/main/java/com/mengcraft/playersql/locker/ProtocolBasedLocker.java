@@ -21,6 +21,7 @@ public class ProtocolBasedLocker extends PacketAdapter {
         ArrayList<PacketType> all = Lists.newArrayList(PacketType.Play.Client.getInstance());
         all.remove(PacketType.Play.Client.TELEPORT_ACCEPT);
         all.remove(PacketType.Play.Client.KEEP_ALIVE);
+        all.remove(PacketType.Play.Client.CUSTOM_PAYLOAD);
         return all;
     }
 

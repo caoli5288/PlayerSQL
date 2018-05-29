@@ -3,7 +3,8 @@ plugin:
   delay: 10
   max-db-connection: 8
   omit-player-death: false
-  use-protocol-locker: true
+  # Use this option in your own risk. It's MAY BREAK SERVER.
+  use-protocol-locker: false
 
 sync:
   health: true
