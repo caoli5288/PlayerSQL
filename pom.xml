@@ -15,7 +15,7 @@
     <repositories>
         <repository>
             <id>ci-mengcraft</id>
-            <url>http://ci.mengcraft.com:8080/plugin/repository/everything/</url>
+            <url>http://ci.mengcraft.com:8081/plugin/repository/everything/</url>
         </repository>
         <repository>
             <id>repo-md5</id>
