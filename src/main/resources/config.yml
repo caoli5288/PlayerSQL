@@ -23,3 +23,6 @@ kick-load-failed: true
 
 message:
   kick_load: Your game data loading error, please contact the operator
+
+bungee:
+  channel_group: 'default'

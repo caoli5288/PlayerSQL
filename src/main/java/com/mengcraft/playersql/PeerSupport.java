@@ -1,6 +1,6 @@
 package com.mengcraft.playersql;
 
-import com.mengcraft.playersql.peer.DataBuf;
+import com.mengcraft.playersql.peer.DataSupply;
 import com.mengcraft.playersql.peer.DataRequest;
 import com.mengcraft.playersql.peer.IPacket;
 import com.mengcraft.playersql.peer.PeerReady;
@@ -19,26 +19,25 @@ import java.util.*;
 
 public class PeerSupport extends Plugin implements Listener {
 
-    private final BiFunctionRegistry<ProxiedPlayer, IPacket, Void> registry = new BiFunctionRegistry<>();
+    private final BiRegistry<ProxiedPlayer, IPacket> registry = new BiRegistry<>();
 
     private final Set<UUID> handled = new HashSet<>();
-    private final Map<UUID, Pair<ServerInfo, DataBuf>> pending = new HashMap<>();
+    private final Map<UUID, Pair<ServerInfo, DataSupply>> pending = new HashMap<>();
 
     @Override
     public void onEnable() {
         registry.register(IPacket.Protocol.PEER_READY, (p, ipk) -> {
             PeerReady pk = (PeerReady) ipk;
             handled.add(pk.getId());
-            Pair<ServerInfo, DataBuf> pair = pending.remove(pk.getId());
+            Pair<ServerInfo, DataSupply> pair = pending.remove(pk.getId());
             if (pair == null || pair.getValue() == null) {
-                return null;
+                return;
             }
             p.getServer().sendData(IPacket.Protocol.TAG, pair.getValue().encode());
-            return null;
         });
         registry.register(IPacket.Protocol.DATA_BUF, (p, ipk) -> {
-            DataBuf pk = (DataBuf) ipk;
-            Pair<ServerInfo, DataBuf> pair = pending.get(pk.getId());
+            DataSupply pk = (DataSupply) ipk;
+            Pair<ServerInfo, DataSupply> pair = pending.get(pk.getId());
             ServerInfo serv = pair.getKey();
             handled.remove(pk.getId());
             p.connect(serv, (succ, err) -> {
@@ -47,7 +46,6 @@ public class PeerSupport extends Plugin implements Listener {
                 }
                 pair.setValue(pk);
             });
-            return null;
         });
         getProxy().registerChannel(IPacket.Protocol.TAG);
         getProxy().getPluginManager().registerListener(this, this);

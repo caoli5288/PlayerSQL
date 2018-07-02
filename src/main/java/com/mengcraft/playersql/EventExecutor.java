@@ -1,7 +1,7 @@
 package com.mengcraft.playersql;
 
-import com.mengcraft.playersql.peer.DataBuf;
 import com.mengcraft.playersql.peer.DataRequest;
+import com.mengcraft.playersql.peer.DataSupply;
 import com.mengcraft.playersql.peer.IPacket;
 import com.mengcraft.playersql.peer.PeerReady;
 import com.mengcraft.playersql.task.FetchUserTask;
@@ -30,28 +30,30 @@ public class EventExecutor implements Listener, PluginMessageListener {
 
     private final Map<UUID, Lifecycle> handled = new HashMap<>();
     private final Map<UUID, Object> pending = new HashMap<>();
-    private final BiFunctionRegistry<Player, IPacket, Void> registry = new BiFunctionRegistry<>();
+    private final BiRegistry<Player, IPacket> registry = new BiRegistry<>();
     private final PluginMain main;
     private UserManager manager;
+    private String group;
 
     public EventExecutor(PluginMain main) {
         manager = UserManager.INSTANCE;
         this.main = main;
+        group = main.getConfig().getString("bungee.channel_group", "default");
         registry.register(IPacket.Protocol.PEER_READY, (p, ipk) -> {
             main.debug("### recv peer_ready");
             PeerReady pk = (PeerReady) ipk;// redirect it to enabled peer in bungeecord
             p.sendPluginMessage(main, IPacket.Protocol.TAG, pk.encode());
-            return null;
         });
         registry.register(IPacket.Protocol.DATA_REQUEST, (p, ipk) -> {
             main.debug("### recv data_request");
             DataRequest pk = (DataRequest) ipk;
             Player request = Bukkit.getPlayer(pk.getId());
             if (request == null) {
-                return null;
+                return;
             }
-            DataBuf out = new DataBuf();
+            DataSupply out = new DataSupply();
             out.setId(request.getUniqueId());
+            out.setGroup(group);
             if (isLocked(request.getUniqueId())) {
                 out.setBuf(new byte[0]);
             } else {
@@ -61,11 +63,13 @@ public class EventExecutor implements Listener, PluginMessageListener {
                 out.setBuf(PlayerDataHelper.encode(dat));
             }
             request.sendPluginMessage(main, IPacket.Protocol.TAG, out.encode());// send data_buf by target player
-            return null;
         });
         registry.register(IPacket.Protocol.DATA_BUF, (p, ipk) -> {
             main.debug("### recv data_buf");
-            DataBuf pk = (DataBuf) ipk;
+            DataSupply pk = (DataSupply) ipk;
+            if (!group.equals(pk.getGroup())) {
+                return;
+            }
             PlayerData dat = PlayerDataHelper.decode(pk.getBuf());
             BukkitRunnable pend = (BukkitRunnable) pending.remove(pk.getId());
             if (pend == null) {
@@ -79,7 +83,6 @@ public class EventExecutor implements Listener, PluginMessageListener {
                     runAsync(() -> manager.updateDataLock(pk.getId(), true));
                 });
             }
-            return null;
         });
     }
 
@@ -95,19 +98,17 @@ public class EventExecutor implements Listener, PluginMessageListener {
         UUID id = event.getPlayer().getUniqueId();
         handled.put(id, Lifecycle.INIT);
 
-        Object pend = this.pending.remove(id);
+        PlayerData pend = (PlayerData) pending.remove(id);
         if (pend == null) {
             FetchUserTask task = new FetchUserTask(main, event.getPlayer());
             pending.put(id, task);
-
             task.runTaskTimerAsynchronously(main, Config.SYN_DELAY, Config.SYN_DELAY);
         } else {
             main.debug("### process pending data_buf on join event");
             main.run(() -> {
-                manager.pend((PlayerData) pend);
+                manager.pend(pend);
                 runAsync(() -> manager.updateDataLock(id, true));
             });
-
         }
     }
 

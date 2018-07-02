@@ -15,7 +15,7 @@ public class DataRequest extends IPacket {
     }
 
     @Override
-    protected void read(ByteArrayDataOutput buf) {
+    protected void write(ByteArrayDataOutput buf) {
         buf.writeLong(id.getMostSignificantBits());
         buf.writeLong(id.getLeastSignificantBits());
     }

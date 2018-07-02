@@ -20,13 +20,13 @@ public abstract class IPacket {
         return protocol;
     }
 
-    protected abstract void read(ByteArrayDataOutput buf);
+    protected abstract void write(ByteArrayDataOutput buf);
 
     @SneakyThrows
     public byte[] encode() {
         ByteArrayDataOutput buf = ByteStreams.newDataOutput();
         buf.writeByte(protocol.ordinal());
-        read(buf);
+        write(buf);
         return buf.toByteArray();
     }
 
@@ -48,8 +48,9 @@ public abstract class IPacket {
 
         DATA_BUF {
             public IPacket decode(ByteArrayDataInput input) {
-                DataBuf pk = new DataBuf();
+                DataSupply pk = new DataSupply();
                 pk.setId(new UUID(input.readLong(), input.readLong()));
+                pk.setGroup(input.readUTF());
                 byte[] buf = new byte[input.readInt()];
                 input.readFully(buf);
                 pk.setBuf(buf);

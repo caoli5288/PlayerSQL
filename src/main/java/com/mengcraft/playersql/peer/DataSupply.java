@@ -6,19 +6,21 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class DataBuf extends IPacket {
+public class DataSupply extends IPacket {
 
     private UUID id;
+    private String group;
     private byte[] buf;
 
-    public DataBuf() {
+    public DataSupply() {
         super(Protocol.DATA_BUF);
     }
 
     @Override
-    protected void read(ByteArrayDataOutput out) {
+    protected void write(ByteArrayDataOutput out) {
         out.writeLong(id.getMostSignificantBits());
         out.writeLong(id.getLeastSignificantBits());
+        out.writeUTF(group);
         out.writeInt(buf.length);
         out.write(buf);
     }
