@@ -118,16 +118,17 @@ public class EventExecutor implements Listener, PluginMessageListener {
         Lifecycle lifecycle = handled.remove(id);
         if (lifecycle == Lifecycle.DATA_SENT || manager.isNotLocked(id)) {
             manager.cancelTask(id);
+            if (manager.isNotLocked(id)) {
+                manager.lockUser(id);// Lock user if not in bungee enchant mode
+            }
             PlayerData dat = manager.getUserData(id, true);
             if (dat == null) {
-                throw new IllegalStateException("error persist player's data while someone quit from server");
+                main.run(() -> manager.unlockUser(id));// Err? unlock next tick
+            } else {
+                runAsync(() -> manager.saveUser(dat, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
             }
-
-            manager.lockUser(id);// maybe fix some issue
-            runAsync(() -> manager.saveUser(dat, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
         } else {
-            manager.unlockUser(id);
-            runAsync(() -> manager.updateDataLock(id, false));
+            runAsync(() -> manager.updateDataLock(id, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
         }
 
         pending.remove(id);
