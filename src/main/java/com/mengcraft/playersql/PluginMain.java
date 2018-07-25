@@ -45,9 +45,6 @@ public class PluginMain extends JavaPlugin {
 
         messenger = new Messenger(this);
 
-        ItemUtil itemUtil = new ItemUtilHandler(this).handle();
-        ExpUtil expUtil = new ExpUtilHandler(this).handle();
-
         ORM.loadLibrary(this);
 
         EbeanHandler db = EbeanManager.DEFAULT.getHandler(this);
@@ -73,15 +70,12 @@ public class PluginMain extends JavaPlugin {
             b.install();
 
             LocalDataMgr.INSTANCE.db = b;
-            LocalDataMgr.INSTANCE.itemUtil = itemUtil;
 
             PluginHelper.addExecutor(this, "psqltrans", this::trans);
         }
 
         UserManager manager = UserManager.INSTANCE;
         manager.setMain(this);
-        manager.setItemUtil(itemUtil);
-        manager.setExpUtil(expUtil);
         manager.setDb(db);
 
         EventExecutor executor = new EventExecutor(this);

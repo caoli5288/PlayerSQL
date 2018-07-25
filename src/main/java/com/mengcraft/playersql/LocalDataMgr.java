@@ -1,7 +1,7 @@
 package com.mengcraft.playersql;
 
+import com.comphenix.protocol.utility.StreamSerializer;
 import com.google.common.collect.Maps;
-import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.simpleorm.EbeanHandler;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -28,7 +28,6 @@ public enum LocalDataMgr {
     private final Map<UUID, LocalData> pool = Maps.newConcurrentMap();
 
     EbeanHandler db;
-    ItemUtil itemUtil;
 
     public static void pick(Player p) {
         LocalData d = load(p);
@@ -111,7 +110,7 @@ public enum LocalDataMgr {
 
     @SneakyThrows
     private static String conv(ItemStack item) {
-        return INSTANCE.itemUtil.convert(item);
+        return StreamSerializer.getDefault().serializeItemStack(item);
     }
 
     public static void quit(Player p) {
@@ -120,7 +119,7 @@ public enum LocalDataMgr {
 
     @SneakyThrows
     private static ItemStack conv(String line) {
-        return INSTANCE.itemUtil.convert(line);
+        return StreamSerializer.getDefault().deserializeItemStack(line);
     }
 
 }

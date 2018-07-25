@@ -1,11 +1,11 @@
 package com.mengcraft.playersql;
 
+import com.comphenix.protocol.utility.StreamSerializer;
 import com.mengcraft.playersql.event.PlayerDataFetchedEvent;
 import com.mengcraft.playersql.event.PlayerDataProcessedEvent;
-import com.mengcraft.playersql.lib.ExpUtil;
 import com.mengcraft.playersql.lib.IOBlocking;
-import com.mengcraft.playersql.lib.ItemUtil;
 import com.mengcraft.playersql.lib.JSONUtil;
+import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.task.DailySaveTask;
 import com.mengcraft.simpleorm.EbeanHandler;
 import lombok.SneakyThrows;
@@ -35,8 +35,6 @@ public enum UserManager {
     private final Set<UUID> locked = new HashSet<>();
 
     private PluginMain main;
-    private ItemUtil itemUtil;
-    private ExpUtil expUtil;
     private EbeanHandler db;
 
     public void addFetched(PlayerData user) {
@@ -128,7 +126,7 @@ public enum UserManager {
             user.setEffect(toString(p.getActivePotionEffects()));
         }
         if (Config.SYN_EXP) {
-            user.setExp(this.expUtil.getExp(p));
+            user.setExp(SetExpFix.getTotalExperience(p));
         }
         return user;
     }
@@ -210,7 +208,7 @@ public enum UserManager {
             who.setHealth(data.getHealth() <= 0 && Config.OMIT_PLAYER_DEATH ? who.getMaxHealth() : data.getHealth());
         }
         if (Config.SYN_EXP) {
-            this.expUtil.setExp(who, data.getExp());
+            SetExpFix.setTotalExperience(who, data.getExp());
         }
         if (Config.SYN_FOOD) {
             who.setFoodLevel(data.getFood());
@@ -249,7 +247,7 @@ public enum UserManager {
             if (nil(line) || line.isEmpty()) {
                 output.add(AIR);
             } else {
-                output.add(itemUtil.convert(line));
+                output.add(StreamSerializer.getDefault().deserializeItemStack(line));
             }
         }
         return output.toArray(new ItemStack[list.size()]);
@@ -262,7 +260,7 @@ public enum UserManager {
             if (stack == null || stack.getType() == Material.AIR) {
                 array.add("");
             } else try {
-                array.add(itemUtil.convert(stack));
+                array.add(StreamSerializer.getDefault().serializeItemStack(stack));
             } catch (Exception e) {
                 main.log(e);
             }
@@ -304,14 +302,6 @@ public enum UserManager {
                 this.main.log("Already scheduled task for user " + who + '!');
             }
         }
-    }
-
-    public void setItemUtil(ItemUtil itemUtil) {
-        this.itemUtil = itemUtil;
-    }
-
-    public void setExpUtil(ExpUtil expUtil) {
-        this.expUtil = expUtil;
     }
 
     public void setMain(PluginMain main) {
