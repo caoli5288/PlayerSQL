@@ -1,20 +1,21 @@
 package com.mengcraft.playersql;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import com.mengcraft.playersql.lib.Compressor;
+import com.mengcraft.playersql.lib.Decompressor;
+import com.mengcraft.playersql.lib.VarInt;
 import lombok.SneakyThrows;
 
 import java.io.*;
 import java.util.UUID;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 public class PlayerDataHelper {
 
     @SneakyThrows
     public static byte[] encode(PlayerData dat) {
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        GZIPOutputStream zip = new GZIPOutputStream(buf);
-        DataOutput output = new DataOutputStream(zip);
-
+        ByteArrayDataOutput output = ByteStreams.newDataOutput();
         output.writeLong(dat.getUuid().getMostSignificantBits());
         output.writeLong(dat.getUuid().getLeastSignificantBits());
         output.writeDouble(dat.getHealth());
@@ -25,15 +26,12 @@ public class PlayerDataHelper {
         write(output, dat.getArmor());
         write(output, dat.getChest());
         write(output, dat.getEffect());
-
-        zip.close();
-
-        return buf.toByteArray();
+        return Compressor.compress(output.toByteArray());
     }
 
     @SneakyThrows
     public static PlayerData decode(byte[] buf) {
-        DataInput input = new DataInputStream(new GZIPInputStream(new ByteArrayInputStream(buf)));
+        ByteArrayDataInput input = ByteStreams.newDataInput(Decompressor.decompress(buf));
         PlayerData dat = new PlayerData();
         dat.setUuid(new UUID(input.readLong(), input.readLong()));
         dat.setHealth(input.readDouble());
@@ -50,18 +48,22 @@ public class PlayerDataHelper {
     @SneakyThrows
     private static void write(DataOutput buf, String input) {
         if (input == null) {
-            buf.writeBoolean(false);
+            VarInt.writeUnsignedVarInt(buf, 0);
             return;
         }
-        buf.writeBoolean(true);
-        buf.writeUTF(input);
+        byte[] data = input.getBytes("utf8");
+        VarInt.writeUnsignedVarInt(buf, data.length);
+        buf.write(data);
     }
 
     @SneakyThrows
     private static String readString(DataInput buf) {
-        if (buf.readBoolean()) {
-            return buf.readUTF();
+        long len = VarInt.readUnsignedVarInt(buf);
+        if (len == 0) {
+            return null;
         }
-        return null;
+        byte[] readbuf = new byte[(int) len];
+        buf.readFully(readbuf);
+        return new String(readbuf, "utf8");
     }
 }
