@@ -1,0 +1,40 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+allprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenLocal()
+        maven {
+            url 'http://ci.mengcraft.com:8081/plugin/repository/everything/'
+        }
+        jcenter()
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.2'
+        compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+    }
+
+    compileJava.dependsOn(clean)
+}
+
+subprojects { p ->
+    if (p.name == 'internal') return
+    dependencies {
+        compileOnly project(":internal")
+    }
+}
+
+dependencies {
+    compile subprojects
+    compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'
+    compileOnly 'com.mengcraft:simpleorm:1.2-SNAPSHOT'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:4.4.0-SNAPSHOT'
+}
+
+jar.finalizedBy(shadowJar)

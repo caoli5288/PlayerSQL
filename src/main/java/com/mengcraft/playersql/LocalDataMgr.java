@@ -1,9 +1,7 @@
 package com.mengcraft.playersql;
 
-import com.comphenix.protocol.utility.StreamSerializer;
 import com.google.common.collect.Maps;
 import com.mengcraft.simpleorm.EbeanHandler;
-import lombok.SneakyThrows;
 import lombok.val;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -37,10 +35,10 @@ public enum LocalDataMgr {
             return;
         }
 
-        ItemStack[] all = list.stream().map(l -> conv(l)).toArray(ItemStack[]::new);
+        ItemStack[] all = list.stream().map(l -> DataSerializer.deserialize(l)).toArray(ItemStack[]::new);
         val out = p.getInventory().addItem(all).values();
 
-        d.setInventory(out.isEmpty() ? "[]" : JSONArray.toJSONString(out.stream().map(item -> conv(item)).collect(toList())));
+        d.setInventory(out.isEmpty() ? "[]" : JSONArray.toJSONString(out.stream().map(item -> DataSerializer.serialize(item)).collect(toList())));
 
         PluginMain.runAsync(() -> INSTANCE.db.save(d));
 
@@ -65,7 +63,7 @@ public enum LocalDataMgr {
         } else {
             List<String> list = StreamSupport.stream(p.getInventory().spliterator(), false)
                     .filter(item -> !(item == null) && !(item.getType() == Material.AIR))
-                    .map(item -> conv(item))
+                    .map(item -> DataSerializer.serialize(item))
                     .collect(toList());
 
             d.setInventory(JSONArray.toJSONString(list));
@@ -108,18 +106,8 @@ public enum LocalDataMgr {
         });
     }
 
-    @SneakyThrows
-    private static String conv(ItemStack item) {
-        return StreamSerializer.getDefault().serializeItemStack(item);
-    }
-
     public static void quit(Player p) {
         INSTANCE.pool.remove(p.getUniqueId());
-    }
-
-    @SneakyThrows
-    private static ItemStack conv(String line) {
-        return StreamSerializer.getDefault().deserializeItemStack(line);
     }
 
 }

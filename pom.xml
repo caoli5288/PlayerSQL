@@ -25,10 +25,6 @@
             <id>repo-spigot</id>
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
-        <repository>
-            <id>local</id>
-            <url>file://${settings.localRepository}</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -57,46 +53,16 @@
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-1.12.2</artifactId>
+            <version>1.12.2-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${env.HOMEPATH}/.m2/repository/org/spigotmc/spigot/1.12.2-R0.1-SNAPSHOT/spigot-1.12.2-R0.1-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.13-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources/</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <artifactSet>
-                                <includes>
-                                    <include>com.mengcraft:simpleorm</include>
-                                </includes>
-                            </artifactSet>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.mengcraft.simpleorm</pattern>
-                                    <shadedPattern>com.mengcraft.playersql.lib.simpleorm</shadedPattern>
-                                </relocation>
-                            </relocations>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

@@ -1,7 +1,6 @@
 main: com.mengcraft.playersql.PluginMain
 name: PlayerSQL
-version: ${project.version}
+version: 2.10-dev
 website: http://www.spigotmc.org/resources/playersql.552/
 author: caoli5288@gmail.com
-depend: ["ProtocolLib"]
-api-version: '1.13'
+softdepend: [SimpleORM, ProtocolLib]

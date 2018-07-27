@@ -1,6 +1,5 @@
 package com.mengcraft.playersql;
 
-import com.comphenix.protocol.utility.StreamSerializer;
 import com.mengcraft.playersql.event.PlayerDataFetchedEvent;
 import com.mengcraft.playersql.event.PlayerDataProcessedEvent;
 import com.mengcraft.playersql.lib.IOBlocking;
@@ -247,7 +246,7 @@ public enum UserManager {
             if (nil(line) || line.isEmpty()) {
                 output.add(AIR);
             } else {
-                output.add(StreamSerializer.getDefault().deserializeItemStack(line));
+                output.add(DataSerializer.deserialize(line));
             }
         }
         return output.toArray(new ItemStack[list.size()]);
@@ -260,7 +259,7 @@ public enum UserManager {
             if (stack == null || stack.getType() == Material.AIR) {
                 array.add("");
             } else try {
-                array.add(StreamSerializer.getDefault().serializeItemStack(stack));
+                array.add(DataSerializer.serialize(stack));
             } catch (Exception e) {
                 main.log(e);
             }

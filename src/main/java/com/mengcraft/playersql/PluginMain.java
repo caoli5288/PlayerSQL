@@ -1,9 +1,10 @@
 package com.mengcraft.playersql;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.mengcraft.playersql.lib.*;
+//import com.comphenix.protocol.ProtocolLibrary;
+
+import com.google.common.io.ByteStreams;
+import com.mengcraft.playersql.lib.MetricsLite;
 import com.mengcraft.playersql.locker.EventLocker;
-import com.mengcraft.playersql.locker.ProtocolBasedLocker;
 import com.mengcraft.playersql.peer.IPacket;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
@@ -14,9 +15,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -40,10 +45,26 @@ public class PluginMain extends JavaPlugin {
         plugin = this;
         metric = new MetricsLite(this);
 
+        if (!DataSerializer.valid()) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "!!! playersql item serializer not compatible. Please install ProtocolLib or feedback to me.");
+            return;
+        }
+
         getConfig().options().copyDefaults(true);
         saveConfig();
 
         messenger = new Messenger(this);
+
+        Plugin dependency = Bukkit.getPluginManager().getPlugin("SimpleORM");
+        if (dependency == null) {
+            File dst = new File(getFile().getParentFile(), "simpleorm.jar");
+            InputStream remote = new URL("http://ci.mengcraft.com:8081/job/SimpleORM/81/artifact/target/simpleorm-1.2-SNAPSHOT.jar").openStream();
+            ByteStreams.copy(remote, new FileOutputStream(dst));
+            dependency = Bukkit.getPluginManager().loadPlugin(dst);
+        }
+        if (!dependency.isEnabled()) {
+            Bukkit.getPluginManager().enablePlugin(dependency);
+        }
 
         ORM.loadLibrary(this);
 
@@ -86,11 +107,11 @@ public class PluginMain extends JavaPlugin {
         } catch (Exception ignore) {
         }// There is some event since 1.8.
 
-        if (getConfig().getBoolean("plugin.use-protocol-locker", false) && getPluginManager().isPluginEnabled("ProtocolLib")) {
-            ProtocolLibrary.getProtocolManager().addPacketListener(ProtocolBasedLocker.b(this));
-        } else {
-            getPluginManager().registerEvents(new EventLocker(), this);
-        }
+//        if (getConfig().getBoolean("plugin.use-protocol-locker", false) && getPluginManager().isPluginEnabled("ProtocolLib")) {
+//            ProtocolLibrary.getProtocolManager().addPacketListener(ProtocolBasedLocker.b(this));
+//        } else {
+        getPluginManager().registerEvents(new EventLocker(), this);
+//        }
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, IPacket.Protocol.TAG);
         getServer().getMessenger().registerIncomingPluginChannel(this, IPacket.Protocol.TAG, executor);

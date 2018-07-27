@@ -66,7 +66,7 @@ public abstract class IPacket {
             }
         };
 
-        public static final String TAG = "playersql:main_channel";
+        public static final String TAG = "playersql:main";
 
         Protocol() {
         }
