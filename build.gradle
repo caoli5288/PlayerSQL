@@ -37,4 +37,8 @@ dependencies {
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.4.0-SNAPSHOT'
 }
 
+jar {
+    baseName "playersql"
+}
+
 jar.finalizedBy(shadowJar)
