@@ -2,6 +2,7 @@ package com.mengcraft.playersql;
 
 import com.comphenix.protocol.utility.StreamSerializer;
 import com.mengcraft.playersql.internal.IPacketDataSerializer;
+import com.mengcraft.playersql.internal.v1_13_2.PacketDataSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.handler.codec.base64.Base64;
@@ -23,6 +24,9 @@ public class DataSerializer {
             case "org.bukkit.craftbukkit.v1_13_R1":
                 PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13.PacketDataSerializer(buf);
                 break;
+            case "org.bukkit.craftbukkit.v1_13_R2":
+                PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13_2.PacketDataSerializer(buf);
+                break;
             default:
                 PACKET_DATA_SERIALIZER_FACTORY = null;
                 break;
@@ -38,9 +42,9 @@ public class DataSerializer {
         serializer.write(input);
         ByteBuf base64 = Base64.encode(serializer.buf());
         serializer.buf().release();
-        CharSequence ouput = base64.readCharSequence(base64.readableBytes(), StandardCharsets.UTF_8);
+        CharSequence out = base64.readCharSequence(base64.readableBytes(), StandardCharsets.UTF_8);
         base64.release();
-        return String.valueOf(ouput);
+        return String.valueOf(out);
     }
 
     @SneakyThrows

@@ -23,9 +23,8 @@ allprojects {
     compileJava.dependsOn(clean)
 }
 
-subprojects { p ->
-    if (p.name == 'internal') return
-    dependencies {
+subprojects {
+    if (it.name != 'internal') dependencies {
         compileOnly project(":internal")
     }
 }
@@ -35,10 +34,6 @@ dependencies {
     compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'
     compileOnly 'com.mengcraft:simpleorm:1.2-SNAPSHOT'
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.4.0-SNAPSHOT'
-}
-
-jar {
-    baseName "playersql"
 }
 
 jar.finalizedBy(shadowJar)
