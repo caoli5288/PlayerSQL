@@ -2,15 +2,13 @@ package com.mengcraft.playersql;
 
 import com.comphenix.protocol.utility.StreamSerializer;
 import com.mengcraft.playersql.internal.IPacketDataSerializer;
-import com.mengcraft.playersql.internal.v1_13_2.PacketDataSerializer;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.handler.codec.base64.Base64;
+import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class DataSerializer {
 
@@ -38,13 +36,12 @@ public class DataSerializer {
         if (PACKET_DATA_SERIALIZER_FACTORY == null) {
             return StreamSerializer.getDefault().serializeItemStack(input);
         }
-        IPacketDataSerializer serializer = PACKET_DATA_SERIALIZER_FACTORY.create(PooledByteBufAllocator.DEFAULT.buffer());
-        serializer.write(input);
-        ByteBuf base64 = Base64.encode(serializer.buf());
-        serializer.buf().release();
-        CharSequence out = base64.readCharSequence(base64.readableBytes(), StandardCharsets.UTF_8);
-        base64.release();
-        return String.valueOf(out);
+        String data;
+        try (IPacketDataSerializer serializer = PACKET_DATA_SERIALIZER_FACTORY.create(PooledByteBufAllocator.DEFAULT.buffer())) {
+            serializer.write(input);
+            data = Base64.getEncoder().encodeToString(serializer.readAll());
+        }
+        return data;
     }
 
     @SneakyThrows
@@ -52,12 +49,10 @@ public class DataSerializer {
         if (PACKET_DATA_SERIALIZER_FACTORY == null) {
             return StreamSerializer.getDefault().deserializeItemStack(input);
         }
-        ByteBuf base64 = PooledByteBufAllocator.DEFAULT.buffer();
-        base64.writeCharSequence(input, StandardCharsets.UTF_8);
-        IPacketDataSerializer buf = PACKET_DATA_SERIALIZER_FACTORY.create(Base64.decode(base64));
-        base64.release();
-        ItemStack output = buf.readItemStack();
-        buf.buf().release();
+        ItemStack output;
+        try (IPacketDataSerializer serializer = PACKET_DATA_SERIALIZER_FACTORY.create(Unpooled.wrappedBuffer(Base64.getDecoder().decode(input)))) {
+            output = serializer.readItemStack();
+        }
         return output;
     }
 

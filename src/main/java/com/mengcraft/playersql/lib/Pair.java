@@ -1,4 +1,4 @@
-package com.mengcraft.playersql;
+package com.mengcraft.playersql.lib;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

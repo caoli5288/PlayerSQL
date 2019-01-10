@@ -2,8 +2,6 @@ package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.event.PlayerDataFetchedEvent;
 import com.mengcraft.playersql.event.PlayerDataProcessedEvent;
-import com.mengcraft.playersql.lib.IOBlocking;
-import com.mengcraft.playersql.lib.JSONUtil;
 import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.task.DailySaveTask;
 import com.mengcraft.simpleorm.EbeanHandler;
@@ -16,6 +14,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONValue;
 
 import java.util.*;
 
@@ -59,7 +58,6 @@ public enum UserManager {
         }
     }
 
-    @IOBlocking
     public void updateDataLock(UUID who, boolean lock) {
         val update = db.getServer().createUpdate(PlayerData.class, "update " + PlayerData.TABLE_NAME +
                 " set locked = :locked where uuid = :uuid");
@@ -70,7 +68,7 @@ public enum UserManager {
             if (result == 1) {
                 main.log("Update " + who + " lock to " + lock + " okay");
             } else {
-                main.log(new PluginException("Update " + who + " lock to " + lock + " failed"));
+                main.log(new IllegalStateException("Update " + who + " lock to " + lock + " failed"));
             }
         }
     }
@@ -160,7 +158,7 @@ public enum UserManager {
     void pend(PlayerData data) {
         val who = main.getPlayer(data.getUuid());
         if (nil(who) || !who.isOnline()) {
-            main.log(new PluginException("Player " + data.getUuid() + " not found"));
+            main.log(new IllegalStateException("Player " + data.getUuid() + " not found"));
         } else {
             val event = PlayerDataFetchedEvent.call(who, data);
             if (event.isCancelled()) {
@@ -229,7 +227,7 @@ public enum UserManager {
 
     @SuppressWarnings("unchecked")
     private List<PotionEffect> toEffect(String input) {
-        List<List> parsed = JSONUtil.parseArray(input);
+        List<List> parsed = parseArray(input);
         List<PotionEffect> output = new ArrayList<>(parsed.size());
         for (List<Number> entry : parsed) {
             output.add(new PotionEffect(PotionEffectType.getById(entry.get(0).intValue()), entry.get(1).intValue(), entry.get(2).intValue()));
@@ -237,10 +235,20 @@ public enum UserManager {
         return output;
     }
 
+    public static JSONArray parseArray(String in) {
+        if (!nil(in)) {
+            Object parsed = JSONValue.parse(in);
+            if (parsed instanceof JSONArray) {
+                return ((JSONArray) parsed);
+            }
+        }
+        return new JSONArray();
+    }
+
     @SuppressWarnings("unchecked")
     @SneakyThrows
     private ItemStack[] toStack(String input) {
-        List<String> list = JSONUtil.parseArray(input);
+        List<String> list = parseArray(input);
         List<ItemStack> output = new ArrayList<>(list.size());
         for (String line : list) {
             if (nil(line) || line.isEmpty()) {

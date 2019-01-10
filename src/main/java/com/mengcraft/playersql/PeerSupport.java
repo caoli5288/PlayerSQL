@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import com.mengcraft.playersql.lib.Pair;
 import com.mengcraft.playersql.peer.DataSupply;
 import com.mengcraft.playersql.peer.DataRequest;
 import com.mengcraft.playersql.peer.IPacket;
