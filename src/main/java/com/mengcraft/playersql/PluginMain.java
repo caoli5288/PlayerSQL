@@ -9,6 +9,8 @@ import com.mengcraft.playersql.peer.IPacket;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import com.mengcraft.simpleorm.ORM;
+import com.mengcraft.simpleorm.lib.LibraryLoader;
+import com.mengcraft.simpleorm.lib.MavenLibrary;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
@@ -39,6 +41,14 @@ public class PluginMain extends JavaPlugin {
     @Getter
     private static PluginMain plugin;
     private MetricsLite metric;
+
+    @Override
+    public void onLoad() {
+        saveDefaultConfig();
+        if (Package.getPackage("net.jpountz.lz4") == null) {
+            LibraryLoader.load(this, MavenLibrary.of("org.lz4:lz4-java:1.5.0"), true);
+        }
+    }
 
     @SneakyThrows
     public void onEnable() {

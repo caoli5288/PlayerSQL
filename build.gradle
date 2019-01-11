@@ -34,7 +34,7 @@ project(":internal") {
 
 dependencies {
     compile subprojects
-    compile 'org.lz4:lz4-java:1.5.0'
+    compileOnly 'org.lz4:lz4-java:1.5.0'
     compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'
     compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
     compileOnly 'com.mengcraft:simpleorm:1.2-SNAPSHOT'

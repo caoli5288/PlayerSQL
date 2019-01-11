@@ -64,7 +64,11 @@ public class PeerSupport extends Plugin implements Listener {
 
     @EventHandler(priority = Byte.MAX_VALUE)
     public void handle(ServerConnectEvent event) {
-        if (!handled.contains(event.getPlayer().getUniqueId())) {
+        if (event.isCancelled() || !handled.contains(event.getPlayer().getUniqueId())) {
+            return;
+        }
+
+        if (event.getTarget().equals(event.getPlayer().getServer().getInfo())) {// ?
             return;
         }
 
