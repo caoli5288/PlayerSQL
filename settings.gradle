@@ -1,3 +1,4 @@
+rootProject.name = "playersql"
 include 'internal'
 include 'internal:v1_12'
 include 'internal:v1_13'

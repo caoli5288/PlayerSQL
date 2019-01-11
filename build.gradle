@@ -1,5 +1,6 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'maven-publish'
 }
 
 allprojects {
@@ -10,14 +11,13 @@ allprojects {
         maven {
             url 'http://ci.mengcraft.com:8081/plugin/repository/everything/'
         }
+        mavenCentral()
         jcenter()
     }
 
     dependencies {
         compileOnly 'org.projectlombok:lombok:1.18.2'
     }
-
-    compileJava.dependsOn(clean)
 }
 
 project(":internal") {
@@ -34,12 +34,31 @@ project(":internal") {
 
 dependencies {
     compile subprojects
+    compile 'org.lz4:lz4-java:1.5.0'
     compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'
     compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
     compileOnly 'com.mengcraft:simpleorm:1.2-SNAPSHOT'
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.4.0-SNAPSHOT'
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
-
 jar.finalizedBy(shadowJar)
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.mengcraft'
+            artifactId = 'playersql'
+            version = '2.10-SNAPSHOT'
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url = "${DEPLOY_REPOSITORY}"
+            credentials {
+                username = "${DEPLOY_USER}"
+                password = "${DEPLOY_PASSWORD}"
+            }
+        }
+    }
+}

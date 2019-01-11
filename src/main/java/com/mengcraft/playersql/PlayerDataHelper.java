@@ -3,8 +3,7 @@ package com.mengcraft.playersql;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.mengcraft.playersql.lib.Compressor;
-import com.mengcraft.playersql.lib.Decompressor;
+import com.mengcraft.playersql.lib.LZ4;
 import com.mengcraft.playersql.lib.VarInt;
 import lombok.SneakyThrows;
 
@@ -26,13 +25,28 @@ public class PlayerDataHelper {
         write(output, dat.getArmor());
         write(output, dat.getChest());
         write(output, dat.getEffect());
-        return Compressor.compress(output.toByteArray());
+        byte[] uncompressed = output.toByteArray();
+        output = ByteStreams.newDataOutput();
+        VarInt.writeUnsignedVarInt(output, uncompressed.length);
+        byte[] compressed = LZ4.compress(uncompressed);
+        if (Config.DEBUG) {
+            PluginMain.getPlugin().log(String.format("PlayerDataHelper.encode LZ4 compressor %s -> %s", uncompressed.length, compressed.length));
+        }
+        VarInt.writeUnsignedVarInt(output, compressed.length);
+        output.write(compressed);
+        return output.toByteArray();
     }
 
     @SneakyThrows
     public static PlayerData decode(byte[] buf) {
-        ByteArrayDataInput input = ByteStreams.newDataInput(Decompressor.decompress(buf));
-        PlayerData dat = new PlayerData();
+        ByteArrayDataInput input = ByteStreams.newDataInput(buf);// DECOMPRESS STREAM
+        int uncompressedLen = (int) VarInt.readUnsignedVarInt(input);
+        int compressedLen = (int) VarInt.readUnsignedVarInt(input);
+        byte[] compressed = new byte[compressedLen];
+        input.readFully(compressed);
+        byte[] decompressed = LZ4.decompress(compressed, uncompressedLen);
+        input = ByteStreams.newDataInput(decompressed);
+        PlayerData dat = new PlayerData();// PARSER PLAYER DATA
         dat.setUuid(new UUID(input.readLong(), input.readLong()));
         dat.setHealth(input.readDouble());
         dat.setFood(input.readInt());
