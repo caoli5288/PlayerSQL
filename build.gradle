@@ -1,9 +1,13 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
     id 'maven-publish'
 }
 
+group = 'com.mengcraft'
+
 allprojects {
+    version = "2.10-SNAPSHOT"
+
     apply plugin: 'java'
 
     repositories {
@@ -26,6 +30,7 @@ project(":internal") {
     }
 
     subprojects {
+        group = 'com.mengcraft.playersql'
         dependencies {
             compileOnly project(":internal")
         }
@@ -46,10 +51,7 @@ jar.finalizedBy(shadowJar)
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = 'com.mengcraft'
-            artifactId = 'playersql'
-            version = '2.10-SNAPSHOT'
-            from components.java
+            project.shadow.component(it)
         }
     }
     repositories {
