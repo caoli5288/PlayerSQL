@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -28,6 +29,7 @@ import static org.bukkit.event.EventPriority.MONITOR;
  */
 public class EventExecutor implements Listener, PluginMessageListener {
 
+    private static final byte[] EMPTY_ARRAY = new byte[0];
     private final Map<UUID, Lifecycle> handled = new HashMap<>();
     private final Map<UUID, Object> pending = new HashMap<>();
     private final BiRegistry<Player, IPacket> registry = new BiRegistry<>();
@@ -55,14 +57,21 @@ public class EventExecutor implements Listener, PluginMessageListener {
             out.setId(request.getUniqueId());
             out.setGroup(group);
             if (isLocked(request.getUniqueId())) {
-                out.setBuf(new byte[0]);
+                out.setBuf(EMPTY_ARRAY);
             } else {
                 manager.lockUser(request.getUniqueId());
                 PlayerData dat = manager.getUserData(request, true);
                 handled.put(request.getUniqueId(), Lifecycle.DATA_SENT);
+                pending.put(request.getUniqueId(), dat);
                 out.setBuf(PlayerDataHelper.encode(dat));
             }
-            request.sendPluginMessage(main, IPacket.Protocol.TAG, out.encode());// send data_buf by target player
+            byte[] message = out.encode();
+            if (message.length > Messenger.MAX_MESSAGE_SIZE) {
+                // overflow?
+                out.setBuf(EMPTY_ARRAY);
+                message = out.encode();
+            }
+            request.sendPluginMessage(main, IPacket.Protocol.TAG, message);// send data_buf by target player
         });
         registry.register(IPacket.Protocol.DATA_BUF, (p, ipk) -> {
             main.debug("### recv data_buf");
@@ -115,12 +124,17 @@ public class EventExecutor implements Listener, PluginMessageListener {
     @EventHandler(priority = MONITOR)
     public void handle(PlayerQuitEvent event) {
         UUID id = event.getPlayer().getUniqueId();
-        Lifecycle lifecycle = handled.remove(id);
-        if (lifecycle == Lifecycle.DATA_SENT || manager.isNotLocked(id)) {
+        if (handled.remove(id) == Lifecycle.DATA_SENT) {
             manager.cancelTask(id);
-            if (manager.isNotLocked(id)) {
-                manager.lockUser(id);// Lock user if not in bungee enchant mode
+            PlayerData dat = (PlayerData) pending.get(id);
+            if (dat == null) {
+                main.run(() -> manager.unlockUser(id));// Err? unlock next tick
+            } else {
+                runAsync(() -> manager.saveUser(dat, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
             }
+        } else if (manager.isNotLocked(id)) {
+            manager.cancelTask(id);
+            manager.lockUser(id);// Lock user if not in bungee enchant mode
             PlayerData dat = manager.getUserData(id, true);
             if (dat == null) {
                 main.run(() -> manager.unlockUser(id));// Err? unlock next tick
@@ -130,7 +144,6 @@ public class EventExecutor implements Listener, PluginMessageListener {
         } else {
             runAsync(() -> manager.updateDataLock(id, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
         }
-
         pending.remove(id);
         LocalDataMgr.quit(event.getPlayer());
     }
