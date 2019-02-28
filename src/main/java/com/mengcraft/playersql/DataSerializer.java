@@ -1,6 +1,7 @@
 package com.mengcraft.playersql;
 
 import com.comphenix.protocol.utility.StreamSerializer;
+import com.google.common.base.Preconditions;
 import com.mengcraft.playersql.internal.IPacketDataSerializer;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -52,6 +53,9 @@ public class DataSerializer {
         ItemStack output;
         try (IPacketDataSerializer serializer = PACKET_DATA_SERIALIZER_FACTORY.create(Unpooled.wrappedBuffer(Base64.getDecoder().decode(input)))) {
             output = serializer.readItemStack();
+        } catch (io.netty.handler.codec.EncoderException e) {// upgrade from below 2.9?
+            Preconditions.checkState(Bukkit.getPluginManager().isPluginEnabled("ProtocolLib"), "protocollib not found");
+            output = StreamSerializer.getDefault().deserializeItemStack(input);
         }
         return output;
     }
