@@ -1,6 +1,7 @@
 package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.event.PlayerDataFetchedEvent;
+import com.mengcraft.playersql.event.PlayerDataStoreEvent;
 import com.mengcraft.playersql.event.PlayerDataProcessedEvent;
 import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.task.DailySaveTask;
@@ -125,6 +126,7 @@ public enum UserManager {
         if (Config.SYN_EXP) {
             user.setExp(SetExpFix.getTotalExperience(p));
         }
+        PlayerDataStoreEvent.call(p, user);
         return user;
     }
 
