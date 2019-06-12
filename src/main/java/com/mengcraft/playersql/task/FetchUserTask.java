@@ -61,21 +61,23 @@ public class FetchUserTask extends BukkitRunnable {
         } else {
             cancel();
 
-            PlayerDataLockedEvent e = new PlayerDataLockedEvent(player, user.getLastUpdate());
-            Bukkit.getPluginManager().callEvent(e);
-            switch (e.getResult()) {
-                case DENY:
-                    kickPlayer();
-                    return;
-                case DEFAULT:
-                    // Todo configurable lock hold time.
-                    if (e.getLastUpdate().toInstant().until(Instant.now(), ChronoUnit.MINUTES) <= 10) {
+            if (user.isLocked()) {
+                PlayerDataLockedEvent e = new PlayerDataLockedEvent(player, user.getLastUpdate());
+                Bukkit.getPluginManager().callEvent(e);
+                switch (e.getResult()) {
+                    case DENY:
                         kickPlayer();
                         return;
-                    }
-                    break;
-                case ALLOW:
-                    break;
+                    case DEFAULT:
+                        // Todo configurable lock hold time.
+                        if (e.getLastUpdate().toInstant().until(Instant.now(), ChronoUnit.MINUTES) <= 10) {
+                            kickPlayer();
+                            return;
+                        }
+                        break;
+                    case ALLOW:
+                        break;
+                }
             }
 
             LocalDataMgr.transfer(player);// TODO move to server thread if any exception
@@ -91,7 +93,7 @@ public class FetchUserTask extends BukkitRunnable {
     }
 
     private void kickPlayer() {
-        player.kickPlayer("Your player data has been locked.\nYou should wait some minutes or contact server operator.");
+        main.run(() -> player.kickPlayer("Your player data has been locked.\nYou should wait some minutes or contact server operator."));
     }
 
 }

@@ -43,6 +43,7 @@ dependencies {
     compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'
     compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
     compileOnly 'com.mengcraft:simpleorm:1.2-SNAPSHOT'
+    compileOnly 'org.avaje:ebean:2.8.1'
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.4.0-SNAPSHOT'
 }
 
