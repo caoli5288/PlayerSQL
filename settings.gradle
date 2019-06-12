@@ -1,5 +1,6 @@
 rootProject.name = "playersql"
 include 'internal'
+include 'internal:v1_8_3'
 include 'internal:v1_12'
 include 'internal:v1_13'
 include 'internal:v1_13_2'

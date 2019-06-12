@@ -17,6 +17,9 @@ public class DataSerializer {
 
     static {
         switch (Bukkit.getServer().getClass().getPackage().getName()) {
+            case "org.bukkit.craftbukkit.v1_8_R3":
+                PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_8_3.PacketDataSerializer(buf);
+                break;
             case "org.bukkit.craftbukkit.v1_12_R1":
                 PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_12.PacketDataSerializer(buf);
                 break;
@@ -30,6 +33,7 @@ public class DataSerializer {
                 PACKET_DATA_SERIALIZER_FACTORY = null;
                 break;
         }
+        System.out.println(String.format("PACKET_DATA_SERIALIZER_FACTORY = %s", PACKET_DATA_SERIALIZER_FACTORY));
     }
 
     @SneakyThrows
