@@ -16,6 +16,7 @@ public class Config {
     public static final boolean KICK_LOAD_FAILED;
     public static final boolean TRANSFER_ORIGIN;
     public static final boolean OMIT_PLAYER_DEATH;
+    public static final boolean FORCE_PROTOCOLLIB;
 
     public static final boolean DEBUG;
     public static final int SYN_DELAY;
@@ -33,6 +34,7 @@ public class Config {
         OMIT_PLAYER_DEATH = CONF.getBoolean("plugin.omit-player-death", false);
         KICK_LOAD_FAILED = CONF.getBoolean("kick-load-failed", true);
         TRANSFER_ORIGIN = CONF.getBoolean("transfer-origin", false);
+        FORCE_PROTOCOLLIB = CONF.getBoolean("plugin.use-protocollib-default", false);
     }
 
 }

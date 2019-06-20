@@ -5,6 +5,7 @@ plugin:
   omit-player-death: false
   # Use this option in your own risk. It's MAY BREAK SERVER.
   use-protocol-locker: false
+  use-protocollib-default: false
 
 sync:
   health: true

@@ -16,22 +16,26 @@ public class DataSerializer {
     private static final IPacketDataSerializer.IFactory PACKET_DATA_SERIALIZER_FACTORY;
 
     static {
-        switch (Bukkit.getServer().getClass().getPackage().getName()) {
-            case "org.bukkit.craftbukkit.v1_8_R3":
-                PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_8_3.PacketDataSerializer(buf);
-                break;
-            case "org.bukkit.craftbukkit.v1_12_R1":
-                PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_12.PacketDataSerializer(buf);
-                break;
-            case "org.bukkit.craftbukkit.v1_13_R1":
-                PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13.PacketDataSerializer(buf);
-                break;
-            case "org.bukkit.craftbukkit.v1_13_R2":
-                PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13_2.PacketDataSerializer(buf);
-                break;
-            default:
-                PACKET_DATA_SERIALIZER_FACTORY = null;
-                break;
+        if (Config.FORCE_PROTOCOLLIB) {
+            PACKET_DATA_SERIALIZER_FACTORY = null;
+        } else {
+            switch (Bukkit.getServer().getClass().getPackage().getName()) {
+                case "org.bukkit.craftbukkit.v1_8_R3":
+                    PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_8_3.PacketDataSerializer(buf);
+                    break;
+                case "org.bukkit.craftbukkit.v1_12_R1":
+                    PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_12.PacketDataSerializer(buf);
+                    break;
+                case "org.bukkit.craftbukkit.v1_13_R1":
+                    PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13.PacketDataSerializer(buf);
+                    break;
+                case "org.bukkit.craftbukkit.v1_13_R2":
+                    PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13_2.PacketDataSerializer(buf);
+                    break;
+                default:
+                    PACKET_DATA_SERIALIZER_FACTORY = null;
+                    break;
+            }
         }
         System.out.println(String.format("PACKET_DATA_SERIALIZER_FACTORY = %s", PACKET_DATA_SERIALIZER_FACTORY));
     }
@@ -57,7 +61,7 @@ public class DataSerializer {
         ItemStack output;
         try (IPacketDataSerializer serializer = PACKET_DATA_SERIALIZER_FACTORY.create(Unpooled.wrappedBuffer(Base64.getDecoder().decode(input)))) {
             output = serializer.readItemStack();
-        } catch (io.netty.handler.codec.EncoderException e) {// upgrade from below 2.9?
+        } catch (RuntimeException e) {// upgrade from below 2.9?
             Preconditions.checkState(Bukkit.getPluginManager().isPluginEnabled("ProtocolLib"), "protocollib not found");
             output = StreamSerializer.getDefault().deserializeItemStack(input);
         }
