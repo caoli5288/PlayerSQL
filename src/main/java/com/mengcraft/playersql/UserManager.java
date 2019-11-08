@@ -294,7 +294,7 @@ public enum UserManager {
         return out.toString();
     }
 
-    public void cancelTask(UUID uuid) {
+    public void cancelTimerSaver(UUID uuid) {
         val i = scheduled.remove(uuid);
         if (!nil(i)) {
             i.cancel();

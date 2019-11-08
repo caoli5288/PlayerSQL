@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
@@ -44,58 +45,48 @@ public class EventExecutor implements Listener, PluginMessageListener {
         manager = UserManager.INSTANCE;
         this.main = main;
         group = main.getConfig().getString("bungee.channel_group", "default");
-        registry.register(IPacket.Protocol.PEER_READY, (p, ipk) -> {
-            main.debug("### recv peer_ready");
-            PeerReady pk = (PeerReady) ipk;// redirect it to enabled peer in bungeecord
-            p.sendPluginMessage(main, IPacket.Protocol.TAG, pk.encode());
-        });
-        registry.register(IPacket.Protocol.DATA_REQUEST, (p, ipk) -> {
-            main.debug("### recv data_request");
-            DataRequest pk = (DataRequest) ipk;
-            Player request = Bukkit.getPlayer(pk.getId());
-            if (request == null) {
-                return;
-            }
-            DataSupply out = new DataSupply();
-            out.setId(request.getUniqueId());
-            out.setGroup(group);
-            if (isLocked(request.getUniqueId())) {
-                out.setBuf(EMPTY_ARRAY);
-            } else {
-                manager.lockUser(request.getUniqueId());
-                PlayerData dat = manager.getUserData(request, true);
-                handled.put(request.getUniqueId(), Lifecycle.DATA_SENT);
-                pending.put(request.getUniqueId(), dat);
-                out.setBuf(PlayerDataHelper.encode(dat));
-            }
-            byte[] message = out.encode();
-            if (message.length > Messenger.MAX_MESSAGE_SIZE) {
-                // overflow?
-                out.setBuf(EMPTY_ARRAY);
-                message = out.encode();
-            }
-            request.sendPluginMessage(main, IPacket.Protocol.TAG, message);// send data_buf by target player
-        });
-        registry.register(IPacket.Protocol.DATA_BUF, (p, ipk) -> {
-            main.debug("### recv data_buf");
-            DataSupply pk = (DataSupply) ipk;
-            if (!group.equals(pk.getGroup())) {
-                return;
-            }
-            PlayerData dat = PlayerDataHelper.decode(pk.getBuf());
-            BukkitRunnable pend = (BukkitRunnable) pending.remove(pk.getId());
-            if (pend == null) {
-                main.debug("### pending received data_buf");
-                pending.put(pk.getId(), dat);
-            } else {
-                main.debug("### process received data_buf");
-                pend.cancel();
-                main.run(() -> {
-                    manager.pend(dat);
-                    runAsync(() -> manager.updateDataLock(pk.getId(), true));
-                });
-            }
-        });
+        registry.register(IPacket.Protocol.PEER_READY, this::receivePeer);
+        registry.register(IPacket.Protocol.DATA_REQUEST, this::receiveRequest);
+        registry.register(IPacket.Protocol.DATA_BUF, this::receiveContents);
+    }
+
+    private void receiveContents(Player ignore, IPacket packet) {
+        main.debug("recv data_buf");
+        DataSupply dataSupply = (DataSupply) packet;
+        if (!group.equals(dataSupply.getGroup())) {
+            return;
+        }
+        PlayerData data = PlayerDataHelper.decode(dataSupply.getBuf());
+        BukkitRunnable pend = (BukkitRunnable) pending.remove(dataSupply.getId());
+        if (pend == null) {
+            main.debug("pending received data_buf");
+            pending.put(dataSupply.getId(), data);
+        } else {
+            main.debug("process received data_buf");
+            pend.cancel();
+            main.run(() -> {
+                manager.pend(data);
+                runAsync(() -> manager.updateDataLock(dataSupply.getId(), true));
+            });
+        }
+    }
+
+    private void receiveRequest(Player ignore, IPacket packet) {
+        main.debug("recv data_request");
+        DataRequest data = (DataRequest) packet;
+        Player player = Bukkit.getPlayer(data.getId());
+        if (player == null) {
+            return;
+        }
+        handled.put(player.getUniqueId(), Lifecycle.DATA_SENT);
+        player.kickPlayer("playersql data request");
+    }
+
+    private void receivePeer(Player p, IPacket packet) {
+        main.debug("recv peer_ready");
+        PeerReady ready = (PeerReady) packet;// redirect it to enabled peer in bungeecord
+        p.sendPluginMessage(main, IPacket.Protocol.TAG, ready.encode());
+        handled.put(ready.getId(), Lifecycle.INIT);
     }
 
     @EventHandler
@@ -116,15 +107,13 @@ public class EventExecutor implements Listener, PluginMessageListener {
     @EventHandler
     public void handle(PlayerJoinEvent event) {
         UUID id = event.getPlayer().getUniqueId();
-        handled.put(id, Lifecycle.INIT);
-
         PlayerData pend = (PlayerData) pending.remove(id);
         if (pend == null) {
             FetchUserTask task = new FetchUserTask(main, event.getPlayer());
             pending.put(id, task);
             task.runTaskTimerAsynchronously(main, Config.SYN_DELAY, Config.SYN_DELAY);
         } else {
-            main.debug("### process pending data_buf on join event");
+            main.debug("process pending data_buf on join event");
             main.run(() -> {
                 manager.pend(pend);
                 runAsync(() -> manager.updateDataLock(id, true));
@@ -132,29 +121,56 @@ public class EventExecutor implements Listener, PluginMessageListener {
         }
     }
 
+    @EventHandler
+    public void handle(PlayerKickEvent e) {
+        Player player = e.getPlayer();
+        if (handled.get(player.getUniqueId()) != Lifecycle.DATA_SENT) {
+            return;
+        }
+
+        DataSupply supply = new DataSupply();// So we magic send player data at kick event.
+        supply.setId(player.getUniqueId());
+        supply.setGroup(group);
+        if (isLocked(player.getUniqueId())) {
+            supply.setBuf(EMPTY_ARRAY);
+        } else {
+            manager.lockUser(player.getUniqueId());
+            PlayerData dat = manager.getUserData(player, true);
+            pending.put(player.getUniqueId(), dat);
+            supply.setBuf(PlayerDataHelper.encode(dat));
+        }
+
+        byte[] message = supply.encode();
+        if (message.length > Messenger.MAX_MESSAGE_SIZE) {// Overflow?
+            supply.setBuf(EMPTY_ARRAY);
+            message = supply.encode();
+        }
+
+        player.sendPluginMessage(main, IPacket.Protocol.TAG, message);// BungeeCord received this before kicks
+    }
+
     @EventHandler(priority = MONITOR)
     public void handle(PlayerQuitEvent event) {
+        /*
+         * Magic quit processor first
+         */
         UUID id = event.getPlayer().getUniqueId();
-        if (handled.remove(id) == Lifecycle.DATA_SENT) {
-            manager.cancelTask(id);
-            PlayerData dat = (PlayerData) pending.get(id);
-            if (dat == null) {
-                main.run(() -> manager.unlockUser(id));// Err? unlock next tick
-            } else {
-                runAsync(() -> manager.saveUser(dat, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
-            }
-        } else if (manager.isNotLocked(id)) {
-            manager.cancelTask(id);
+        if (manager.isNotLocked(id)) {
+            manager.cancelTimerSaver(id);
             manager.lockUser(id);// Lock user if not in bungee enchant mode
-            PlayerData dat = manager.getUserData(id, true);
-            if (dat == null) {
+            Lifecycle lifecycle = handled.get(id);
+            PlayerData data = (lifecycle == Lifecycle.DATA_SENT)
+                    ? (PlayerData) pending.get(id)
+                    : manager.getUserData(id, true);
+            if (data == null) {
                 main.run(() -> manager.unlockUser(id));// Err? unlock next tick
             } else {
-                runAsync(() -> manager.saveUser(dat, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
+                runAsync(() -> manager.saveUser(data, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
             }
         } else {
             runAsync(() -> manager.updateDataLock(id, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
         }
+        handled.remove(id);
         pending.remove(id);
         LocalDataMgr.quit(event.getPlayer());
     }

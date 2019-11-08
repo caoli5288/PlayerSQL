@@ -11,6 +11,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
+import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -36,17 +37,11 @@ public class PeerSupport extends Plugin implements Listener {
             }
             p.getServer().sendData(IPacket.Protocol.TAG, pair.getValue().encode());
         });
-        registry.register(IPacket.Protocol.DATA_BUF, (p, ipk) -> {
-            DataSupply pk = (DataSupply) ipk;
-            Pair<ServerInfo, DataSupply> pair = pending.get(pk.getId());
-            ServerInfo serv = pair.getKey();
-            handled.remove(pk.getId());
-            p.connect(serv, (succ, err) -> {
-                if (!succ || pk.getBuf().length == 0) {// recv zero if request when client not ready, we not redirect it
-                    return;
-                }
-                pair.setValue(pk);
-            });
+        registry.register(IPacket.Protocol.DATA_BUF, (p, packet) -> {
+            DataSupply supply = (DataSupply) packet;
+            Pair<ServerInfo, DataSupply> pair = pending.get(supply.getId());
+            pair.setValue(supply);
+            handled.remove(supply.getId());
         });
         getProxy().registerChannel(IPacket.Protocol.TAG);
         getProxy().getPluginManager().registerListener(this, this);
@@ -86,6 +81,19 @@ public class PeerSupport extends Plugin implements Listener {
         PeerReady pk = new PeerReady();
         pk.setId(event.getPlayer().getUniqueId());
         event.getPlayer().getServer().sendData(IPacket.Protocol.TAG, pk.encode());
+    }
+
+    @EventHandler
+    public void handle(ServerKickEvent event) {
+        ProxiedPlayer player = event.getPlayer();
+        UUID id = player.getUniqueId();
+        if (!pending.containsKey(id)) {
+            return;
+        }
+
+        Pair<ServerInfo, DataSupply> pair = pending.get(id);
+        event.setCancelled(true);
+        event.setCancelServer(pair.getKey());
     }
 
     @EventHandler
