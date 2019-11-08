@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -27,6 +28,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 
 import static org.bukkit.Bukkit.getPluginManager;
@@ -34,7 +36,7 @@ import static org.bukkit.Bukkit.getPluginManager;
 /**
  * Created on 16-1-2.
  */
-public class PluginMain extends JavaPlugin {
+public class PluginMain extends JavaPlugin implements Executor {
 
     @Getter
     private static Messenger messenger;
@@ -98,7 +100,7 @@ public class PluginMain extends JavaPlugin {
             b.define(LocalData.class);
             b.initialize();
 
-            b.install();
+            b.install(true);
 
             LocalDataMgr.INSTANCE.db = b;
 
@@ -126,6 +128,8 @@ public class PluginMain extends JavaPlugin {
         getServer().getMessenger().registerOutgoingPluginChannel(this, IPacket.Protocol.TAG);
         getServer().getMessenger().registerIncomingPluginChannel(this, IPacket.Protocol.TAG, executor);
 
+        getCommand("playersql").setExecutor(new Commands());
+
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "PlayerSQL enabled! Donate me plz. https://www.paypal.me/2732000916/5");
     }
 
@@ -138,6 +142,11 @@ public class PluginMain extends JavaPlugin {
         for (Player p : getServer().getOnlinePlayers()) {
             UserManager.INSTANCE.saveUser(p, false);
         }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return super.onCommand(sender, command, label, args);
     }
 
     public Player getPlayer(UUID uuid) {
@@ -156,6 +165,11 @@ public class PluginMain extends JavaPlugin {
         if (Config.DEBUG) {
             log(line);
         }
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        Bukkit.getScheduler().runTask(this, command);
     }
 
     public static CompletableFuture<Void> runAsync(Runnable r) {

@@ -47,6 +47,10 @@ public enum UserManager {
         return db.find(PlayerData.class, uuid);
     }
 
+    public PlayerData fetchName(String name) {
+        return db.getServer().find(PlayerData.class).where("name = :name").setParameter("name", name).findUnique();
+    }
+
     public void saveUser(Player p, boolean lock) {
         saveUser(getUserData(p, !lock), lock);
     }
@@ -103,6 +107,7 @@ public enum UserManager {
     public PlayerData getUserData(Player p, boolean closeInventory) {
         PlayerData user = new PlayerData();
         user.setUuid(p.getUniqueId());
+        user.setName(p.getName());
         if (Config.SYN_HEALTH) {
             user.setHealth(p.getHealth());
         }
@@ -249,7 +254,7 @@ public enum UserManager {
 
     @SuppressWarnings("unchecked")
     @SneakyThrows
-    private ItemStack[] toStack(String input) {
+    public ItemStack[] toStack(String input) {
         List<String> list = parseArray(input);
         List<ItemStack> output = new ArrayList<>(list.size());
         for (String line : list) {
@@ -263,7 +268,7 @@ public enum UserManager {
     }
 
     @SuppressWarnings("unchecked")
-    private String toString(ItemStack[] stacks) {
+    public String toString(ItemStack[] stacks) {
         JSONArray array = new JSONArray();
         for (ItemStack stack : stacks)
             if (stack == null || stack.getType() == Material.AIR) {

@@ -4,3 +4,6 @@ version: 2.10-dev
 website: http://www.spigotmc.org/resources/playersql.552/
 author: caoli5288@gmail.com
 softdepend: [SimpleORM, ProtocolLib]
+commands:
+  playersql:
+    permission: playersql.admin
