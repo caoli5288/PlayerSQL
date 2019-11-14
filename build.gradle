@@ -9,6 +9,7 @@ allprojects {
     version = "2.10-SNAPSHOT"
 
     apply plugin: 'java'
+    apply plugin: 'maven'
 
     repositories {
         mavenLocal()

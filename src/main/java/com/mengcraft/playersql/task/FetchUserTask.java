@@ -35,6 +35,12 @@ public class FetchUserTask extends BukkitRunnable {
 
     @Override
     public synchronized void run() {
+        if (!player.isOnline()) {
+            main.debug(String.format("FetchUser.run cancel task for %s logout", player.getName()));
+            cancel();
+            return;
+        }
+
         PlayerData user = manager.fetchUser(id);
         if (nil(user)) {
             cancel();
@@ -47,7 +53,7 @@ public class FetchUserTask extends BukkitRunnable {
 
             manager.newUser(id);
             main.run(() -> {
-                manager.unlockUser(id);
+                manager.unlockUser(player);
                 manager.createTask(id);
             });
 

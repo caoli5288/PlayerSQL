@@ -13,7 +13,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.messaging.Messenger;
@@ -45,9 +44,8 @@ public class EventExecutor implements Listener, PluginMessageListener {
         manager = UserManager.INSTANCE;
         this.main = main;
         group = main.getConfig().getString("bungee.channel_group", "default");
-        registry.register(IPacket.Protocol.PEER_READY, this::receivePeer);
         registry.register(IPacket.Protocol.DATA_REQUEST, this::receiveRequest);
-        registry.register(IPacket.Protocol.DATA_BUF, this::receiveContents);
+        registry.register(IPacket.Protocol.DATA_CONTENTS, this::receiveContents);
     }
 
     private void receiveContents(Player ignore, IPacket packet) {
@@ -71,22 +69,14 @@ public class EventExecutor implements Listener, PluginMessageListener {
         }
     }
 
-    private void receiveRequest(Player ignore, IPacket packet) {
-        main.debug("recv data_request");
-        DataRequest data = (DataRequest) packet;
-        Player player = Bukkit.getPlayer(data.getId());
-        if (player == null) {
-            return;
+    private void receiveRequest(Player _p, IPacket packet) {
+        DataRequest request = (DataRequest) packet;
+        Player player = Bukkit.getPlayer(request.getId());
+        if (player != null) {
+            main.debug(String.format("receive data request for %s", player.getName()));
+            handled.put(player.getUniqueId(), Lifecycle.DATA_SENT);
+            player.kickPlayer("playersql data request");
         }
-        handled.put(player.getUniqueId(), Lifecycle.DATA_SENT);
-        player.kickPlayer("playersql data request");
-    }
-
-    private void receivePeer(Player p, IPacket packet) {
-        main.debug("recv peer_ready");
-        PeerReady ready = (PeerReady) packet;// redirect it to enabled peer in bungeecord
-        p.sendPluginMessage(main, IPacket.Protocol.TAG, ready.encode());
-        handled.put(ready.getId(), Lifecycle.INIT);
     }
 
     @EventHandler
@@ -98,18 +88,20 @@ public class EventExecutor implements Listener, PluginMessageListener {
     }
 
     @EventHandler
-    public void handle(PlayerLoginEvent event) {
-        UUID id = event.getPlayer().getUniqueId();
-        main.debug("Lock user " + id + " done!");
-        this.manager.lockUser(id);
-    }
-
-    @EventHandler
     public void handle(PlayerJoinEvent event) {
-        UUID id = event.getPlayer().getUniqueId();
+        Player player = event.getPlayer();
+
+        main.debug(String.format("PlayerJoin() -> peer ready for %s", player.getName()));
+        main.getHijUtils().addCustomChannel(player, IPacket.NAMESPACE);// hacky add channels without register commands
+        PeerReady ready = new PeerReady();
+        ready.setId(player.getUniqueId());
+        player.sendPluginMessage(main, IPacket.NAMESPACE, ready.encode());
+
+        manager.lockUser(player);
+        UUID id = player.getUniqueId();
         PlayerData pend = (PlayerData) pending.remove(id);
         if (pend == null) {
-            FetchUserTask task = new FetchUserTask(main, event.getPlayer());
+            FetchUserTask task = new FetchUserTask(main, player);
             pending.put(id, task);
             task.runTaskTimerAsynchronously(main, Config.SYN_DELAY, Config.SYN_DELAY);
         } else {
@@ -134,7 +126,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
         if (isLocked(player.getUniqueId())) {
             supply.setBuf(EMPTY_ARRAY);
         } else {
-            manager.lockUser(player.getUniqueId());
+            manager.lockUser(player);
             PlayerData dat = manager.getUserData(player, true);
             pending.put(player.getUniqueId(), dat);
             supply.setBuf(PlayerDataHelper.encode(dat));
@@ -146,37 +138,35 @@ public class EventExecutor implements Listener, PluginMessageListener {
             message = supply.encode();
         }
 
-        player.sendPluginMessage(main, IPacket.Protocol.TAG, message);// BungeeCord received this before kicks
+        player.sendPluginMessage(main, IPacket.NAMESPACE, message);// BungeeCord received this before kicks
     }
 
     @EventHandler(priority = MONITOR)
     public void handle(PlayerQuitEvent event) {
-        /*
-         * Magic quit processor first
-         */
-        UUID id = event.getPlayer().getUniqueId();
+        Player player = event.getPlayer();
+        UUID id = player.getUniqueId();
         if (manager.isNotLocked(id)) {
             manager.cancelTimerSaver(id);
-            manager.lockUser(id);// Lock user if not in bungee enchant mode
+            manager.lockUser(player);// Lock user if not in bungee enchant mode
             Lifecycle lifecycle = handled.get(id);
             PlayerData data = (lifecycle == Lifecycle.DATA_SENT)
                     ? (PlayerData) pending.get(id)
                     : manager.getUserData(id, true);
             if (data == null) {
-                main.run(() -> manager.unlockUser(id));// Err? unlock next tick
+                main.run(() -> manager.unlockUser(player));// Err? unlock next tick
             } else {
-                runAsync(() -> manager.saveUser(data, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
+                runAsync(() -> manager.saveUser(data, false)).thenRun(() -> main.run(() -> manager.unlockUser(player)));
             }
         } else {
-            runAsync(() -> manager.updateDataLock(id, false)).thenRun(() -> main.run(() -> manager.unlockUser(id)));
+            runAsync(() -> manager.updateDataLock(id, false)).thenRun(() -> main.run(() -> manager.unlockUser(player)));
         }
         handled.remove(id);
         pending.remove(id);
-        LocalDataMgr.quit(event.getPlayer());
+        LocalDataMgr.quit(player);
     }
 
     public void onPluginMessageReceived(String tag, Player p, byte[] input) {
-        if (!tag.equals(IPacket.Protocol.TAG)) {
+        if (!tag.equals(IPacket.NAMESPACE)) {
             return;
         }
 
@@ -184,6 +174,9 @@ public class EventExecutor implements Listener, PluginMessageListener {
         registry.handle(ipk.getProtocol(), p, ipk);
     }
 
+    /**
+     * @deprecated meaningless flags
+     */
     enum Lifecycle {
 
         INIT,

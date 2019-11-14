@@ -1,8 +1,8 @@
 package com.mengcraft.playersql;
 
 import com.mengcraft.playersql.event.PlayerDataFetchedEvent;
-import com.mengcraft.playersql.event.PlayerDataStoreEvent;
 import com.mengcraft.playersql.event.PlayerDataProcessedEvent;
+import com.mengcraft.playersql.event.PlayerDataStoreEvent;
 import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.task.DailySaveTask;
 import com.mengcraft.simpleorm.EbeanHandler;
@@ -17,7 +17,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static com.mengcraft.playersql.PluginMain.nil;
 
@@ -143,13 +151,28 @@ public enum UserManager {
         return !isLocked(uuid);
     }
 
-    public void lockUser(UUID uuid) {
-        this.locked.add(uuid);
+    public void lockUser(Player player) {
+        main.debug(String.format("manager.lockUser(%s)", player.getName()));
+        locked.add(player.getUniqueId());
+        try {
+            main.debug(String.format("HijUtils.setAutoRead(%s, false)", player.getName()));
+            main.getHijUtils().setAutoRead(player, false);
+        } catch (Exception cause) {
+            main.log(cause);
+        }
     }
 
-    public void unlockUser(UUID uuid) {
+    public void unlockUser(Player player) {
+        main.debug(String.format("manager.unlockUser(%s)", player.getName()));
+        UUID uuid = player.getUniqueId();
         while (isLocked(uuid)) {
             locked.remove(uuid);
+        }
+        try {
+            main.debug(String.format("HijUtils.setAutoRead(%s, true)", player.getName()));
+            main.getHijUtils().setAutoRead(player, true);
+        } catch (Exception cause) {
+            main.log(cause);
         }
     }
 
@@ -157,34 +180,41 @@ public enum UserManager {
         if (Config.KICK_LOAD_FAILED) {
             who.kickPlayer(PluginMain.getMessenger().find("kick_load", "Your game data loading error, please contact the operator"));
         } else {
-            unlockUser(who.getUniqueId());
+            unlockUser(who);
             createTask(who.getUniqueId());
         }
     }
 
     void pend(PlayerData data) {
-        val who = main.getPlayer(data.getUuid());
-        if (nil(who) || !who.isOnline()) {
+        Player who = main.getPlayer(data.getUuid());
+        if (who == null || !who.isOnline()) {
             main.log(new IllegalStateException("Player " + data.getUuid() + " not found"));
+            return;
+        }
+
+        if (isNotLocked(who.getUniqueId())) {
+            main.debug(String.format("manager.pend cancel pend ops, player %s not locked", who.getName()));
+            return;
+        }
+
+        val event = PlayerDataFetchedEvent.call(who, data);
+        if (event.isCancelled()) {
+            onLoadFailed(who);
         } else {
-            val event = PlayerDataFetchedEvent.call(who, data);
-            if (event.isCancelled()) {
+            Exception exception = null;
+            try {
+                pend(who, data);
+            } catch (Exception e) {
+                exception = e;
                 onLoadFailed(who);
-            } else {
-                Exception exception = null;
-                try {
-                    pend(who, data);
-                } catch (Exception e) {
-                    exception = e;
-                    onLoadFailed(who);
-                    if (Config.DEBUG) {
-                        main.log(e);
-                    } else {
-                        main.log(e.toString());
-                    }
+                if (Config.DEBUG) {
+                    main.log(e);
+                } else {
+                    main.log(e.toString());
                 }
-                PlayerDataProcessedEvent.call(who, exception);
             }
+
+            PlayerDataProcessedEvent.call(who, exception);
         }
     }
 
@@ -229,7 +259,7 @@ public enum UserManager {
             who.getEnderChest().setContents(toStack(data.getChest()));
         }
         createTask(who.getUniqueId());
-        unlockUser(who.getUniqueId());
+        unlockUser(who);
     }
 
     @SuppressWarnings("unchecked")

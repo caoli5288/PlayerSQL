@@ -13,7 +13,7 @@ public class DataSupply extends IPacket {
     private byte[] buf;
 
     public DataSupply() {
-        super(Protocol.DATA_BUF);
+        super(Protocol.DATA_CONTENTS);
     }
 
     @Override

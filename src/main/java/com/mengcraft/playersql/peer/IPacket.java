@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public abstract class IPacket {
 
+    public static final String NAMESPACE = "playersql:main";
+
     private final Protocol protocol;
 
     public IPacket(Protocol protocol) {
@@ -46,7 +48,7 @@ public abstract class IPacket {
             }
         },
 
-        DATA_BUF {
+        DATA_CONTENTS {
             public IPacket decode(ByteArrayDataInput input) {
                 DataSupply pk = new DataSupply();
                 pk.setId(new UUID(input.readLong(), input.readLong()));
@@ -65,11 +67,6 @@ public abstract class IPacket {
                 return pk;
             }
         };
-
-        public static final String TAG = "playersql:main";
-
-        Protocol() {
-        }
 
         public IPacket decode(ByteArrayDataInput input) {
             throw new AbstractMethodError("decode");

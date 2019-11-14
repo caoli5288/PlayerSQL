@@ -3,6 +3,7 @@ package com.mengcraft.playersql;
 //import com.comphenix.protocol.ProtocolLibrary;
 
 import com.google.common.io.ByteStreams;
+import com.mengcraft.playersql.inject.HijUtils;
 import com.mengcraft.playersql.lib.MetricsLite;
 import com.mengcraft.playersql.locker.EventLocker;
 import com.mengcraft.playersql.peer.IPacket;
@@ -43,6 +44,7 @@ public class PluginMain extends JavaPlugin implements Executor {
     @Getter
     private static PluginMain plugin;
     private MetricsLite metric;
+    private final HijUtils hijUtils = new HijUtils();
 
     @Override
     public void onLoad() {
@@ -125,8 +127,8 @@ public class PluginMain extends JavaPlugin implements Executor {
         getPluginManager().registerEvents(new EventLocker(), this);
 //        }
 
-        getServer().getMessenger().registerOutgoingPluginChannel(this, IPacket.Protocol.TAG);
-        getServer().getMessenger().registerIncomingPluginChannel(this, IPacket.Protocol.TAG, executor);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, IPacket.NAMESPACE);
+        getServer().getMessenger().registerIncomingPluginChannel(this, IPacket.NAMESPACE, executor);
 
         getCommand("playersql").setExecutor(new Commands());
 
@@ -154,7 +156,9 @@ public class PluginMain extends JavaPlugin implements Executor {
     }
 
     public void log(Exception e) {
-        getLogger().log(Level.SEVERE, e.toString(), e);
+        if (Config.DEBUG) {
+            getLogger().log(Level.SEVERE, e.toString(), e);
+        }
     }
 
     public void log(String info) {
@@ -170,6 +174,10 @@ public class PluginMain extends JavaPlugin implements Executor {
     @Override
     public void execute(Runnable command) {
         Bukkit.getScheduler().runTask(this, command);
+    }
+
+    public HijUtils getHijUtils() {
+        return hijUtils;
     }
 
     public static CompletableFuture<Void> runAsync(Runnable r) {
