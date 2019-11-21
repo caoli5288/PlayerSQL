@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
 @RequiredArgsConstructor
-public class HijConfig implements ChannelConfig, Excludes.AutoReadSetter {
+public class HijConfig implements ChannelConfig, Functions.AutoReadSetter {
 
-    @Delegate(excludes = Excludes.AutoReadSetter.class)
+    @Delegate(excludes = Functions.AutoReadSetter.class)
     private final ChannelConfig delegate;
 
     @Override

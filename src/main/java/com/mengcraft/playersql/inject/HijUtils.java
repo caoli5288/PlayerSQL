@@ -25,15 +25,15 @@ public class HijUtils {
         Channel ch = scripting.getChannel(player);
         if (ch.isOpen()) {
             if (autoRead) {
-                if (ch instanceof HijChannel) {
-                    ch = ((HijChannel) ch).delegate();
+                if (ch instanceof ChannelProxies.IWrappedChannel) {
+                    ch = ((ChannelProxies.IWrappedChannel) ch).channel();
                     scripting.setChannel(player, ch);
                 }
 
                 ch.config().setAutoRead(true);
             } else {
                 ch.config().setAutoRead(false);
-                scripting.setChannel(player, new HijChannel(ch, new HijConfig(ch.config())));
+                scripting.setChannel(player, ChannelProxies.create(ch, new HijConfig(ch.config())));
             }
         }
 
