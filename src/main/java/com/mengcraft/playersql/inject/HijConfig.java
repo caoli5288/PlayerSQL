@@ -12,7 +12,6 @@ public class HijConfig implements ChannelConfig, Functions.AutoReadSetter {
 
     @Override
     public ChannelConfig setAutoRead(boolean b) {
-        System.out.println(String.format("HijConfig.setAutoRead(%s)", b));
         return this;
     }
 }

@@ -51,7 +51,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
     private void receiveContents(Player ignore, IPacket packet) {
         main.debug("recv data_buf");
         DataSupply dataSupply = (DataSupply) packet;
-        if (!group.equals(dataSupply.getGroup())) {
+        if (dataSupply.getBuf() == null || dataSupply.getBuf().length == 0 || !group.equals(dataSupply.getGroup())) {
             return;
         }
         PlayerData data = PlayerDataHelper.decode(dataSupply.getBuf());
@@ -91,11 +91,13 @@ public class EventExecutor implements Listener, PluginMessageListener {
     public void handle(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        main.debug(String.format("PlayerJoin() -> peer ready for %s", player.getName()));
-        main.getHijUtils().addCustomChannel(player, IPacket.NAMESPACE);// hacky add channels without register commands
-        PeerReady ready = new PeerReady();
-        ready.setId(player.getUniqueId());
-        player.sendPluginMessage(main, IPacket.NAMESPACE, ready.encode());
+        if (!main.getConfig().getBoolean("bungee.mute")) {
+            main.debug(String.format("PlayerJoin() -> send peer ready for %s", player.getName()));
+            main.getHijUtils().addCustomChannel(player, IPacket.NAMESPACE);// hacky add channels without register commands
+            PeerReady ready = new PeerReady();
+            ready.setId(player.getUniqueId());
+            player.sendPluginMessage(main, IPacket.NAMESPACE, ready.encode());
+        }
 
         manager.lockUser(player);
         UUID id = player.getUniqueId();
@@ -145,10 +147,10 @@ public class EventExecutor implements Listener, PluginMessageListener {
     public void handle(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID id = player.getUniqueId();
+        Lifecycle lifecycle = handled.remove(id);
         if (manager.isNotLocked(id)) {
             manager.cancelTimerSaver(id);
             manager.lockUser(player);// Lock user if not in bungee enchant mode
-            Lifecycle lifecycle = handled.get(id);
             PlayerData data = (lifecycle == Lifecycle.DATA_SENT)
                     ? (PlayerData) pending.get(id)
                     : manager.getUserData(id, true);
@@ -160,13 +162,12 @@ public class EventExecutor implements Listener, PluginMessageListener {
         } else {
             runAsync(() -> manager.updateDataLock(id, false)).thenRun(() -> main.run(() -> manager.unlockUser(player)));
         }
-        handled.remove(id);
         pending.remove(id);
         LocalDataMgr.quit(player);
     }
 
     public void onPluginMessageReceived(String tag, Player p, byte[] input) {
-        if (!tag.equals(IPacket.NAMESPACE)) {
+        if (main.getConfig().getBoolean("bungee.mute") || !tag.equals(IPacket.NAMESPACE)) {
             return;
         }
 

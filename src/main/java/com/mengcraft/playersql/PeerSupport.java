@@ -44,8 +44,12 @@ public class PeerSupport extends Plugin implements Listener {
     private void dataContents(ProxiedPlayer player, IPacket packet) {
         DataSupply supply = (DataSupply) packet;
         if (values.containsKey(supply.getId())) {
-            Pair<ServerInfo, DataSupply> pair = values.get(supply.getId());
-            pair.setValue(supply);
+            if (supply.getBuf() == null || supply.getBuf().length == 0) {
+                values.remove(supply.getId());
+            } else {
+                Pair<ServerInfo, DataSupply> pair = values.get(supply.getId());
+                pair.setValue(supply);
+            }
         }
     }
 
@@ -64,15 +68,17 @@ public class PeerSupport extends Plugin implements Listener {
 
     @EventHandler(priority = Byte.MAX_VALUE)
     public void handle(ServerConnectEvent event) {
-        if (!event.isCancelled()) {
-            UUID id = event.getPlayer().getUniqueId();
-            if (peers.contains(id)) {
-                values.put(id, new Pair<>(event.getTarget()));
-                event.setCancelled(true);
-                DataRequest request = new DataRequest();
-                request.setId(id);
-                event.getPlayer().getServer().sendData(IPacket.NAMESPACE, request.encode());
-            }
+        if (event.isCancelled()) {
+            return;
+        }
+        UUID id = event.getPlayer().getUniqueId();
+        values.remove(id);// force remove dirty values
+        if (peers.contains(id)) {
+            values.put(id, new Pair<>(event.getTarget()));
+            event.setCancelled(true);
+            DataRequest request = new DataRequest();
+            request.setId(id);
+            event.getPlayer().getServer().sendData(IPacket.NAMESPACE, request.encode());
         }
     }
 

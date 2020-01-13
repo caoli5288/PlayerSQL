@@ -154,6 +154,9 @@ public enum UserManager {
     public void lockUser(Player player) {
         main.debug(String.format("manager.lockUser(%s)", player.getName()));
         locked.add(player.getUniqueId());
+        if (main.getConfig().getBoolean("plugin.disable-filter-network")) {
+            return;
+        }
         try {
             main.debug(String.format("HijUtils.setAutoRead(%s, false)", player.getName()));
             main.getHijUtils().setAutoRead(player, false);

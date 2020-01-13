@@ -146,11 +146,6 @@ public class PluginMain extends JavaPlugin implements Executor {
         }
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return super.onCommand(sender, command, label, args);
-    }
-
     public Player getPlayer(UUID uuid) {
         return getServer().getPlayer(uuid);
     }

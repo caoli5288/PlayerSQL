@@ -6,6 +6,7 @@ plugin:
   # Use this option in your own risk. It's MAY BREAK SERVER.
   use-protocol-locker: false
   use-protocollib-default: false
+  disable-filter-network: false
 
 sync:
   health: true
@@ -27,3 +28,4 @@ message:
 
 bungee:
   channel_group: 'default'
+  mute: false
