@@ -3,7 +3,7 @@ package com.mengcraft.playersql;
 import com.mengcraft.playersql.lib.CustomInventory;
 import com.mengcraft.playersql.peer.DataRequest;
 import com.mengcraft.playersql.peer.DataSupply;
-import com.mengcraft.playersql.peer.IPacket;
+import com.mengcraft.playersql.peer.PlayerSqlProtocol;
 import com.mengcraft.playersql.peer.PeerReady;
 import com.mengcraft.playersql.task.FetchUserTask;
 import org.bukkit.Bukkit;
@@ -35,7 +35,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
     private static final byte[] EMPTY_ARRAY = new byte[0];
     private final Map<UUID, Lifecycle> handled = new HashMap<>();
     private final Map<UUID, Object> pending = new HashMap<>();
-    private final BiRegistry<Player, IPacket> registry = new BiRegistry<>();
+    private final BiRegistry<Player, PlayerSqlProtocol> registry = new BiRegistry<>();
     private final PluginMain main;
     private UserManager manager;
     private String group;
@@ -44,11 +44,11 @@ public class EventExecutor implements Listener, PluginMessageListener {
         manager = UserManager.INSTANCE;
         this.main = main;
         group = main.getConfig().getString("bungee.channel_group", "default");
-        registry.register(IPacket.Protocol.DATA_REQUEST, this::receiveRequest);
-        registry.register(IPacket.Protocol.DATA_CONTENTS, this::receiveContents);
+        registry.register(PlayerSqlProtocol.Protocol.DATA_REQUEST, this::receiveRequest);
+        registry.register(PlayerSqlProtocol.Protocol.DATA_CONTENTS, this::receiveContents);
     }
 
-    private void receiveContents(Player ignore, IPacket packet) {
+    private void receiveContents(Player ignore, PlayerSqlProtocol packet) {
         main.debug("recv data_buf");
         DataSupply dataSupply = (DataSupply) packet;
         if (dataSupply.getBuf() == null || dataSupply.getBuf().length == 0 || !group.equals(dataSupply.getGroup())) {
@@ -69,13 +69,13 @@ public class EventExecutor implements Listener, PluginMessageListener {
         }
     }
 
-    private void receiveRequest(Player _p, IPacket packet) {
+    private void receiveRequest(Player _p, PlayerSqlProtocol packet) {
         DataRequest request = (DataRequest) packet;
         Player player = Bukkit.getPlayer(request.getId());
         if (player != null) {
             main.debug(String.format("receive data request for %s", player.getName()));
             handled.put(player.getUniqueId(), Lifecycle.DATA_SENT);
-            player.kickPlayer("playersql data request");
+            player.kickPlayer(PlayerSqlProtocol.MAGIC_KICK_MESSAGE);
         }
     }
 
@@ -93,10 +93,10 @@ public class EventExecutor implements Listener, PluginMessageListener {
 
         if (!main.getConfig().getBoolean("bungee.mute")) {
             main.debug(String.format("PlayerJoin() -> send peer ready for %s", player.getName()));
-            main.getHijUtils().addCustomChannel(player, IPacket.NAMESPACE);// hacky add channels without register commands
+            main.getHijUtils().addCustomChannel(player, PlayerSqlProtocol.NAMESPACE);// hacky add channels without register commands
             PeerReady ready = new PeerReady();
             ready.setId(player.getUniqueId());
-            player.sendPluginMessage(main, IPacket.NAMESPACE, ready.encode());
+            player.sendPluginMessage(main, PlayerSqlProtocol.NAMESPACE, ready.encode());
         }
 
         manager.lockUser(player);
@@ -140,7 +140,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
             message = supply.encode();
         }
 
-        player.sendPluginMessage(main, IPacket.NAMESPACE, message);// BungeeCord received this before kicks
+        player.sendPluginMessage(main, PlayerSqlProtocol.NAMESPACE, message);// BungeeCord received this before kicks
     }
 
     @EventHandler(priority = MONITOR)
@@ -167,11 +167,11 @@ public class EventExecutor implements Listener, PluginMessageListener {
     }
 
     public void onPluginMessageReceived(String tag, Player p, byte[] input) {
-        if (main.getConfig().getBoolean("bungee.mute") || !tag.equals(IPacket.NAMESPACE)) {
+        if (main.getConfig().getBoolean("bungee.mute") || !tag.equals(PlayerSqlProtocol.NAMESPACE)) {
             return;
         }
 
-        IPacket ipk = IPacket.decode(input);
+        PlayerSqlProtocol ipk = PlayerSqlProtocol.decode(input);
         registry.handle(ipk.getProtocol(), p, ipk);
     }
 

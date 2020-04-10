@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class PeerReady extends IPacket {
+public class PeerReady extends PlayerSqlProtocol {
 
     private UUID id;
 

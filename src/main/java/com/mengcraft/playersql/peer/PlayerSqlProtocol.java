@@ -8,13 +8,14 @@ import lombok.SneakyThrows;
 import java.util.Objects;
 import java.util.UUID;
 
-public abstract class IPacket {
+public abstract class PlayerSqlProtocol {
 
     public static final String NAMESPACE = "playersql:main";
+    public static final String MAGIC_KICK_MESSAGE = "playersql_magic_kick";
 
     private final Protocol protocol;
 
-    public IPacket(Protocol protocol) {
+    public PlayerSqlProtocol(Protocol protocol) {
         this.protocol = Objects.requireNonNull(protocol);
     }
 
@@ -32,7 +33,7 @@ public abstract class IPacket {
         return buf.toByteArray();
     }
 
-    public static IPacket decode(byte[] input) {
+    public static PlayerSqlProtocol decode(byte[] input) {
         ByteArrayDataInput buf = ByteStreams.newDataInput(input);
         Protocol protocol = Protocol.values()[buf.readByte()];
         return protocol.decode(buf);
@@ -41,7 +42,7 @@ public abstract class IPacket {
     public enum Protocol {
 
         PEER_READY {
-            public IPacket decode(ByteArrayDataInput input) {
+            public PlayerSqlProtocol decode(ByteArrayDataInput input) {
                 PeerReady pk = new PeerReady();
                 pk.setId(new UUID(input.readLong(), input.readLong()));
                 return pk;
@@ -49,7 +50,7 @@ public abstract class IPacket {
         },
 
         DATA_CONTENTS {
-            public IPacket decode(ByteArrayDataInput input) {
+            public PlayerSqlProtocol decode(ByteArrayDataInput input) {
                 DataSupply pk = new DataSupply();
                 pk.setId(new UUID(input.readLong(), input.readLong()));
                 pk.setGroup(input.readUTF());
@@ -61,14 +62,14 @@ public abstract class IPacket {
         },
 
         DATA_REQUEST {
-            public IPacket decode(ByteArrayDataInput input) {
+            public PlayerSqlProtocol decode(ByteArrayDataInput input) {
                 DataRequest pk = new DataRequest();
                 pk.setId(new UUID(input.readLong(), input.readLong()));
                 return pk;
             }
         };
 
-        public IPacket decode(ByteArrayDataInput input) {
+        public PlayerSqlProtocol decode(ByteArrayDataInput input) {
             throw new AbstractMethodError("decode");
         }
     }

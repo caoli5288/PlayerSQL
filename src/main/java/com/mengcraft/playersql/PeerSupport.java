@@ -3,7 +3,7 @@ package com.mengcraft.playersql;
 import com.mengcraft.playersql.lib.Pair;
 import com.mengcraft.playersql.peer.DataRequest;
 import com.mengcraft.playersql.peer.DataSupply;
-import com.mengcraft.playersql.peer.IPacket;
+import com.mengcraft.playersql.peer.PlayerSqlProtocol;
 import com.mengcraft.playersql.peer.PeerReady;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -27,21 +27,21 @@ import java.util.UUID;
 
 public class PeerSupport extends Plugin implements Listener {
 
-    private final BiRegistry<ProxiedPlayer, IPacket> registry = new BiRegistry<>();
+    private final BiRegistry<ProxiedPlayer, PlayerSqlProtocol> registry = new BiRegistry<>();
 
     private final Set<UUID> peers = new HashSet<>();
     private final Map<UUID, Pair<ServerInfo, DataSupply>> values = new HashMap<>();
 
     @Override
     public void onEnable() {
-        registry.register(IPacket.Protocol.PEER_READY, this::peerReady);
-        registry.register(IPacket.Protocol.DATA_CONTENTS, this::dataContents);
-        getProxy().registerChannel(IPacket.NAMESPACE);
+        registry.register(PlayerSqlProtocol.Protocol.PEER_READY, this::peerReady);
+        registry.register(PlayerSqlProtocol.Protocol.DATA_CONTENTS, this::dataContents);
+        getProxy().registerChannel(PlayerSqlProtocol.NAMESPACE);
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().getConsole().sendMessage(ChatColor.GREEN + "PlayerSQLPeerSupport enabled! Donate me plz. https://www.paypal.me/2732000916/5");
     }
 
-    private void dataContents(ProxiedPlayer player, IPacket packet) {
+    private void dataContents(ProxiedPlayer player, PlayerSqlProtocol packet) {
         DataSupply supply = (DataSupply) packet;
         if (values.containsKey(supply.getId())) {
             if (supply.getBuf() == null || supply.getBuf().length == 0) {
@@ -53,16 +53,16 @@ public class PeerSupport extends Plugin implements Listener {
         }
     }
 
-    private void peerReady(ProxiedPlayer player, IPacket packet) {
+    private void peerReady(ProxiedPlayer player, PlayerSqlProtocol packet) {
         peers.add(((PeerReady) packet).getId());
     }
 
     @EventHandler
     public void handle(PluginMessageEvent event) {
-        if (!event.getTag().equals(IPacket.NAMESPACE)) {
+        if (!event.getTag().equals(PlayerSqlProtocol.NAMESPACE)) {
             return;
         }
-        IPacket packet = IPacket.decode(event.getData());
+        PlayerSqlProtocol packet = PlayerSqlProtocol.decode(event.getData());
         registry.handle(packet.getProtocol(), ((ProxiedPlayer) event.getReceiver()), packet);
     }
 
@@ -78,7 +78,7 @@ public class PeerSupport extends Plugin implements Listener {
             event.setCancelled(true);
             DataRequest request = new DataRequest();
             request.setId(id);
-            event.getPlayer().getServer().sendData(IPacket.NAMESPACE, request.encode());
+            event.getPlayer().getServer().sendData(PlayerSqlProtocol.NAMESPACE, request.encode());
         }
     }
 
@@ -99,7 +99,7 @@ public class PeerSupport extends Plugin implements Listener {
             Pair<ServerInfo, DataSupply> data = values.remove(id);
             if (data.getValue() != null) {
                 Server sender = getSender(event.getServer());
-                sender.sendData(IPacket.NAMESPACE, data.getValue().encode());
+                sender.sendData(PlayerSqlProtocol.NAMESPACE, data.getValue().encode());
             }
         }
     }

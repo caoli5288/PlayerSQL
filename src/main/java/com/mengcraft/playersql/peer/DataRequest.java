@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class DataRequest extends IPacket {
+public class DataRequest extends PlayerSqlProtocol {
 
     private UUID id;
 
