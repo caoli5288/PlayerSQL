@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import com.mengcraft.playersql.lib.BiRegistry;
 import com.mengcraft.playersql.lib.CustomInventory;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -13,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class Commands implements CommandExecutor {
@@ -44,7 +46,7 @@ public class Commands implements CommandExecutor {
             sender.sendMessage(String.format("%s = %s", node, config.get(node)));
         }
     }
-
+    
     private void openChest(CommandSender sender, Iterator<String> iterator) {
         Player player = (Player) sender;
         String name = iterator.next();
@@ -54,11 +56,26 @@ public class Commands implements CommandExecutor {
             return;
         }
         CompletableFuture.runAsync(() -> {
-            PlayerData data = UserManager.INSTANCE.fetchName(name);
-            if (data == null) {
+            List<PlayerData> list = UserManager.INSTANCE.fetchName(name);
+            if (list.isEmpty()) {
                 player.sendMessage("player not found");
                 return;
             }
+            
+            PlayerData data;
+            if (list.size() == 1) {
+				data = list.get(0);
+			} else if (iterator.hasNext()) {
+				int index = Integer.parseInt(iterator.next());
+				data = list.get(index);
+			} else {
+				player.sendMessage("You should special player data id");
+				for (int i = 0; i < list.size(); i++) {
+					player.sendMessage(String.format("id=%s, guid=%s", i, list.get(i).getUuid()));
+				}
+				return;
+			}
+            
             if (data.isLocked()) {
                 player.sendMessage("player current online");
                 return;
@@ -89,11 +106,25 @@ public class Commands implements CommandExecutor {
             return;
         }
         CompletableFuture.runAsync(() -> {
-            PlayerData data = UserManager.INSTANCE.fetchName(name);
-            if (data == null) {
+        	List<PlayerData> list = UserManager.INSTANCE.fetchName(name);
+            if (list.isEmpty()) {
                 player.sendMessage("player not found");
                 return;
             }
+            
+            PlayerData data;
+            if (list.size() == 1) {
+				data = list.get(0);
+			} else if (iterator.hasNext()) {
+				int index = Integer.parseInt(iterator.next());
+				data = list.get(index);
+			} else {
+				player.sendMessage("You should special player data id");
+				for (int i = 0; i < list.size(); i++) {
+					player.sendMessage(String.format("id=%s, guid=%s", i, list.get(i).getUuid()));
+				}
+				return;
+			}
             if (data.isLocked()) {
                 player.sendMessage("player current online");
                 return;

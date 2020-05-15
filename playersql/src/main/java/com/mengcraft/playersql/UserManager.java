@@ -56,8 +56,8 @@ public enum UserManager {
         return db.find(PlayerData.class, uuid);
     }
 
-    public PlayerData fetchName(String name) {
-        return db.getServer().find(PlayerData.class).where("name = :name").setParameter("name", name).findUnique();
+    public List<PlayerData> fetchName(String name) {
+        return db.getServer().find(PlayerData.class).where("name = :name").setParameter("name", name).findList();
     }
 
     public void saveUser(Player p, boolean lock) {
