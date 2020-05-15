@@ -5,6 +5,7 @@ package com.mengcraft.playersql;
 import com.google.common.io.ByteStreams;
 import com.mengcraft.playersql.inject.HijUtils;
 import com.mengcraft.playersql.lib.MetricsLite;
+import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.locker.EventLocker;
 import com.mengcraft.playersql.peer.PlayerSqlProtocol;
 import com.mengcraft.simpleorm.EbeanHandler;
@@ -20,6 +21,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,6 +46,7 @@ public class PluginMain extends JavaPlugin implements Executor {
     private static PluginMain plugin;
     private MetricsLite metric;
     private final HijUtils hijUtils = new HijUtils();
+    private static boolean applyNullUserdata;
 
     @Override
     public void onLoad() {
@@ -51,6 +54,7 @@ public class PluginMain extends JavaPlugin implements Executor {
         if (Package.getPackage("net.jpountz.lz4") == null) {
             LibraryLoader.load(this, MavenLibrary.of("org.lz4:lz4-java:1.5.0"), true);
         }
+        applyNullUserdata = getConfig().getBoolean("plugin.apply-null-userdata", false);
     }
 
     @SneakyThrows
@@ -165,6 +169,30 @@ public class PluginMain extends JavaPlugin implements Executor {
         }
     }
 
+    public static void resetPlayerState(Player player) {
+        if (Config.SYN_INVENTORY) {
+            player.getInventory().clear();
+        }
+        if (Config.SYN_HEALTH) {
+            player.resetMaxHealth();
+            player.setHealth(player.getMaxHealth());
+        }
+        if (Config.SYN_EXP) {
+            SetExpFix.setTotalExperience(player, 0);
+        }
+        if (Config.SYN_FOOD) {
+            player.setFoodLevel(20);
+        }
+        if (Config.SYN_EFFECT) {
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
+        }
+        if (Config.SYN_CHEST) {
+            player.getEnderChest().clear();
+        }
+    }
+
     @Override
     public void execute(Runnable command) {
         Bukkit.getScheduler().runTask(this, command);
@@ -183,6 +211,10 @@ public class PluginMain extends JavaPlugin implements Executor {
 
     public void run(Runnable r) {
         getServer().getScheduler().runTask(this, r);
+    }
+
+    public static boolean isApplyNullUserdata() {
+        return applyNullUserdata;
     }
 
     public static boolean nil(Object i) {

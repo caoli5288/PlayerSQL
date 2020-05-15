@@ -48,7 +48,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
         registry.register(PlayerSqlProtocol.Protocol.DATA_CONTENTS, this::receiveContents);
     }
 
-    private void receiveContents(Player ignore, PlayerSqlProtocol packet) {
+    private void receiveContents(Player player, PlayerSqlProtocol packet) {
         main.debug("recv data_buf");
         DataSupply dataSupply = (DataSupply) packet;
         if (dataSupply.getBuf() == null || dataSupply.getBuf().length == 0 || !group.equals(dataSupply.getGroup())) {
@@ -63,7 +63,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
             main.debug("process received data_buf");
             pend.cancel();
             main.run(() -> {
-                manager.pend(data);
+                manager.pend(player, data);
                 runAsync(() -> manager.updateDataLock(dataSupply.getId(), true));
             });
         }
@@ -103,13 +103,13 @@ public class EventExecutor implements Listener, PluginMessageListener {
         UUID id = player.getUniqueId();
         PlayerData pend = (PlayerData) pending.remove(id);
         if (pend == null) {
-            FetchUserTask task = new FetchUserTask(main, player);
+            FetchUserTask task = new FetchUserTask(player);
             pending.put(id, task);
             task.runTaskTimerAsynchronously(main, Config.SYN_DELAY, Config.SYN_DELAY);
         } else {
             main.debug("process pending data_buf on join event");
             main.run(() -> {
-                manager.pend(pend);
+                manager.pend(player, pend);
                 runAsync(() -> manager.updateDataLock(id, true));
             });
         }

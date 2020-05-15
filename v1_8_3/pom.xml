@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>playersql-parent</artifactId>
+        <groupId>com.mengcraft</groupId>
+        <version>2.11-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>playersql-v1_8_3</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.mengcraft</groupId>
+            <artifactId>playersql-internal</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -6,6 +6,7 @@ import com.mengcraft.playersql.PlayerData;
 import com.mengcraft.playersql.PluginMain;
 import com.mengcraft.playersql.UserManager;
 import com.mengcraft.playersql.event.PlayerDataLockedEvent;
+import com.mengcraft.playersql.internal.GuidResolveService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -22,15 +23,14 @@ import static com.mengcraft.playersql.PluginMain.nil;
 public class FetchUserTask extends BukkitRunnable {
 
     private final UserManager manager = UserManager.INSTANCE;
-    private final PluginMain main;
+    private final PluginMain main = PluginMain.getPlugin();
     private final Player player;
     private final UUID id;
     private int retry;
 
-    public FetchUserTask(PluginMain main, Player player) {
-        this.main = main;
+    public FetchUserTask(Player player) {
         this.player = player;
-        id = player.getUniqueId();
+        id = GuidResolveService.getService().getGuid(player);
     }
 
     @Override
@@ -53,6 +53,9 @@ public class FetchUserTask extends BukkitRunnable {
 
             manager.newUser(id);
             main.run(() -> {
+                if (PluginMain.isApplyNullUserdata()) {
+                    PluginMain.resetPlayerState(player);
+                }
                 manager.unlockUser(player);
                 manager.createTask(id);
             });
@@ -88,7 +91,7 @@ public class FetchUserTask extends BukkitRunnable {
 
             LocalDataMgr.transfer(player);// TODO move to server thread if any exception
 
-            manager.addFetched(user);
+            manager.addFetched(player, user);
 
             if (Config.DEBUG) {
                 main.log("Load user " + player.getName() + " done.");

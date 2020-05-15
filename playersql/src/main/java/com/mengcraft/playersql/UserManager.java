@@ -3,6 +3,7 @@ package com.mengcraft.playersql;
 import com.mengcraft.playersql.event.PlayerDataFetchedEvent;
 import com.mengcraft.playersql.event.PlayerDataProcessedEvent;
 import com.mengcraft.playersql.event.PlayerDataStoreEvent;
+import com.mengcraft.playersql.internal.GuidResolveService;
 import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.task.DailySaveTask;
 import com.mengcraft.simpleorm.EbeanHandler;
@@ -44,8 +45,8 @@ public enum UserManager {
     private PluginMain main;
     private EbeanHandler db;
 
-    public void addFetched(PlayerData user) {
-        main.run(() -> pend(user));
+    public void addFetched(Player player, PlayerData user) {
+        main.run(() -> pend(player, user));
     }
 
     /**
@@ -114,7 +115,7 @@ public enum UserManager {
 
     public PlayerData getUserData(Player p, boolean closeInventory) {
         PlayerData user = new PlayerData();
-        user.setUuid(p.getUniqueId());
+        user.setUuid(GuidResolveService.getService().getGuid(p));
         user.setName(p.getName());
         if (Config.SYN_HEALTH) {
             user.setHealth(p.getHealth());
@@ -188,8 +189,7 @@ public enum UserManager {
         }
     }
 
-    void pend(PlayerData data) {
-        Player who = main.getPlayer(data.getUuid());
+    public void pend(Player who, PlayerData data) {
         if (who == null || !who.isOnline()) {
             main.log(new IllegalStateException("Player " + data.getUuid() + " not found"));
             return;
@@ -206,7 +206,7 @@ public enum UserManager {
         } else {
             Exception exception = null;
             try {
-                pend(who, data);
+                syncUserdata(who, data);
             } catch (Exception e) {
                 exception = e;
                 onLoadFailed(who);
@@ -221,7 +221,7 @@ public enum UserManager {
         }
     }
 
-    void pend(Player who, PlayerData data) {
+    private void syncUserdata(Player who, PlayerData data) {
         if (Config.SYN_INVENTORY) {
             val ctx = toStack(data.getInventory());
             who.closeInventory();
