@@ -57,7 +57,7 @@ public class FetchUserTask extends BukkitRunnable {
                     PluginMain.resetPlayerState(player);
                 }
                 manager.unlockUser(player);
-                manager.createTask(id);
+                manager.createTask(player);
             });
 
             if (Config.DEBUG) {

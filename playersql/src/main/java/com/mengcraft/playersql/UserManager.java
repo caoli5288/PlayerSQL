@@ -185,7 +185,7 @@ public enum UserManager {
             who.kickPlayer(PluginMain.getMessenger().find("kick_load", "Your game data loading error, please contact the operator"));
         } else {
             unlockUser(who);
-            createTask(who.getUniqueId());
+            createTask(who);
         }
     }
 
@@ -261,7 +261,7 @@ public enum UserManager {
         if (Config.SYN_CHEST) {
             who.getEnderChest().setContents(toStack(data.getChest()));
         }
-        createTask(who.getUniqueId());
+        createTask(who);
         unlockUser(who);
     }
 
@@ -336,17 +336,17 @@ public enum UserManager {
         }
     }
 
-    public void createTask(UUID who) {
+    public void createTask(Player player) {
         if (Config.DEBUG) {
-            this.main.log("Scheduling daily save task for user " + who + '.');
+            this.main.log("Scheduling daily save task for user " + player.getName() + '.');
         }
-        val task = new DailySaveTask(who);
+        val task = new DailySaveTask(player);
         task.runTaskTimer(main, 6000, 6000);
-        val old = scheduled.put(who, task);
+        val old = scheduled.put(player.getUniqueId(), task);
         if (!nil(old)) {
             old.cancel();
             if (Config.DEBUG) {
-                this.main.log("Already scheduled task for user " + who + '!');
+                this.main.log("Already scheduled task for user " + player.getName() + '!');
             }
         }
     }

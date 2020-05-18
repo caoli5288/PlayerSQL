@@ -1,5 +1,6 @@
 package com.mengcraft.playersql;
 
+import com.mengcraft.playersql.internal.GuidResolveService;
 import com.mengcraft.playersql.lib.BiRegistry;
 import com.mengcraft.playersql.lib.CustomInventory;
 import com.mengcraft.playersql.peer.DataRequest;
@@ -102,16 +103,17 @@ public class EventExecutor implements Listener, PluginMessageListener {
 
         manager.lockUser(player);
         UUID id = player.getUniqueId();
-        PlayerData pend = (PlayerData) pending.remove(id);
+        Object pend = pending.remove(id);
         if (pend == null) {
             FetchUserTask task = new FetchUserTask(player);
             pending.put(id, task);
             task.runTaskTimerAsynchronously(main, Config.SYN_DELAY, Config.SYN_DELAY);
-        } else {
+        } else if (pend instanceof PlayerData) {
             main.debug("process pending data_buf on join event");
+            UUID guid = GuidResolveService.getService().getGuid(player);
             main.run(() -> {
-                manager.pend(player, pend);
-                runAsync(() -> manager.updateDataLock(id, true));
+                manager.pend(player, (PlayerData) pend);
+                runAsync(() -> manager.updateDataLock(guid, true));
             });
         }
     }
@@ -161,7 +163,8 @@ public class EventExecutor implements Listener, PluginMessageListener {
                 runAsync(() -> manager.saveUser(data, false)).thenRun(() -> main.run(() -> manager.unlockUser(player)));
             }
         } else {
-            runAsync(() -> manager.updateDataLock(id, false)).thenRun(() -> main.run(() -> manager.unlockUser(player)));
+        	UUID guid = GuidResolveService.getService().getGuid(player);
+            runAsync(() -> manager.updateDataLock(guid, false)).thenRun(() -> main.run(() -> manager.unlockUser(player)));
         }
         pending.remove(id);
         LocalDataMgr.quit(player);
