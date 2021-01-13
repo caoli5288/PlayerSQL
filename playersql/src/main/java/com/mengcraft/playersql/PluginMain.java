@@ -3,7 +3,6 @@ package com.mengcraft.playersql;
 //import com.comphenix.protocol.ProtocolLibrary;
 
 import com.google.common.io.ByteStreams;
-import com.mengcraft.playersql.inject.HijUtils;
 import com.mengcraft.playersql.lib.MetricsLite;
 import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.locker.EventLocker;
@@ -45,7 +44,6 @@ public class PluginMain extends JavaPlugin implements Executor {
     @Getter
     private static PluginMain plugin;
     private MetricsLite metric;
-    private final HijUtils hijUtils = new HijUtils();
     private static boolean applyNullUserdata;
 
     @Override
@@ -196,10 +194,6 @@ public class PluginMain extends JavaPlugin implements Executor {
     @Override
     public void execute(Runnable command) {
         Bukkit.getScheduler().runTask(this, command);
-    }
-
-    public HijUtils getHijUtils() {
-        return hijUtils;
     }
 
     public static CompletableFuture<Void> runAsync(Runnable r) {

@@ -95,7 +95,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
 
         if (!main.getConfig().getBoolean("bungee.mute")) {
             main.debug(String.format("PlayerJoin() -> send peer ready for %s", player.getName()));
-            main.getHijUtils().addCustomChannel(player, PlayerSqlProtocol.NAMESPACE);// hacky add channels without register commands
+            Utils.addChannel(player, PlayerSqlProtocol.NAMESPACE);
             PeerReady ready = new PeerReady();
             ready.setId(player.getUniqueId());
             player.sendPluginMessage(main, PlayerSqlProtocol.NAMESPACE, ready.encode());

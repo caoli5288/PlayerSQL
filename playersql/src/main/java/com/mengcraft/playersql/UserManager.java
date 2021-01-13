@@ -158,12 +158,7 @@ public enum UserManager {
         if (main.getConfig().getBoolean("plugin.disable-filter-network")) {
             return;
         }
-        try {
-            main.debug(String.format("HijUtils.setAutoRead(%s, false)", player.getName()));
-            main.getHijUtils().setAutoRead(player, false);
-        } catch (Exception cause) {
-            main.log(cause);
-        }
+        Utils.setAutoRead(player, false);
     }
 
     public void unlockUser(Player player) {
@@ -172,12 +167,10 @@ public enum UserManager {
         while (isLocked(uuid)) {
             locked.remove(uuid);
         }
-        try {
-            main.debug(String.format("HijUtils.setAutoRead(%s, true)", player.getName()));
-            main.getHijUtils().setAutoRead(player, true);
-        } catch (Exception cause) {
-            main.log(cause);
+        if (main.getConfig().getBoolean("plugin.disable-filter-network")) {
+            return;
         }
+        Utils.setAutoRead(player, true);
     }
 
     void onLoadFailed(Player who) {
