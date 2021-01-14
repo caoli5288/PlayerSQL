@@ -73,7 +73,7 @@ public class PluginMain extends JavaPlugin implements Executor {
         Plugin dependency = Bukkit.getPluginManager().getPlugin("SimpleORM");
         if (dependency == null) {
             File dst = new File(getFile().getParentFile(), "simpleorm.jar");
-            InputStream remote = new URL("http://ci.mengcraft.com:8081/job/SimpleORM/81/artifact/target/simpleorm-1.2-SNAPSHOT.jar").openStream();
+            InputStream remote = new URL("jitpack.io/com/github/caoli5288/simpleorm/-SNAPSHOT/simpleorm--SNAPSHOT.jar").openStream();
             ByteStreams.copy(remote, new FileOutputStream(dst));
             dependency = Bukkit.getPluginManager().loadPlugin(dst);
         }
