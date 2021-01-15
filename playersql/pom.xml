@@ -82,11 +82,6 @@
         </dependency>
         <dependency>
             <groupId>com.mengcraft</groupId>
-            <artifactId>playersql-v1_13</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.mengcraft</groupId>
             <artifactId>playersql-v1_13_2</artifactId>
             <version>${project.version}</version>
         </dependency>
