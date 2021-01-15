@@ -12,7 +12,6 @@
         <module>internal</module>
         <module>v1_8_3</module>
         <module>v1_12</module>
-        <module>v1_13</module>
         <module>v1_13_2</module>
         <module>playersql</module>
     </modules>
