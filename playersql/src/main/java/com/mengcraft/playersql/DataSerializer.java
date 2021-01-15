@@ -26,9 +26,6 @@ public class DataSerializer {
                 case "org.bukkit.craftbukkit.v1_12_R1":
                     PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_12.PacketDataSerializer(buf);
                     break;
-                case "org.bukkit.craftbukkit.v1_13_R1":
-                    PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13.PacketDataSerializer(buf);
-                    break;
                 case "org.bukkit.craftbukkit.v1_13_R2":
                     PACKET_DATA_SERIALIZER_FACTORY = buf -> new com.mengcraft.playersql.internal.v1_13_2.PacketDataSerializer(buf);
                     break;
