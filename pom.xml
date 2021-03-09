@@ -31,8 +31,12 @@
 
     <repositories>
         <repository>
-            <id>repo.i7mc.com</id>
-            <url>http://repo.i7mc.com/</url>
+            <id>repo.i7mc.com/snapshots</id>
+            <url>http://repo.i7mc.com/snapshots</url>
+        </repository>
+        <repository>
+            <id>repo.i7mc.com/releases</id>
+            <url>http://repo.i7mc.com/releases</url>
         </repository>
     </repositories>
 
