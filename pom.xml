@@ -31,8 +31,8 @@
 
     <repositories>
         <repository>
-            <id>i7mc_repository</id>
-            <url>http://repository.i7mc.com:8008/</url>
+            <id>repo</id>
+            <url>https://repo.i7mc.com/maven2</url>
         </repository>
     </repositories>
 

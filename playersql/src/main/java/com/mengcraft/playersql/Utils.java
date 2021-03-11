@@ -7,26 +7,29 @@ import org.bukkit.entity.Player;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class Utils {
 
-    private static final ScriptEngine ENGINE = new ScriptEngineManager(Utils.class.getClassLoader()).getEngineByExtension("js");
+    private static final Function<Player, Channel> FUNCTION_getChannel;
+    private static final BiFunction<Player, String, ?> FUNCTION_addChannel;
 
-    private static final Function<Player, Channel> FUNCTION_getChannel = getInterface(Function.class, "function apply(p) {\n" +
-            "    return p.handle.playerConnection.networkManager.channel\n" +
-            "}");
-
-    private static final BiConsumer<Player, String> FUNCTION_addChannel = getInterface(BiConsumer.class, "function accept(p, ch) {\n" +
-            "    p.addChannel(ch)\n" +
-            "}");
+    static {
+        ScriptEngine context = new ScriptEngineManager(Utils.class.getClassLoader()).getEngineByExtension("js");
+        FUNCTION_getChannel = getInterface(context, Function.class, "function apply(p) {\n" +
+                "    return p.handle.playerConnection.networkManager.channel\n" +
+                "}");
+        FUNCTION_addChannel = getInterface(context, BiFunction.class, "function apply(p, ch) {\n" +
+                "    p.addChannel(ch)\n" +
+                "}");
+    }
 
     @SneakyThrows
-    private static <T> T getInterface(Class<T> cls, String s) {
-        Object obj = ENGINE.eval("(" + s +
+    private static <T> T getInterface(ScriptEngine context, Class<T> cls, String s) {
+        Object obj = context.eval("(" + s +
                 ")");
-        return ((Invocable) ENGINE).getInterface(obj, cls);
+        return ((Invocable) context).getInterface(obj, cls);
     }
 
     public static Channel getChannel(Player t) {
@@ -41,6 +44,6 @@ public class Utils {
     }
 
     public static void addChannel(Player p, String s) {
-        FUNCTION_addChannel.accept(p, s);
+        FUNCTION_addChannel.apply(p, s);
     }
 }
