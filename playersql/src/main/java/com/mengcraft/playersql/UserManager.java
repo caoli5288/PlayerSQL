@@ -297,7 +297,7 @@ public enum UserManager {
     public String toString(ItemStack[] stacks) {
         JSONArray array = new JSONArray();
         for (ItemStack stack : stacks)
-            if (stack == null || stack.getType() == Material.AIR) {
+            if (stack == null || stack.getAmount() == 0) {
                 array.add("");
             } else try {
                 array.add(DataSerializer.serialize(stack));
