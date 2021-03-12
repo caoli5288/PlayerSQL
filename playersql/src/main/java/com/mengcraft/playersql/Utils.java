@@ -16,7 +16,7 @@ public class Utils {
     private static final BiFunction<Player, String, ?> FUNCTION_addChannel;
 
     static {
-        ScriptEngine context = new ScriptEngineManager().getEngineByExtension("js");
+        ScriptEngine context = new ScriptEngineManager().getEngineByName("nashorn");
         FUNCTION_getChannel = getInterface(context, Function.class, "function apply(p) {\n" +
                 "    return p.handle.playerConnection.networkManager.channel\n" +
                 "}");
