@@ -3,6 +3,8 @@ package com.mengcraft.playersql;
 //import com.comphenix.protocol.ProtocolLibrary;
 
 import com.google.common.io.ByteStreams;
+import com.mengcraft.playersql.lib.LZ4;
+import com.mengcraft.playersql.lib.MavenLibs;
 import com.mengcraft.playersql.lib.MetricsLite;
 import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.locker.EventLocker;
@@ -10,10 +12,9 @@ import com.mengcraft.playersql.peer.PlayerSqlProtocol;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import com.mengcraft.simpleorm.ORM;
-import com.mengcraft.simpleorm.lib.LibraryLoader;
-import com.mengcraft.simpleorm.lib.MavenLibrary;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import net.jpountz.lz4.LZ4Compressor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -49,8 +50,10 @@ public class PluginMain extends JavaPlugin implements Executor {
     @Override
     public void onLoad() {
         saveDefaultConfig();
-        if (Package.getPackage("net.jpountz.lz4") == null) {
-            LibraryLoader.load(this, MavenLibrary.of("org.lz4:lz4-java:1.5.0"), true);
+        try {
+            Class.forName("net.jpountz.lz4.LZ4Compressor");
+        } catch (ClassNotFoundException e) {
+            MavenLibs.of("org.lz4:lz4-java:1.8.0").load();
         }
         applyNullUserdata = getConfig().getBoolean("plugin.apply-null-userdata", false);
     }
