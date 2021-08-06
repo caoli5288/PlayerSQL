@@ -7,3 +7,5 @@ softdepend: [SimpleORM, ProtocolLib]
 commands:
   playersql:
     permission: playersql.admin
+libraries:
+  - org.lz4:lz4-java:1.8.0
