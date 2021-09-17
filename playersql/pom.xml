@@ -65,6 +65,7 @@
             <groupId>org.lz4</groupId>
             <artifactId>lz4-java</artifactId>
             <version>1.8.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.mengcraft</groupId>
@@ -85,6 +86,13 @@
             <groupId>com.mengcraft</groupId>
             <artifactId>playersql-v1_13_2</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.openjdk.nashorn/nashorn-core -->
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.3</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

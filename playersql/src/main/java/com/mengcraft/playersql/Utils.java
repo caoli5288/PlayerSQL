@@ -1,8 +1,10 @@
 package com.mengcraft.playersql;
 
+import com.mengcraft.simpleorm.lib.MavenLibs;
 import io.netty.channel.Channel;
 import lombok.SneakyThrows;
 import org.bukkit.entity.Player;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -17,6 +19,10 @@ public class Utils {
 
     static {
         ScriptEngine context = new ScriptEngineManager().getEngineByName("nashorn");
+        if (context == null) {// later jdk15
+            MavenLibs.of("org.openjdk.nashorn:nashorn-core:15.3").load();
+            context = new NashornScriptEngineFactory().getScriptEngine(Utils.class.getClassLoader());
+        }
         FUNCTION_getChannel = getInterface(context, Function.class, "function apply(p) {\n" +
                 "    return p.handle.playerConnection.networkManager.channel\n" +
                 "}");
