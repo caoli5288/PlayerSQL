@@ -1,45 +1,45 @@
 package com.mengcraft.playersql;
 
-import com.mengcraft.simpleorm.lib.MavenLibs;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.injector.PacketFilterManager;
+import com.comphenix.protocol.injector.player.PlayerInjectionHandler;
+import com.comphenix.protocol.utility.MinecraftReflection;
 import io.netty.channel.Channel;
-import lombok.SneakyThrows;
 import org.bukkit.entity.Player;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 public class Utils {
 
-    private static final Function<Player, Channel> FUNCTION_getChannel;
-    private static final BiFunction<Player, String, ?> FUNCTION_addChannel;
+    private static final Method METHOD_addChannel = getMethod(MinecraftReflection.getCraftPlayerClass(), "addChannel", String.class);
+    private static final PlayerInjectionHandler PLAYER_INJECTION_HANDLER = init_PLAYER_INJECTION_HANDLER();
 
-    static {
-        ScriptEngine context = new ScriptEngineManager().getEngineByName("nashorn");
-        if (context == null) {// later jdk15
-            MavenLibs.of("org.openjdk.nashorn:nashorn-core:15.3").load();
-            context = new NashornScriptEngineFactory().getScriptEngine(Utils.class.getClassLoader());
+    private static PlayerInjectionHandler init_PLAYER_INJECTION_HANDLER() {
+        PacketFilterManager pfm = (PacketFilterManager) ProtocolLibrary.getProtocolManager();
+        try {
+            Field f = PacketFilterManager.class.getDeclaredField("playerInjection");
+            f.setAccessible(true);
+            return (PlayerInjectionHandler) f.get(pfm);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        FUNCTION_getChannel = getInterface(context, Function.class, "function apply(p) {\n" +
-                "    return p.handle.playerConnection.networkManager.channel\n" +
-                "}");
-        FUNCTION_addChannel = getInterface(context, BiFunction.class, "function apply(p, ch) {\n" +
-                "    p.addChannel(ch)\n" +
-                "}");
+        return null;
     }
 
-    @SneakyThrows
-    private static <T> T getInterface(ScriptEngine context, Class<T> cls, String s) {
-        Object obj = context.eval("(" + s +
-                ")");
-        return ((Invocable) context).getInterface(obj, cls);
+    private static Method getMethod(Class<?> cls, String methodName, Class<?>... paramTypes) {
+        try {
+            Method obj = cls.getDeclaredMethod(methodName, paramTypes);
+            obj.setAccessible(true);
+            return obj;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public static Channel getChannel(Player t) {
-        return FUNCTION_getChannel.apply(t);
+    public static Channel getChannel(Player player) {
+        return PLAYER_INJECTION_HANDLER.getChannel(player);
     }
 
     public static void setAutoRead(Player p, boolean b) {
@@ -50,6 +50,10 @@ public class Utils {
     }
 
     public static void addChannel(Player p, String s) {
-        FUNCTION_addChannel.apply(p, s);
+        try {
+            METHOD_addChannel.invoke(p, s);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -34,6 +34,10 @@
             <id>repo</id>
             <url>https://repo.i7mc.com/maven2</url>
         </repository>
+        <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io/</url>
+        </repository>
     </repositories>
 
     <dependencies>

@@ -49,9 +49,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.mengcraft</groupId>
+            <groupId>com.github.caoli5288</groupId>
             <artifactId>simpleorm</artifactId>
-            <version>1.5.1-SNAPSHOT</version>
+            <version>c5c3feef78</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -86,13 +86,6 @@
             <groupId>com.mengcraft</groupId>
             <artifactId>playersql-v1_13_2</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.openjdk.nashorn/nashorn-core -->
-        <dependency>
-            <groupId>org.openjdk.nashorn</groupId>
-            <artifactId>nashorn-core</artifactId>
-            <version>15.3</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
