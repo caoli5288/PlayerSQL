@@ -5,7 +5,7 @@
     <parent>
         <artifactId>playersql-parent</artifactId>
         <groupId>com.mengcraft</groupId>
-        <version>2.12-SNAPSHOT</version>
+        <version>2.12.2</version>
     </parent>
 
     <artifactId>playersql-v1_12</artifactId>
