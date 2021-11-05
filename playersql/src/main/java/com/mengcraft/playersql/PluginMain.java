@@ -132,7 +132,7 @@ public class PluginMain extends JavaPlugin implements Executor {
         getServer().getMessenger().registerOutgoingPluginChannel(this, PlayerSqlProtocol.NAMESPACE);
         getServer().getMessenger().registerIncomingPluginChannel(this, PlayerSqlProtocol.NAMESPACE, executor);
 
-        getCommand("playersql").setExecutor(new Commands());
+//        getCommand("playersql").setExecutor(new Commands());
 
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "PlayerSQL enabled! Donate me plz. https://www.paypal.me/2732000916/5");
     }

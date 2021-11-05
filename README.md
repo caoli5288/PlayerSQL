@@ -4,7 +4,8 @@
 
 PlayerSQL
 =========
-允许你通过这个插件在不同的Minecraft服务器之间同步玩家数据。包括：
+允许你通过这个插件在不同的Minecraft服务器之间同步玩家数据。[投食链接](https://www.paypal.me/2732000916/5)
+
 - 物品栏
 - 装备栏
 - 经验值
@@ -20,12 +21,6 @@ PlayerSQL
 - 玩家连接事件
 - 玩家退出事件
 - 玩家各种事件
-
-请允许我懒得都列出来。
-
-指令
----
-- /psql send <player_name> <server_name>
 
 数据管理器
 --------
@@ -43,7 +38,3 @@ PlayerSQL
 路径图
 ----
 ![](image/mindmap.png)
-
-增强模式
-------
-将插件同时安装至bungeecord以启用增强模式，可提高跨服速度以及稳定性。[投食链接](https://www.paypal.me/2732000916/5)

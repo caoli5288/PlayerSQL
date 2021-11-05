@@ -4,8 +4,5 @@ version: ${project.version}
 website: http://www.spigotmc.org/resources/playersql.552/
 author: caoli5288@gmail.com
 depend: [SimpleORM, ProtocolLib]
-commands:
-  playersql:
-    permission: playersql.admin
 libraries:
   - org.lz4:lz4-java:1.8.0
