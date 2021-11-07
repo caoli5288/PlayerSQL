@@ -1,6 +1,6 @@
 package com.github.caoli5288.playersql.bungee.protocol;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 public enum ProtocolId {
 
@@ -8,7 +8,8 @@ public enum ProtocolId {
     CONTENTS,
     REQUEST;
 
-    public static AbstractSqlPacket ofPacket(ProtocolId id) {
+    @NotNull
+    public static AbstractSqlPacket ofPacket(@NotNull ProtocolId id) {
         switch (id) {
             case READY:
                 return new PeerReady();
@@ -17,6 +18,6 @@ public enum ProtocolId {
             case REQUEST:
                 return new DataRequest();
         }
-        throw new IllegalStateException("unknown ProtocolId " + id);
+        throw new EnumConstantNotPresentException(ProtocolId.class, "Unknown " + id);
     }
 }

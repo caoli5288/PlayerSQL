@@ -1,11 +1,12 @@
 package com.mengcraft.playersql;
 
 import com.github.caoli5288.playersql.bungee.Constants;
+import com.github.caoli5288.playersql.bungee.protocol.AbstractSqlPacket;
 import com.github.caoli5288.playersql.bungee.protocol.DataRequest;
 import com.github.caoli5288.playersql.bungee.protocol.DataSupply;
 import com.github.caoli5288.playersql.bungee.protocol.PeerReady;
-import com.github.caoli5288.playersql.bungee.protocol.AbstractSqlPacket;
 import com.github.caoli5288.playersql.bungee.protocol.ProtocolId;
+import com.google.common.collect.Maps;
 import com.mengcraft.playersql.internal.GuidResolveService;
 import com.mengcraft.playersql.lib.BiRegistry;
 import com.mengcraft.playersql.lib.CustomInventory;
@@ -21,9 +22,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,49 +35,50 @@ import static org.bukkit.event.EventPriority.MONITOR;
  */
 public class EventExecutor implements Listener, PluginMessageListener {
 
-    private static final byte[] EMPTY_ARRAY = new byte[0];
-    private final Map<UUID, Lifecycle> handled = new HashMap<>();
-    private final Map<UUID, Object> pending = new HashMap<>();
+    private final Map<UUID, UserState> states = Maps.newHashMap();
     private final BiRegistry<Player, AbstractSqlPacket> registry = new BiRegistry<>();
     private final PluginMain main;
-    private UserManager manager;
-    private String group;
+    private final String group;
+    private final UserManager manager = UserManager.INSTANCE;
 
     public EventExecutor(PluginMain main) {
-        manager = UserManager.INSTANCE;
         this.main = main;
         group = main.getConfig().getString("bungee.channel_group", "default");
-        registry.register(ProtocolId.REQUEST, this::receiveRequest);
-        registry.register(ProtocolId.CONTENTS, this::receiveContents);
+        registry.register(ProtocolId.REQUEST, this::onConnect);
+        registry.register(ProtocolId.CONTENTS, this::onContents);
     }
 
-    private void receiveContents(Player player, AbstractSqlPacket packet) {
-        main.debug("recv data_buf");
-        DataSupply dataSupply = (DataSupply) packet;
-        if (dataSupply.getBuf() == null || dataSupply.getBuf().length == 0 || !group.equals(dataSupply.getGroup())) {
+    private UserState ofState(UUID id) {
+        return states.computeIfAbsent(id, uuid -> new UserState());
+    }
+
+    private void onContents(Player player, AbstractSqlPacket packet) {//
+        main.debug(String.format("onContents(id=%s)", player.getUniqueId()));
+        DataSupply contents = (DataSupply) packet;
+        if (contents.getBuf() == null || contents.getBuf().length == 0 || !group.equals(contents.getGroup())) {
             return;
         }
-        PlayerData data = PlayerDataHelper.decode(dataSupply.getBuf());
-        BukkitRunnable pend = (BukkitRunnable) pending.remove(dataSupply.getId());
-        if (pend == null) {
+        UserState state = ofState(contents.getId());
+        PlayerData data = PlayerDataHelper.decode(contents.getBuf());
+        if (state.getFetchTask() == null) {
             main.debug("pending received data_buf");
-            pending.put(dataSupply.getId(), data);
+            state.setPlayerData(data);
         } else {
             main.debug("process received data_buf");
-            pend.cancel();
+            state.getFetchTask().cancel();
             main.run(() -> {
                 manager.pend(player, data);
-                runAsync(() -> manager.updateDataLock(dataSupply.getId(), true));
+                runAsync(() -> manager.updateDataLock(contents.getId(), true));
             });
         }
     }
 
-    private void receiveRequest(Player _p, AbstractSqlPacket packet) {
+    private void onConnect(Player __, AbstractSqlPacket packet) {
         DataRequest request = (DataRequest) packet;
         Player player = Bukkit.getPlayer(request.getId());
         if (player != null) {
             main.debug(String.format("receive data request for %s", player.getName()));
-            handled.put(player.getUniqueId(), Lifecycle.DATA_SENT);
+            ofState(request.getId()).setKicking(true);
             player.kickPlayer(Constants.MAGIC_KICK);
         }
     }
@@ -95,7 +95,7 @@ public class EventExecutor implements Listener, PluginMessageListener {
     public void handle(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        if (!main.getConfig().getBoolean("bungee.mute")) {
+        if (main.getConfig().getBoolean("bungee.enable")) {
             main.debug(String.format("PlayerJoin() -> send peer ready for %s", player.getName()));
             Utils.addChannel(player, Constants.PLUGIN_CHANNEL);
             PeerReady ready = new PeerReady();
@@ -105,16 +105,16 @@ public class EventExecutor implements Listener, PluginMessageListener {
 
         manager.lockUser(player);
         UUID id = player.getUniqueId();
-        Object pend = pending.remove(id);
-        if (pend == null) {
+        UserState state = ofState(id);
+        if (state.getPlayerData() == null) {
             FetchUserTask task = new FetchUserTask(player);
-            pending.put(id, task);
+            state.setFetchTask(task);
             task.runTaskTimerAsynchronously(main, Config.SYN_DELAY, Config.SYN_DELAY);
-        } else if (pend instanceof PlayerData) {
+        } else {
             main.debug("process pending data_buf on join event");
             UUID guid = GuidResolveService.getService().getGuid(player);
             main.run(() -> {
-                manager.pend(player, (PlayerData) pend);
+                manager.pend(player, state.getPlayerData());
                 runAsync(() -> manager.updateDataLock(guid, true));
             });
         }
@@ -123,7 +123,8 @@ public class EventExecutor implements Listener, PluginMessageListener {
     @EventHandler
     public void handle(PlayerKickEvent e) {
         Player player = e.getPlayer();
-        if (handled.get(player.getUniqueId()) != Lifecycle.DATA_SENT) {
+        UserState state = ofState(player.getUniqueId());
+        if (!state.isKicking()) {
             return;
         }
 
@@ -131,17 +132,17 @@ public class EventExecutor implements Listener, PluginMessageListener {
         supply.setId(player.getUniqueId());
         supply.setGroup(group);
         if (isLocked(player.getUniqueId())) {
-            supply.setBuf(EMPTY_ARRAY);
+            supply.setBuf(Constants.EMPTY_ARRAY);
         } else {
             manager.lockUser(player);
-            PlayerData dat = manager.getUserData(player, true);
-            pending.put(player.getUniqueId(), dat);
-            supply.setBuf(PlayerDataHelper.encode(dat));
+            PlayerData playerData = manager.getUserData(player, true);
+            state.setPlayerData(playerData);
+            supply.setBuf(PlayerDataHelper.encode(playerData));
         }
 
         byte[] message = supply.encode();
         if (message.length > Messenger.MAX_MESSAGE_SIZE) {// Overflow?
-            supply.setBuf(EMPTY_ARRAY);
+            supply.setBuf(Constants.EMPTY_ARRAY);
             message = supply.encode();
         }
 
@@ -152,12 +153,12 @@ public class EventExecutor implements Listener, PluginMessageListener {
     public void handle(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID id = player.getUniqueId();
-        Lifecycle lifecycle = handled.remove(id);
+        UserState state = states.get(id);
         if (manager.isNotLocked(id)) {
             manager.cancelTimerSaver(id);
             manager.lockUser(player);// Lock user if not in bungee enchant mode
-            PlayerData data = (lifecycle == Lifecycle.DATA_SENT)
-                    ? (PlayerData) pending.get(id)
+            PlayerData data = (state != null && state.isKicking() && state.getPlayerData() != null)
+                    ? state.getPlayerData()
                     : manager.getUserData(id, true);
             if (data == null) {
                 main.run(() -> manager.unlockUser(player));// Err? unlock next tick
@@ -168,8 +169,11 @@ public class EventExecutor implements Listener, PluginMessageListener {
         	UUID guid = GuidResolveService.getService().getGuid(player);
             runAsync(() -> manager.updateDataLock(guid, false)).thenRun(() -> main.run(() -> manager.unlockUser(player)));
         }
-        pending.remove(id);
-        LocalDataMgr.quit(player);
+        // leaks check
+        if (states.size() > 64 && states.size() > Bukkit.getMaxPlayers()) {
+            states.keySet()
+                    .removeIf(it -> Bukkit.getPlayer(it) == null);
+        }
     }
 
     public void onPluginMessageReceived(String tag, Player p, byte[] input) {
@@ -180,14 +184,4 @@ public class EventExecutor implements Listener, PluginMessageListener {
         AbstractSqlPacket ipk = AbstractSqlPacket.decode(input);
         registry.handle(ipk.getProtocol(), p, ipk);
     }
-
-    /**
-     * @deprecated meaningless flags
-     */
-    enum Lifecycle {
-
-        INIT,
-        DATA_SENT;
-    }
-
 }

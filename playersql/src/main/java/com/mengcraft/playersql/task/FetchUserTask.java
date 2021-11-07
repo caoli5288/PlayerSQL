@@ -1,7 +1,6 @@
 package com.mengcraft.playersql.task;
 
 import com.mengcraft.playersql.Config;
-import com.mengcraft.playersql.LocalDataMgr;
 import com.mengcraft.playersql.PlayerData;
 import com.mengcraft.playersql.PluginMain;
 import com.mengcraft.playersql.UserManager;
@@ -45,8 +44,6 @@ public class FetchUserTask extends BukkitRunnable {
         if (nil(user)) {
             cancel();
 
-            LocalDataMgr.transfer(player, true);
-
             if (Config.DEBUG) {
                 main.log("User data " + player.getName() + " not found!");
             }
@@ -88,8 +85,6 @@ public class FetchUserTask extends BukkitRunnable {
                         break;
                 }
             }
-
-            LocalDataMgr.transfer(player);// TODO move to server thread if any exception
 
             manager.addFetched(player, user);
 

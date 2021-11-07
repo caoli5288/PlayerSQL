@@ -3,8 +3,6 @@ plugin:
   delay: 10
   max-db-connection: 8
   omit-player-death: false
-  # Use this option in your own risk. It's MAY BREAK SERVER.
-  use-protocol-locker: false
   use-protocollib-default: false
   disable-filter-network: false
   apply-null-userdata: false
@@ -17,16 +15,11 @@ sync:
   chest: true
   potion: true
 
-transfer-origin: false
-transfer:
-  # Execute while transfer done, by console. %player_name% supported here, multi command split by '\n'
-  extra-notify-command: ''
-
 kick-load-failed: true
 
 message:
   kick_load: Your game data loading error, please contact the operator
 
 bungee:
+  enable: false
   channel_group: 'default'
-  mute: false

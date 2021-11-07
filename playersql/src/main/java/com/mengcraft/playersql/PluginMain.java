@@ -94,23 +94,6 @@ public class PluginMain extends JavaPlugin implements Executor {
 
         db.install();
 
-        if (Config.TRANSFER_ORIGIN) {
-            EbeanHandler b = new EbeanHandler(this);
-            b.setUrl("jdbc:sqlite:" + new File(getDataFolder(), "local_transfer.sqlite"));
-            b.setMaxSize(1);
-            b.setUserName("i7mc");
-            b.setPassword("i7mc");
-
-            b.define(LocalData.class);
-            b.initialize();
-
-            b.install(true);
-
-            LocalDataMgr.INSTANCE.db = b;
-
-            PluginHelper.addExecutor(this, "psqltrans", this::trans);
-        }
-
         UserManager manager = UserManager.INSTANCE;
         manager.setMain(this);
         manager.setDb(db);
@@ -135,10 +118,6 @@ public class PluginMain extends JavaPlugin implements Executor {
 //        getCommand("playersql").setExecutor(new Commands());
 
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "PlayerSQL enabled! Donate me plz. https://www.paypal.me/2732000916/5");
-    }
-
-    public void trans(CommandSender sender, List<String> input) {
-        LocalDataMgr.pick((Player) sender);
     }
 
     @Override

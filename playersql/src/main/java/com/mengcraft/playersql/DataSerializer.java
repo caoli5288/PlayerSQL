@@ -34,7 +34,7 @@ public class DataSerializer {
                     break;
             }
         }
-        System.out.println(String.format("PACKET_DATA_SERIALIZER_FACTORY = %s", PACKET_DATA_SERIALIZER_FACTORY));
+        Bukkit.getLogger().info(String.format("PACKET_DATA_SERIALIZER_FACTORY = %s", PACKET_DATA_SERIALIZER_FACTORY));
     }
 
     @SneakyThrows
