@@ -1,4 +1,4 @@
-main: com.mengcraft.playersql.PeerSupport
+main: com.mengcraft.playersql.bungee.PlayerSqlBungee
 name: PlayerSQLPeerSupport
 version: ${project.version}
 website: http://www.spigotmc.org/resources/playersql.552/

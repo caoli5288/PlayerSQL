@@ -2,11 +2,11 @@ package com.mengcraft.playersql;
 
 //import com.comphenix.protocol.ProtocolLibrary;
 
+import com.github.caoli5288.playersql.bungee.Constants;
 import com.google.common.io.ByteStreams;
 import com.mengcraft.playersql.lib.MetricsLite;
 import com.mengcraft.playersql.lib.SetExpFix;
 import com.mengcraft.playersql.locker.EventLocker;
-import com.mengcraft.playersql.peer.PlayerSqlProtocol;
 import com.mengcraft.simpleorm.EbeanHandler;
 import com.mengcraft.simpleorm.EbeanManager;
 import com.mengcraft.simpleorm.ORM;
@@ -129,8 +129,8 @@ public class PluginMain extends JavaPlugin implements Executor {
         getPluginManager().registerEvents(new EventLocker(), this);
 //        }
 
-        getServer().getMessenger().registerOutgoingPluginChannel(this, PlayerSqlProtocol.NAMESPACE);
-        getServer().getMessenger().registerIncomingPluginChannel(this, PlayerSqlProtocol.NAMESPACE, executor);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, Constants.PLUGIN_CHANNEL);
+        getServer().getMessenger().registerIncomingPluginChannel(this, Constants.PLUGIN_CHANNEL, executor);
 
 //        getCommand("playersql").setExecutor(new Commands());
 
