@@ -1,10 +1,12 @@
 package com.github.caoli5288.playersql.bungee;
 
+import com.github.caoli5288.playersql.bungee.protocol.AbstractSqlPacket;
 import com.github.caoli5288.playersql.bungee.protocol.DataRequest;
 import com.github.caoli5288.playersql.bungee.protocol.DataSupply;
-import com.github.caoli5288.playersql.bungee.protocol.AbstractSqlPacket;
 import com.github.caoli5288.playersql.bungee.protocol.ProtocolId;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.md_5.bungee.UserConnection;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
@@ -66,17 +68,29 @@ public class PlayerSqlBungee extends Plugin implements Listener {
 
     @EventHandler(priority = Byte.MAX_VALUE)
     public void handle(ServerConnectEvent event) {
-        if (event.isCancelled()) {
+        UserConnection conn = (UserConnection) event.getPlayer();
+        UUID id = conn.getUniqueId();
+        ConnectState state = states.get(id);
+        if (state == null) {
             return;
         }
-        UUID id = event.getPlayer().getUniqueId();
-        ConnectState state = states.get(id);
-        if (state != null && state.getContents() == null) {// check contents null to compatible with some balancer
+        if (state.getContents() == null) {// check contents null to compatible with some balancer
             state.setConnect(event.getTarget());
             event.setCancelled(true);
             DataRequest request = new DataRequest();
             request.setId(id);
-            event.getPlayer().getServer().sendData(Constants.PLUGIN_CHANNEL, request.encode());
+            conn.getServer().sendData(Constants.PLUGIN_CHANNEL, request.encode());
+            if (Constants.DEBUG) {
+                getLogger().info(String.format("onConnect(id=%s) cancel event for contents", id));
+            }
+
+        } else if (event.getReason() == ServerConnectEvent.Reason.KICK_REDIRECT) {
+            event.setCancelled(true);
+            conn.setServerJoinQueue(Lists.newLinkedList(conn.getPendingConnection().getListener().getServerPriority()));
+            conn.connect(state.getConnect(), null, true);
+            if (Constants.DEBUG) {
+                getLogger().info(String.format("onConnect(id=%s) KICK_REDIRECT to %s", id, state.getConnect()));
+            }
         }
     }
 
@@ -87,7 +101,6 @@ public class PlayerSqlBungee extends Plugin implements Listener {
         if (state != null && state.getConnect() != null) {// maybe not peers
             event.setCancelled(true);
             event.setCancelServer(state.getConnect());
-
             if (Constants.DEBUG) {
                 getLogger().info(String.format("KICK id=%s, to=%s", p.getUniqueId(), state.getConnect().getName()));
             }
