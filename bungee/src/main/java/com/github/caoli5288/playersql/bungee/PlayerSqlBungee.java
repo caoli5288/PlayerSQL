@@ -87,7 +87,14 @@ public class PlayerSqlBungee extends Plugin implements Listener {
         } else if (event.getReason() == ServerConnectEvent.Reason.KICK_REDIRECT) {
             event.setCancelled(true);
             conn.setServerJoinQueue(Lists.newLinkedList(conn.getPendingConnection().getListener().getServerPriority()));
-            conn.connect(state.getConnect(), null, true);
+            conn.connect(state.getConnect(), (success, e) -> {
+                if (!success) {
+                    states.remove(id);
+                }
+                if (Constants.DEBUG) {
+                    getLogger().info(String.format("connect(id=%s, to=%s) success=%s", id, state.getConnect(), success));
+                }
+            }, true);
             if (Constants.DEBUG) {
                 getLogger().info(String.format("onConnect(id=%s) KICK_REDIRECT to %s", id, state.getConnect()));
             }
